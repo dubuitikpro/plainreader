@@ -823,8 +823,15 @@
     });
 
     // =========================================
-    // Music Player
+    // Music Player (Web Audio API — Ambient Mode)
     // =========================================
+    // Using Web Audio API (AudioContext + GainNode) instead of plain
+    // <audio>.volume so that iOS/Safari treats our audio as "ambient"
+    // and does NOT pause it when the user activates "Nghe trang"
+    // (Speak Page). The AudioContext graph mixes with system audio
+    // rather than claiming an exclusive media session.
+    // =========================================
+
     const audioPlayer = document.getElementById('audioPlayer');
     const musicFileInput = document.getElementById('musicFileInput');
     const btnMusicUpload = document.getElementById('btnMusicUpload');
@@ -847,6 +854,66 @@
     let musicObjectUrl = null;
     let savedVolume = 0.5;
 
+    // --- Web Audio API nodes ---
+    let audioCtx = null;
+    let sourceNode = null;
+    let gainNode = null;
+    let audioCtxInitialized = false;
+
+    /**
+     * Initialize the Web Audio API graph once.
+     * Must be called from a user gesture (click/touch) on iOS.
+     */
+    function initAudioContext() {
+        if (audioCtxInitialized) return;
+
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return; // fallback: plain audio will still work
+
+        audioCtx = new AudioCtx();
+
+        // Create source from <audio> element
+        sourceNode = audioCtx.createMediaElementSource(audioPlayer);
+
+        // GainNode for volume control (replaces audio.volume)
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = savedVolume;
+
+        // Connect: source → gain → destination (speakers)
+        sourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        audioCtxInitialized = true;
+
+        // On iOS, AudioContext starts in "suspended" state.
+        // Resume it on user interaction.
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    /**
+     * Set volume via GainNode (Web Audio API) with fallback
+     */
+    function setVolume(vol) {
+        if (gainNode) {
+            gainNode.gain.value = vol;
+        } else {
+            // Fallback if Web Audio API not available
+            audioPlayer.volume = vol;
+        }
+    }
+
+    /**
+     * Get current effective volume
+     */
+    function getVolume() {
+        if (gainNode) {
+            return gainNode.gain.value;
+        }
+        return audioPlayer.volume;
+    }
+
     // Init volume from localStorage
     (function initVolume() {
         const saved = localStorage.getItem('plainreader-volume');
@@ -854,12 +921,19 @@
             savedVolume = parseFloat(saved);
             volumeSlider.value = Math.round(savedVolume * 100);
         }
-        audioPlayer.volume = savedVolume;
+        // Set audio element volume to 1.0 — GainNode controls actual volume
+        audioPlayer.volume = 1.0;
     })();
 
     // Upload music
-    btnMusicUpload.addEventListener('click', () => musicFileInput.click());
-    btnChangeTrack.addEventListener('click', () => musicFileInput.click());
+    btnMusicUpload.addEventListener('click', () => {
+        initAudioContext(); // Must init from user gesture
+        musicFileInput.click();
+    });
+    btnChangeTrack.addEventListener('click', () => {
+        initAudioContext();
+        musicFileInput.click();
+    });
 
     musicFileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
@@ -868,6 +942,14 @@
     });
 
     function loadAudioFile(file) {
+        // Ensure AudioContext is initialized
+        initAudioContext();
+
+        // Resume AudioContext if suspended (iOS requirement)
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
         // Revoke previous URL
         if (musicObjectUrl) {
             URL.revokeObjectURL(musicObjectUrl);
@@ -875,7 +957,10 @@
 
         musicObjectUrl = URL.createObjectURL(file);
         audioPlayer.src = musicObjectUrl;
-        audioPlayer.volume = savedVolume;
+
+        // Volume is controlled by GainNode, so keep element at 1.0
+        audioPlayer.volume = 1.0;
+        setVolume(savedVolume);
 
         // Display track name (remove extension)
         const name = file.name.replace(/\.[^/.]+$/, '');
@@ -896,6 +981,11 @@
 
     // Play / Pause
     btnPlayPause.addEventListener('click', () => {
+        // Resume AudioContext on user gesture (iOS)
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
         if (audioPlayer.paused) {
             audioPlayer.play();
             updatePlayPauseUI(true);
@@ -944,10 +1034,10 @@
         }
     });
 
-    // Volume
+    // Volume (via GainNode)
     volumeSlider.addEventListener('input', () => {
         const vol = volumeSlider.value / 100;
-        audioPlayer.volume = vol;
+        setVolume(vol);
         savedVolume = vol;
         localStorage.setItem('plainreader-volume', vol);
         updateVolumeIcon(vol > 0);
@@ -955,14 +1045,16 @@
 
     // Mute
     btnMute.addEventListener('click', () => {
-        if (audioPlayer.volume > 0) {
-            savedVolume = audioPlayer.volume;
-            audioPlayer.volume = 0;
+        const currentVol = getVolume();
+        if (currentVol > 0) {
+            savedVolume = currentVol;
+            setVolume(0);
             volumeSlider.value = 0;
             updateVolumeIcon(false);
         } else {
-            audioPlayer.volume = savedVolume || 0.5;
-            volumeSlider.value = Math.round(audioPlayer.volume * 100);
+            const restoreVol = savedVolume || 0.5;
+            setVolume(restoreVol);
+            volumeSlider.value = Math.round(restoreVol * 100);
             updateVolumeIcon(true);
         }
     });
@@ -1000,4 +1092,5 @@
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 })();
+
 
