@@ -823,9 +823,181 @@
     });
 
     // =========================================
+    // Music Player
+    // =========================================
+    const audioPlayer = document.getElementById('audioPlayer');
+    const musicFileInput = document.getElementById('musicFileInput');
+    const btnMusicUpload = document.getElementById('btnMusicUpload');
+    const musicControls = document.getElementById('musicControls');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const iconPlay = document.getElementById('iconPlay');
+    const iconPause = document.getElementById('iconPause');
+    const musicTrackName = document.getElementById('musicTrackName');
+    const musicTime = document.getElementById('musicTime');
+    const musicProgress = document.getElementById('musicProgress');
+    const musicProgressFill = document.getElementById('musicProgressFill');
+    const btnMute = document.getElementById('btnMute');
+    const iconVolumeOn = document.getElementById('iconVolumeOn');
+    const iconVolumeOff = document.getElementById('iconVolumeOff');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const btnChangeTrack = document.getElementById('btnChangeTrack');
+    const btnCloseMusic = document.getElementById('btnCloseMusic');
+    const musicVisualizer = document.getElementById('musicVisualizer');
+
+    let musicObjectUrl = null;
+    let savedVolume = 0.5;
+
+    // Init volume from localStorage
+    (function initVolume() {
+        const saved = localStorage.getItem('plainreader-volume');
+        if (saved !== null) {
+            savedVolume = parseFloat(saved);
+            volumeSlider.value = Math.round(savedVolume * 100);
+        }
+        audioPlayer.volume = savedVolume;
+    })();
+
+    // Upload music
+    btnMusicUpload.addEventListener('click', () => musicFileInput.click());
+    btnChangeTrack.addEventListener('click', () => musicFileInput.click());
+
+    musicFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            loadAudioFile(e.target.files[0]);
+        }
+    });
+
+    function loadAudioFile(file) {
+        // Revoke previous URL
+        if (musicObjectUrl) {
+            URL.revokeObjectURL(musicObjectUrl);
+        }
+
+        musicObjectUrl = URL.createObjectURL(file);
+        audioPlayer.src = musicObjectUrl;
+        audioPlayer.volume = savedVolume;
+
+        // Display track name (remove extension)
+        const name = file.name.replace(/\.[^/.]+$/, '');
+        musicTrackName.textContent = name;
+        musicTrackName.title = name;
+
+        // Show controls, hide upload button
+        btnMusicUpload.style.display = 'none';
+        musicControls.style.display = 'flex';
+
+        // Auto-play
+        audioPlayer.play().then(() => {
+            updatePlayPauseUI(true);
+        }).catch(() => {
+            updatePlayPauseUI(false);
+        });
+    }
+
+    // Play / Pause
+    btnPlayPause.addEventListener('click', () => {
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+            updatePlayPauseUI(true);
+        } else {
+            audioPlayer.pause();
+            updatePlayPauseUI(false);
+        }
+    });
+
+    function updatePlayPauseUI(playing) {
+        if (playing) {
+            iconPlay.style.display = 'none';
+            iconPause.style.display = 'block';
+            musicVisualizer.classList.add('playing');
+        } else {
+            iconPlay.style.display = 'block';
+            iconPause.style.display = 'none';
+            musicVisualizer.classList.remove('playing');
+        }
+    }
+
+    audioPlayer.addEventListener('play', () => updatePlayPauseUI(true));
+    audioPlayer.addEventListener('pause', () => updatePlayPauseUI(false));
+
+    // Time update
+    audioPlayer.addEventListener('timeupdate', () => {
+        if (audioPlayer.duration) {
+            const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            musicProgressFill.style.width = pct + '%';
+            musicTime.textContent = formatTime(audioPlayer.currentTime) + ' / ' + formatTime(audioPlayer.duration);
+        }
+    });
+
+    function formatTime(secs) {
+        const m = Math.floor(secs / 60);
+        const s = Math.floor(secs % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // Seek via progress bar click
+    musicProgress.addEventListener('click', (e) => {
+        if (audioPlayer.duration) {
+            const rect = musicProgress.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audioPlayer.currentTime = pct * audioPlayer.duration;
+        }
+    });
+
+    // Volume
+    volumeSlider.addEventListener('input', () => {
+        const vol = volumeSlider.value / 100;
+        audioPlayer.volume = vol;
+        savedVolume = vol;
+        localStorage.setItem('plainreader-volume', vol);
+        updateVolumeIcon(vol > 0);
+    });
+
+    // Mute
+    btnMute.addEventListener('click', () => {
+        if (audioPlayer.volume > 0) {
+            savedVolume = audioPlayer.volume;
+            audioPlayer.volume = 0;
+            volumeSlider.value = 0;
+            updateVolumeIcon(false);
+        } else {
+            audioPlayer.volume = savedVolume || 0.5;
+            volumeSlider.value = Math.round(audioPlayer.volume * 100);
+            updateVolumeIcon(true);
+        }
+    });
+
+    function updateVolumeIcon(on) {
+        if (on) {
+            iconVolumeOn.style.display = 'block';
+            iconVolumeOff.style.display = 'none';
+        } else {
+            iconVolumeOn.style.display = 'none';
+            iconVolumeOff.style.display = 'block';
+        }
+    }
+
+    // Close music
+    btnCloseMusic.addEventListener('click', () => {
+        audioPlayer.pause();
+        audioPlayer.src = '';
+        if (musicObjectUrl) {
+            URL.revokeObjectURL(musicObjectUrl);
+            musicObjectUrl = null;
+        }
+        musicControls.style.display = 'none';
+        btnMusicUpload.style.display = 'flex';
+        musicProgressFill.style.width = '0%';
+        musicTime.textContent = '0:00';
+        musicVisualizer.classList.remove('playing');
+        musicFileInput.value = '';
+    });
+
+    // =========================================
     // Utility
     // =========================================
     function sleep(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 })();
+
