@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Đọc file EPUB và PDF dưới dạng văn bản thuần túy, cuộn liên tục không lật trang">
+    <title>Trình Đọc EPUB & PDF — Văn Bản Thuần Túy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background animated elements -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="app-header">
+        <div class="header-content">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    <line x1="8" y1="7" x2="16" y2="7"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+                <h1>PlainReader</h1>
+            </div>
+            <div class="header-actions" id="headerActions" style="display:none;">
+                <button id="btnFontDecrease" class="btn-icon" title="Giảm cỡ chữ">A-</button>
+                <span id="fontSizeDisplay" class="font-size-display">18px</span>
+                <button id="btnFontIncrease" class="btn-icon" title="Tăng cỡ chữ">A+</button>
+                <div class="divider-v"></div>
+                <button id="btnThemeToggle" class="btn-icon" title="Đổi giao diện">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                </button>
+                <div class="divider-v"></div>
+                <button id="btnNewFile" class="btn-secondary" title="Mở file khác">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Mở file mới
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Upload Section -->
+    <main id="uploadSection" class="upload-section">
+        <div class="upload-container">
+            <div class="upload-card" id="dropZone">
+                <div class="upload-icon-wrapper">
+                    <svg class="upload-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="8" y="4" width="36" height="48" rx="4" />
+                        <path d="M16 16h20M16 24h16M16 32h20M16 40h12"/>
+                        <circle cx="48" cy="48" r="14" fill="var(--accent)" stroke="none"/>
+                        <path d="M48 42v12M42 48h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h2>Kéo thả file vào đây</h2>
+                <p class="upload-subtitle">hoặc nhấn để chọn file từ máy tính</p>
+                <div class="supported-formats">
+                    <span class="format-badge epub">EPUB</span>
+                    <span class="format-badge pdf">PDF</span>
+                </div>
+                <input type="file" id="fileInput" accept=".epub,.pdf" hidden>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📖</div>
+                    <h3>Văn bản thuần túy</h3>
+                    <p>Hiển thị nội dung liên tục, không lật trang, không chia chương</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Bảo mật</h3>
+                    <p>Xử lý hoàn toàn trên trình duyệt, file không được tải lên server</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Nhanh chóng</h3>
+                    <p>Trích xuất văn bản tức thì, không cần cài đặt phần mềm</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Đang xử lý file...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reader Section -->
+    <main id="readerSection" class="reader-section" style="display:none;">
+        <div class="reader-info-bar">
+            <div class="file-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span id="fileName">document.epub</span>
+            </div>
+            <div class="reading-stats">
+                <span id="wordCount">0 từ</span>
+                <span class="stat-divider">•</span>
+                <span id="charCount">0 ký tự</span>
+            </div>
+        </div>
+        <article id="readerContent" class="reader-content">
+            <!-- Text content will be inserted here -->
+        </article>
+        <button id="scrollTopBtn" class="scroll-top-btn" title="Lên đầu trang" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+                <polyline points="18 15 12 9 6 15"/>
+            </svg>
+        </button>
+    </main>
+
+    <!-- Footer -->
+    <footer id="appFooter">
+        <p>PlainReader — Đọc EPUB & PDF dưới dạng văn bản thuần túy</p>
+    </footer>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
