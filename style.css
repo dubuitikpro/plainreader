@@ -188,10 +188,12 @@ body {
     gap: 10px;
 }
 
-.logo-icon {
-    width: 28px;
-    height: 28px;
-    color: var(--accent);
+.logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .logo h1 {
@@ -559,15 +561,19 @@ body {
     margin-bottom: 20px;
 }
 
-.upload-icon {
-    width: 80px;
-    height: 80px;
-    color: var(--text-muted);
-    transition: color var(--transition-normal);
+.upload-brand-icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 24px;
+    object-fit: cover;
+    box-shadow: 0 8px 30px rgba(91, 76, 219, 0.2);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
-.upload-card:hover .upload-icon {
-    color: var(--accent);
+.upload-card:hover .upload-brand-icon,
+.upload-card.drag-over .upload-brand-icon {
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 16px 40px rgba(91, 76, 219, 0.35);
 }
 
 .upload-card h2 {
