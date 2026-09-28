@@ -546,10 +546,21 @@
             </div>
         `;
 
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+
         // Click to open modal
         card.addEventListener('click', (e) => {
             if (e.target.closest('.book-action-btn')) return;
             openBookModal(book);
+        });
+
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                if (e.target.closest('.book-action-btn')) return;
+                e.preventDefault();
+                openBookModal(book);
+            }
         });
 
         // Wishlist button
@@ -747,6 +758,25 @@
         refreshAllViews();
     });
 
+    // Clicking author in modal initiates a search for that author
+    modalAuthor.addEventListener('click', () => {
+        if (currentModalBook && currentModalBook.author) {
+            const author = currentModalBook.author;
+            closeBookModal();
+            performSearch(author);
+        }
+    });
+
+    // Clicking a subject tag in modal searches for that topic
+    modalSubjects.addEventListener('click', (e) => {
+        const tag = e.target.closest('.subject-tag');
+        if (tag && tag.textContent.trim()) {
+            const subject = tag.textContent.trim();
+            closeBookModal();
+            performSearch(subject);
+        }
+    });
+
     if (modalBtnAudiobook) {
         modalBtnAudiobook.addEventListener('click', async () => {
             if (!currentModalBook) return;
@@ -761,10 +791,21 @@
     // Search
     // =========================================
     async function performSearch(query, page = 1) {
-        if (!query.trim() || isLoading) return;
+        const trimmed = (query || '').trim();
+        if (!trimmed) return;
+        if (isLoading && page > 1) return;
 
-        currentQuery = query.trim();
+        // Dismiss iOS Safari keyboard and sync search input text
+        if (searchInput) {
+            searchInput.value = trimmed;
+            searchInput.blur();
+        }
+
+        currentQuery = trimmed;
         currentPage = page;
+
+        // CRITICAL FIX FOR SAFARI / TABS: Ensure Explore tab is active to display search results
+        switchTab('explore');
 
         if (page === 1) {
             searchResultsGrid.innerHTML = '';
@@ -773,6 +814,7 @@
             if (categoryDetailSection) categoryDetailSection.style.display = 'none';
             recommendationsSection.style.display = 'none';
             loadMoreContainer.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         isLoading = true;
@@ -808,9 +850,34 @@
         }
     }
 
-    btnSearch.addEventListener('click', () => performSearch(searchInput.value));
+    // Search Form submission (fires on iOS keyboard 'Search' key)
+    const searchForm = document.getElementById('searchBox');
+    if (searchForm && searchForm.tagName === 'FORM') {
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (searchInput) searchInput.blur();
+            performSearch(searchInput.value);
+        });
+    }
+
+    btnSearch.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (searchInput) searchInput.blur();
+        performSearch(searchInput.value);
+    });
+
+    btnSearch.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (searchInput) searchInput.blur();
+        performSearch(searchInput.value);
+    }, { passive: false });
+
     searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') performSearch(searchInput.value);
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchInput.blur();
+            performSearch(searchInput.value);
+        }
     });
 
     btnLoadMore.addEventListener('click', () => {
@@ -2008,14 +2075,17 @@
 
         btnToggleVideo.addEventListener('click', () => {
             isVideoMode = !isVideoMode;
+            const playerModal = document.getElementById('audioPlayerModal');
             if (isVideoMode) {
                 if (ytScreen) ytScreen.style.display = 'block';
                 if (coverBox) coverBox.style.display = 'none';
                 if (toggleText) toggleText.textContent = '🎵 Chế độ Audio';
+                if (playerModal) playerModal.classList.add('video-mode-active');
             } else {
                 if (ytScreen) ytScreen.style.display = 'none';
                 if (coverBox) coverBox.style.display = 'block';
                 if (toggleText) toggleText.textContent = '📺 Xem Video';
+                if (playerModal) playerModal.classList.remove('video-mode-active');
             }
         });
     }
@@ -3262,37 +3332,64 @@
         });
     }
 
+    // iOS detection
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOSDevice) {
+        document.body.classList.add('is-ios');
+        const iosHint = document.getElementById('iosVolumeHint');
+        if (iosHint) iosHint.style.display = 'inline-flex';
+    }
+
     // Volume Slider & Mute
     let lastVolume = 1;
+    let hasShownIOSVolumeNotice = false;
+
     if (playerVolumeSlider) {
         playerVolumeSlider.addEventListener('input', () => {
             const val = parseFloat(playerVolumeSlider.value);
-            audioElement.volume = val;
+            // On iOS Safari, audioElement.volume is read-only.
+            // But audioElement.muted CAN be toggled when val === 0.
+            audioElement.muted = (val === 0);
+            try {
+                audioElement.volume = val;
+            } catch (e) {
+                // Ignore read-only assignment on iOS
+            }
             if (ytPlayer && ytPlayer.setVolume) {
                 ytPlayer.setVolume(val * 100);
             }
             updateVolumeIcon(val);
+
+            if (isIOSDevice && currentAudioType !== 'youtube' && !hasShownIOSVolumeNotice) {
+                hasShownIOSVolumeNotice = true;
+                showToast('💡 Trên iPhone: Dùng phím âm lượng bên cạnh máy để tăng giảm âm thanh');
+            }
         });
     }
 
     if (btnPlayerMute) {
         btnPlayerMute.addEventListener('click', () => {
             const isYt = currentAudioType === 'youtube';
-            if (audioElement.volume > 0 || (isYt && ytPlayer && !ytPlayer.isMuted())) {
-                lastVolume = audioElement.volume || 1;
-                audioElement.volume = 0;
+            const isCurrentlyMuted = audioElement.muted || audioElement.volume === 0 || (isYt && ytPlayer && ytPlayer.isMuted && ytPlayer.isMuted());
+            if (!isCurrentlyMuted) {
+                lastVolume = audioElement.volume > 0 ? audioElement.volume : (lastVolume || 1);
+                audioElement.muted = true;
+                try { audioElement.volume = 0; } catch (e) {}
                 if (ytPlayer && ytPlayer.mute) ytPlayer.mute();
                 if (playerVolumeSlider) playerVolumeSlider.value = 0;
                 updateVolumeIcon(0);
+                showToast('🔇 Đã tắt tiếng');
             } else {
-                const restoreVol = lastVolume || 1;
-                audioElement.volume = restoreVol;
+                const restoreVol = lastVolume > 0 ? lastVolume : 1;
+                audioElement.muted = false;
+                try { audioElement.volume = restoreVol; } catch (e) {}
                 if (ytPlayer && ytPlayer.unMute) {
                     ytPlayer.unMute();
                     ytPlayer.setVolume(restoreVol * 100);
                 }
                 if (playerVolumeSlider) playerVolumeSlider.value = restoreVol;
                 updateVolumeIcon(restoreVol);
+                showToast('🔊 Đã bật tiếng');
             }
         });
     }
@@ -3868,7 +3965,8 @@
         if (saved && saved.identifier) {
             // Restore volume & speed
             if (typeof saved.volume === 'number') {
-                audioElement.volume = saved.volume;
+                audioElement.muted = (saved.volume === 0);
+                try { audioElement.volume = saved.volume; } catch (e) {}
                 if (playerVolumeSlider) playerVolumeSlider.value = saved.volume;
                 updateVolumeIcon(saved.volume);
             }

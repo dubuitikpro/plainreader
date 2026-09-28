@@ -444,6 +444,18 @@ a { color: inherit; text-decoration: none; }
     letter-spacing: -0.01em;
 }
 
+.section-title[data-cat] {
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(108, 92, 231, 0.2);
+    transition: color var(--transition-fast);
+}
+
+.section-title[data-cat]:hover {
+    color: var(--accent);
+}
+
 .section-title svg {
     color: var(--accent);
     flex-shrink: 0;
@@ -940,10 +952,13 @@ a { color: inherit; text-decoration: none; }
     z-index: 200;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
     animation: fadeIn 0.2s ease;
 }
 
@@ -955,7 +970,10 @@ a { color: inherit; text-decoration: none; }
     max-width: 960px;
     width: 100%;
     max-height: 90vh;
+    max-height: 90dvh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(108, 92, 231, 0.1);
     animation: modalSlideUp 0.3s ease;
 }
@@ -1059,6 +1077,14 @@ a { color: inherit; text-decoration: none; }
     font-size: 0.9rem;
     color: var(--text-secondary);
     margin-bottom: 16px;
+    cursor: pointer;
+    display: inline-block;
+    transition: color var(--transition-fast);
+}
+
+.modal-author:hover {
+    color: var(--accent);
+    text-decoration: underline;
 }
 
 .modal-meta {
@@ -1088,12 +1114,21 @@ a { color: inherit; text-decoration: none; }
 }
 
 .subject-tag {
-    padding: 3px 10px;
+    padding: 4px 10px;
     border-radius: 12px;
     background: var(--accent-soft);
     color: var(--accent);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 500;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all var(--transition-fast);
+}
+
+.subject-tag:hover {
+    background: var(--accent);
+    color: #fff;
+    transform: translateY(-1px);
 }
 
 .modal-desc-wrapper {
@@ -1998,14 +2033,16 @@ a { color: inherit; text-decoration: none; }
 .audio-player-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(4, 4, 10, 0.82);
+    background: rgba(4, 4, 10, 0.85);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     z-index: 1200;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
     animation: fadeIn 0.25s ease-out;
 }
 
@@ -2017,10 +2054,13 @@ a { color: inherit; text-decoration: none; }
     width: 100%;
     max-width: 1020px;
     max-height: 90vh;
+    max-height: 90dvh;
     display: flex;
     gap: 28px;
     padding: 28px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     position: relative;
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -2420,16 +2460,43 @@ a { color: inherit; text-decoration: none; }
     border-radius: 2px;
     outline: none;
     cursor: pointer;
+    touch-action: manipulation;
 }
 
 .player-vol-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: #00cec9;
     cursor: pointer;
     box-shadow: 0 0 6px #00cec9;
+}
+
+/* iOS Volume Indicator Badge */
+.ios-volume-hint {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #00cec9;
+    background: rgba(0, 206, 201, 0.12);
+    border: 1px solid rgba(0, 206, 201, 0.3);
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    user-select: none;
+    letter-spacing: 0.02em;
+}
+
+/* On iOS, hide the inert volume slider since WebKit intentionally disables JavaScript volume control */
+.is-ios .player-vol-slider {
+    display: none !important;
+}
+
+.is-ios .ios-volume-hint {
+    display: inline-flex !important;
 }
 
 .player-timer-dropdown {
@@ -3095,11 +3162,19 @@ a { color: inherit; text-decoration: none; }
 
 /* Responsive Audio Player */
 @media (max-width: 860px) {
+    .audio-player-overlay {
+        padding: 12px;
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
     .audio-player-dialog {
         flex-direction: column;
-        padding: 20px;
-        gap: 20px;
+        padding: 20px 16px;
+        gap: 16px;
         max-height: 94vh;
+        max-height: 94dvh;
+        border-radius: 20px;
     }
 
     .player-left-col {
@@ -3109,13 +3184,23 @@ a { color: inherit; text-decoration: none; }
         align-items: center;
     }
 
-    .player-cover-box {
-        width: 100px;
+    .player-media-wrap {
+        width: 95px;
+        height: 135px;
         flex-shrink: 0;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .player-cover-box {
+        width: 100%;
+        height: 100%;
     }
 
     .player-book-cover {
-        height: 130px;
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
     }
 
     .player-cover-badge {
@@ -3123,33 +3208,141 @@ a { color: inherit; text-decoration: none; }
     }
 
     .player-left-details {
+        flex: 1;
+        min-width: 0;
         margin-top: 0;
+    }
+
+    .player-book-title {
+        font-size: 1.15rem;
+    }
+
+    .player-book-author {
+        font-size: 0.85rem;
+    }
+
+    /* When video mode is active on mobile, switch to full-width 16:9 player */
+    .audio-player-dialog.video-mode-active .player-left-col {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .audio-player-dialog.video-mode-active .player-media-wrap {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        max-height: 220px;
+    }
+
+    .audio-player-dialog.video-mode-active .player-youtube-screen {
+        width: 100%;
+        height: 100%;
     }
 }
 
 @media (max-width: 580px) {
+    .audio-player-overlay {
+        padding: 8px;
+        padding-top: max(8px, env(safe-area-inset-top));
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+        align-items: flex-end;
+    }
+
+    .audio-player-dialog {
+        padding: 16px 12px;
+        gap: 12px;
+        max-height: 92vh;
+        max-height: 92dvh;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .player-top-bar {
+        gap: 6px;
+        padding-bottom: 8px;
+    }
+
+    .player-source-tag {
+        font-size: 0.68rem;
+        padding: 3px 8px;
+    }
+
+    .player-now-playing-pill {
+        font-size: 0.68rem;
+        padding: 3px 8px;
+    }
+
+    .player-track-info-header {
+        min-width: 80px;
+    }
+
+    .player-top-actions {
+        gap: 4px;
+    }
+
+    .player-header-btn {
+        padding: 5px 8px;
+        font-size: 0.72rem;
+    }
+
+    #btnPlayerBookmark span {
+        display: none; /* Icon only on mobile to save space */
+    }
+
+    .player-main-controls {
+        gap: 10px;
+    }
+
+    .player-ctrl-btn.ctrl-seek {
+        width: 38px;
+        height: 38px;
+    }
+
+    .player-ctrl-btn.ctrl-step {
+        width: 40px;
+        height: 40px;
+    }
+
+    .player-ctrl-btn.ctrl-play-main {
+        width: 52px;
+        height: 52px;
+    }
+
+    .player-sub-controls {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 4px;
+    }
+
+    .player-volume-group {
+        gap: 6px;
+    }
+
+    .player-vol-slider {
+        width: 60px;
+    }
+
     .mini-audio-player {
-        bottom: 12px;
-        right: 12px;
-        left: 12px;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        right: 10px;
+        left: 10px;
         width: auto;
         max-width: none;
     }
 
     .audio-hero-card {
-        padding: 24px 18px;
+        padding: 20px 14px;
     }
 
     .audio-hero-title {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
     }
 
-    .player-main-controls {
-        gap: 14px;
-    }
-
-    .player-sub-controls {
-        flex-wrap: wrap;
+    .player-scrubber-row {
         gap: 10px;
+    }
+
+    .player-time-display {
+        font-size: 0.72rem;
+        min-width: 36px;
     }
 }

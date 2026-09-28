@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=3.8">
+    <link rel="stylesheet" href="catalog.css?v=4.0">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -54,19 +54,19 @@
         <div class="hero-content">
             <h2 class="hero-title">Khám phá thế giới sách</h2>
             <p class="hero-subtitle">Tìm kiếm hàng triệu cuốn sách từ Open Library</p>
-            <div class="search-box" id="searchBox">
+            <form class="search-box" id="searchBox" action="javascript:void(0);" method="post" role="search">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                     <circle cx="11" cy="11" r="8"/>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Tìm theo tên sách, tác giả, chủ đề..." autocomplete="off">
-                <button id="btnSearch" class="search-btn" title="Tìm kiếm">
+                <input type="search" id="searchInput" enterkeyhint="search" placeholder="Tìm theo tên sách, tác giả, chủ đề..." autocomplete="off">
+                <button type="submit" id="btnSearch" class="search-btn" title="Tìm kiếm">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                         <polyline points="12 5 19 12 12 19"/>
                     </svg>
                 </button>
-            </div>
+            </form>
             <div class="quick-tags" id="quickTags">
                 <button class="quick-tag" data-cat="trending-daily">🔥 Phổ biến hôm nay</button>
                 <button class="quick-tag" data-cat="trending-weekly">⭐ Thịnh hành tuần</button>
@@ -549,7 +549,7 @@
                 <!-- Sub Controls: Volume, Timer, Speed -->
                 <div class="player-sub-controls">
                     <!-- Volume Group -->
-                    <div class="player-volume-group">
+                    <div class="player-volume-group" id="playerVolumeGroup">
                         <button class="player-sub-btn" id="btnPlayerMute" title="Bật/Tắt âm">
                             <svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -557,6 +557,7 @@
                             </svg>
                         </button>
                         <input type="range" id="playerVolumeSlider" min="0" max="1" step="0.05" value="1" class="player-vol-slider" aria-label="Âm lượng">
+                        <span class="ios-volume-hint" id="iosVolumeHint" style="display:none;" title="Dùng nút bấm vật lý trên iPhone để tăng giảm âm lượng">Phím iPhone</span>
                     </div>
 
                     <!-- Sleep Timer -->
@@ -700,6 +701,6 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="catalog.js?v=3.8"></script>
+    <script src="catalog.js?v=4.0"></script>
 </body>
 </html>
