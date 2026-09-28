@@ -643,7 +643,25 @@ a { color: inherit; text-decoration: none; }
 .book-year {
     font-size: 0.68rem;
     color: var(--text-muted);
+}
+
+.book-meta-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
     margin-top: 4px;
+}
+
+.book-rating {
+    font-size: 0.68rem;
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.book-pages {
+    font-size: 0.68rem;
+    color: var(--text-muted);
 }
 
 /* ========================================
@@ -832,6 +850,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 4px 10px;
     border-radius: 6px;
     background: var(--bg-card);
@@ -842,6 +863,13 @@ a { color: inherit; text-decoration: none; }
 }
 
 .meta-badge:empty { display: none; }
+
+.meta-badge.badge-rating {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+    font-weight: 600;
+}
 
 .modal-subjects {
     display: flex;
@@ -859,11 +887,20 @@ a { color: inherit; text-decoration: none; }
     font-weight: 500;
 }
 
+.modal-desc-heading {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
 .modal-description {
     font-size: 0.88rem;
     line-height: 1.7;
     color: var(--text-secondary);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     max-height: 200px;
     overflow-y: auto;
 }
@@ -900,6 +937,53 @@ a { color: inherit; text-decoration: none; }
     color: var(--text-primary);
     background: var(--bg-card-hover);
 }
+
+.ol-link-btn {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.ol-link-btn:hover {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+}
+
+.modal-store-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+}
+
+.store-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.store-btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+}
+
+.store-btn-fahasa:hover { border-color: #e53935; color: #e53935; background: rgba(229, 57, 53, 0.1); }
+.store-btn-tiki:hover { border-color: #0d5cb6; color: #0d5cb6; background: rgba(13, 92, 182, 0.1); }
+.store-btn-nhanam:hover { border-color: #2e7d32; color: #2e7d32; background: rgba(46, 125, 50, 0.1); }
 
 .wishlist-btn.active {
     background: var(--wishlist-soft);

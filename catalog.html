@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=2.0">
+    <link rel="stylesheet" href="catalog.css?v=2.3">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -218,10 +218,26 @@
                 <div class="modal-info">
                     <h2 id="modalTitle" class="modal-title"></h2>
                     <p id="modalAuthor" class="modal-author"></p>
-                    <div class="modal-meta">
-                        <span id="modalYear" class="meta-badge"></span>
+
+                    <!-- Rich metadata from Open Library / Database -->
+                    <div class="modal-meta" id="modalMeta">
+                        <span id="modalYear" class="meta-badge" style="display:none;"></span>
+                        <span id="modalPublisher" class="meta-badge" style="display:none;"></span>
+                        <span id="modalPages" class="meta-badge" style="display:none;"></span>
+                        <span id="modalLanguage" class="meta-badge" style="display:none;"></span>
+                        <span id="modalEditions" class="meta-badge" style="display:none;"></span>
+                        <span id="modalRating" class="meta-badge badge-rating" style="display:none;"></span>
+                        <span id="modalISBN" class="meta-badge" style="display:none;"></span>
                     </div>
+
+                    <!-- Subjects / Topics / Categories -->
+                    <div class="modal-subjects" id="modalSubjects" style="display:none;"></div>
+
+                    <!-- Book Description -->
+                    <div class="modal-desc-heading">Tóm tắt & Giới thiệu:</div>
                     <p id="modalDescription" class="modal-description"></p>
+
+                    <!-- Modal Actions & Links -->
                     <div class="modal-actions">
                         <button id="modalBtnWishlist" class="modal-action-btn wishlist-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
@@ -234,6 +250,15 @@
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
                             <span>Ưa thích</span>
+                        </button>
+                        <a id="modalBtnOpenLibrary" class="modal-action-btn ol-link-btn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                            <span>Xem trên Open Library ↗</span>
+                        </a>
+                        <div id="modalStoreLinks" class="modal-store-links" style="display:none;"></div>
                     </div>
                 </div>
             </div>
@@ -250,7 +275,7 @@
         <p>PlainReader — Thư viện & bộ sưu tập sách cá nhân</p>
     </footer>
 
-    <script src="vietnamese-books-data.js?v=2.2"></script>
-    <script src="catalog.js?v=2.2"></script>
+    <script src="vietnamese-books-data.js?v=2.3"></script>
+    <script src="catalog.js?v=2.3"></script>
 </body>
 </html>

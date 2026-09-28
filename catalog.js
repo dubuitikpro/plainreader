@@ -81,9 +81,18 @@
     const modalTitle = document.getElementById('modalTitle');
     const modalAuthor = document.getElementById('modalAuthor');
     const modalYear = document.getElementById('modalYear');
+    const modalPublisher = document.getElementById('modalPublisher');
+    const modalPages = document.getElementById('modalPages');
+    const modalLanguage = document.getElementById('modalLanguage');
+    const modalEditions = document.getElementById('modalEditions');
+    const modalRating = document.getElementById('modalRating');
+    const modalISBN = document.getElementById('modalISBN');
+    const modalSubjects = document.getElementById('modalSubjects');
     const modalDescription = document.getElementById('modalDescription');
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
     const modalBtnFavorite = document.getElementById('modalBtnFavorite');
+    const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
+    const modalStoreLinks = document.getElementById('modalStoreLinks');
 
     // Toast
     const toast = document.getElementById('toast');
@@ -186,6 +195,29 @@
     }
 
     // =========================================
+    // Language Formatter
+    // =========================================
+    function formatLanguageName(code) {
+        if (!code) return '';
+        const map = {
+            vie: 'Tiếng Việt',
+            eng: 'Tiếng Anh',
+            fre: 'Tiếng Pháp',
+            fra: 'Tiếng Pháp',
+            ger: 'Tiếng Đức',
+            deu: 'Tiếng Đức',
+            spa: 'Tiếng Tây Ban Nha',
+            ita: 'Tiếng Ý',
+            rus: 'Tiếng Nga',
+            chi: 'Tiếng Trung',
+            zho: 'Tiếng Trung',
+            jpn: 'Tiếng Nhật',
+            kor: 'Tiếng Hàn'
+        };
+        return map[code.toLowerCase()] || code.toUpperCase();
+    }
+
+    // =========================================
     // Book Normalizer
     // =========================================
     function normalizeBook(raw) {
@@ -196,11 +228,25 @@
             title: raw.title || 'Chưa đặt tên',
             author: raw.author || 'Tác giả',
             year: raw.year ? String(raw.year) : '',
+            publisher: raw.publisher || '',
+            pages: raw.pages || null,
+            price: raw.price || '',
+            language: raw.language || 'Tiếng Việt',
+            category: raw.category || '',
+            categoryLabel: raw.categoryLabel || '',
             description: raw.description || '',
             coverUrl: raw.cover || null,
             gradient: raw.gradient || getRandomGradient(raw.title || 'book'),
-            category: raw.category || '',
             isTrending: !!raw.isTrending,
+            nhaNamUrl: raw.nhaNamUrl || '',
+            fahasaUrl: raw.fahasaUrl || '',
+            tikiUrl: raw.tikiUrl || '',
+            isbn: raw.isbn || '',
+            workKey: raw.workKey || '',
+            subjects: raw.categoryLabel ? [raw.categoryLabel] : (raw.category ? [raw.category] : []),
+            rating: raw.rating || null,
+            ratingCount: raw.ratingCount || 0,
+            editionCount: raw.editionCount || null
         };
     }
 
@@ -217,14 +263,14 @@
     // =========================================
     async function searchOpenLibrary(query, signal) {
         try {
-            const url = `${OL_SEARCH_URL}?q=${encodeURIComponent(query)}&limit=15`;
+            const url = `${OL_SEARCH_URL}?q=${encodeURIComponent(query)}&fields=key,title,author_name,first_publish_year,cover_i,isbn,publisher,number_of_pages_median,subject,language,edition_count,ratings_average,ratings_count,publish_date&limit=15`;
             const resp = await fetch(url, { signal });
             if (!resp.ok) return [];
             const data = await resp.json();
             return (data.docs || []).map(doc => {
                 const title = doc.title || 'Chưa đặt tên';
                 const author = doc.author_name ? doc.author_name.join(', ') : 'Tác giả';
-                const year = doc.first_publish_year ? String(doc.first_publish_year) : '';
+                const year = doc.first_publish_year ? String(doc.first_publish_year) : (doc.publish_date && doc.publish_date.length > 0 ? String(doc.publish_date[0]) : '');
                 const workKey = doc.key || '';
 
                 let coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null;
@@ -243,6 +289,15 @@
                     }
                 }
 
+                const publisher = doc.publisher && doc.publisher.length > 0 ? doc.publisher.slice(0, 3).join(', ') : '';
+                const pages = doc.number_of_pages_median || null;
+                const languages = doc.language && doc.language.length > 0 ? doc.language.slice(0, 3).map(formatLanguageName).join(', ') : '';
+                const isbn = doc.isbn && doc.isbn.length > 0 ? doc.isbn[0] : '';
+                const editionCount = doc.edition_count || null;
+                const rating = doc.ratings_average ? Number(doc.ratings_average).toFixed(1) : null;
+                const ratingCount = doc.ratings_count || 0;
+                const subjects = doc.subject && Array.isArray(doc.subject) ? doc.subject.slice(0, 8) : [];
+
                 return {
                     id: 'ol-' + (workKey.replace(/\//g, '-') || Math.random().toString(36).slice(2)),
                     key: 'ol-' + (workKey.replace(/\//g, '-') || Math.random().toString(36).slice(2)),
@@ -250,11 +305,19 @@
                     title: title,
                     author: author,
                     year: year,
+                    publisher: publisher,
+                    pages: pages,
+                    language: languages,
+                    isbn: isbn,
+                    editionCount: editionCount,
+                    rating: rating,
+                    ratingCount: ratingCount,
+                    subjects: subjects,
                     description: '', // Loaded on demand in modal
                     coverUrl: coverUrl,
                     gradient: getRandomGradient(title),
                     isFromOpenLibrary: true,
-                    needsWebCover: !coverUrl // Cần tìm ảnh bìa trên mạng
+                    needsWebCover: !coverUrl
                 };
             });
         } catch (err) {
@@ -305,7 +368,10 @@
             <div class="book-info">
                 <div class="book-title" title="${escapeHtml(book.title)}">${escapeHtml(book.title)}</div>
                 <div class="book-author" title="${escapeHtml(book.author)}">${escapeHtml(book.author)}</div>
-                ${book.year ? `<div class="book-year">${escapeHtml(book.year)}</div>` : ''}
+                <div class="book-meta-line">
+                    ${book.year ? `<span class="book-year">${escapeHtml(book.year)}</span>` : '<span></span>'}
+                    ${book.rating ? `<span class="book-rating">★ ${book.rating}</span>` : (book.pages ? `<span class="book-pages">${book.pages} tr</span>` : '')}
+                </div>
             </div>
         `;
 
@@ -400,6 +466,115 @@
     }
 
     // =========================================
+    // Book Detail Modal Helpers
+    // =========================================
+    function renderModalBadges(book) {
+        // Năm phát hành
+        if (book.year) {
+            modalYear.textContent = `Năm: ${book.year}`;
+            modalYear.style.display = 'inline-flex';
+        } else {
+            modalYear.style.display = 'none';
+        }
+
+        // Nhà xuất bản
+        if (book.publisher) {
+            modalPublisher.textContent = `NXB: ${book.publisher}`;
+            modalPublisher.style.display = 'inline-flex';
+        } else {
+            modalPublisher.style.display = 'none';
+        }
+
+        // Số trang
+        if (book.pages) {
+            modalPages.textContent = `${book.pages} trang`;
+            modalPages.style.display = 'inline-flex';
+        } else {
+            modalPages.style.display = 'none';
+        }
+
+        // Ngôn ngữ
+        if (book.language) {
+            modalLanguage.textContent = `${book.language}`;
+            modalLanguage.style.display = 'inline-flex';
+        } else {
+            modalLanguage.style.display = 'none';
+        }
+
+        // Phiên bản phát hành
+        if (book.editionCount) {
+            modalEditions.textContent = `${book.editionCount} ấn bản`;
+            modalEditions.style.display = 'inline-flex';
+        } else {
+            modalEditions.style.display = 'none';
+        }
+
+        // Điểm đánh giá
+        if (book.rating) {
+            modalRating.textContent = `★ ${book.rating} / 5${book.ratingCount ? ' (' + book.ratingCount + ' đánh giá)' : ''}`;
+            modalRating.style.display = 'inline-flex';
+        } else {
+            modalRating.style.display = 'none';
+        }
+
+        // Mã ISBN
+        if (book.isbn) {
+            modalISBN.textContent = `ISBN: ${book.isbn}`;
+            modalISBN.style.display = 'inline-flex';
+        } else {
+            modalISBN.style.display = 'none';
+        }
+    }
+
+    function renderModalSubjects(book) {
+        modalSubjects.innerHTML = '';
+        if (book.subjects && book.subjects.length > 0) {
+            book.subjects.forEach(subj => {
+                const tag = document.createElement('span');
+                tag.className = 'subject-tag';
+                tag.textContent = subj;
+                modalSubjects.appendChild(tag);
+            });
+            modalSubjects.style.display = 'flex';
+        } else {
+            modalSubjects.style.display = 'none';
+        }
+    }
+
+    function renderModalLinks(book) {
+        // Nút xem trực tiếp trên Open Library
+        if (book.workKey) {
+            modalBtnOpenLibrary.href = `https://openlibrary.org${book.workKey}`;
+            modalBtnOpenLibrary.style.display = 'inline-flex';
+        } else {
+            modalBtnOpenLibrary.href = `https://openlibrary.org/search?q=${encodeURIComponent(book.title)}`;
+            modalBtnOpenLibrary.style.display = 'inline-flex';
+        }
+
+        // Các nút liên kết mua sách Việt Nam (Fahasa, Tiki, Nhã Nam)
+        modalStoreLinks.innerHTML = '';
+        const stores = [];
+        if (book.fahasaUrl) stores.push({ name: 'Fahasa', url: book.fahasaUrl, cls: 'store-btn-fahasa' });
+        if (book.tikiUrl) stores.push({ name: 'Tiki', url: book.tikiUrl, cls: 'store-btn-tiki' });
+        if (book.nhaNamUrl) stores.push({ name: 'Nhã Nam', url: book.nhaNamUrl, cls: 'store-btn-nhanam' });
+
+        if (stores.length > 0) {
+            stores.forEach(s => {
+                const a = document.createElement('a');
+                a.className = `store-btn ${s.cls}`;
+                a.href = s.url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.innerHTML = `<span>Mua tại ${s.name} ↗</span>`;
+                modalStoreLinks.appendChild(a);
+            });
+            modalStoreLinks.style.display = 'flex';
+        } else {
+            modalStoreLinks.style.display = 'none';
+        }
+    }
+
+    // =========================================
     // Book Detail Modal
     // =========================================
     function openBookModal(book) {
@@ -428,8 +603,14 @@
         modalTitle.textContent = book.title;
         modalAuthor.textContent = book.author || 'Tác giả';
 
-        // Năm phát hành (nếu có)
-        modalYear.textContent = book.year ? `Năm phát hành: ${book.year}` : '';
+        // Render toàn bộ huy hiệu thông tin (Năm, NXB, Trang, Ngôn ngữ, Ấn bản, Đánh giá, ISBN)
+        renderModalBadges(book);
+
+        // Render thể loại & chủ đề
+        renderModalSubjects(book);
+
+        // Render nút Open Library & Store links
+        renderModalLinks(book);
 
         // Mô tả cuốn sách
         if (book.description) {
@@ -449,6 +630,12 @@
                         desc = `Tác phẩm của tác giả ${book.author}${book.year ? ', xuất bản năm ' + book.year : ''}. Hiện chưa có bản tóm tắt nội dung chi tiết trên Open Library.`;
                     }
                     book.description = desc;
+                    if (data.subjects && (!book.subjects || book.subjects.length <= 1)) {
+                        book.subjects = [...(book.subjects || []), ...data.subjects.slice(0, 8)];
+                        if (currentModalBook && currentModalBook.key === book.key) {
+                            renderModalSubjects(book);
+                        }
+                    }
                     if (currentModalBook && currentModalBook.key === book.key) {
                         modalDescription.textContent = desc;
                     }
@@ -462,6 +649,37 @@
                 });
         } else {
             modalDescription.textContent = 'Không có mô tả chi tiết.';
+        }
+
+        // Tự động kết nối Open Library để làm giàu thêm thông tin nếu chưa có (ví dụ: sách tuyển chọn)
+        if (!book.isFromOpenLibrary && !book._enrichedFromOL) {
+            book._enrichedFromOL = true;
+            const olQuery = book.author ? `${book.title} ${book.author}` : book.title;
+            fetch(`${OL_SEARCH_URL}?q=${encodeURIComponent(olQuery)}&fields=key,number_of_pages_median,subject,ratings_average,ratings_count,edition_count,publisher,isbn&limit=1`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.docs && d.docs.length > 0) {
+                        const doc = d.docs[0];
+                        if (!book.workKey && doc.key) book.workKey = doc.key;
+                        if (!book.pages && doc.number_of_pages_median) book.pages = doc.number_of_pages_median;
+                        if (!book.rating && doc.ratings_average) {
+                            book.rating = Number(doc.ratings_average).toFixed(1);
+                            book.ratingCount = doc.ratings_count || 0;
+                        }
+                        if (!book.editionCount && doc.edition_count) book.editionCount = doc.edition_count;
+                        if (!book.isbn && doc.isbn && doc.isbn[0]) book.isbn = doc.isbn[0];
+                        if (doc.subject && Array.isArray(doc.subject)) {
+                            const newSubs = doc.subject.slice(0, 6);
+                            book.subjects = Array.from(new Set([...(book.subjects || []), ...newSubs]));
+                        }
+                        if (currentModalBook && currentModalBook.key === book.key) {
+                            renderModalBadges(book);
+                            renderModalSubjects(book);
+                            renderModalLinks(book);
+                        }
+                    }
+                })
+                .catch(() => {});
         }
 
         updateModalActions();
