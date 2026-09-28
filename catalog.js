@@ -20,6 +20,10 @@
     const STORAGE_WISHLIST = 'plainreader-wishlist';
     const STORAGE_FAVORITES = 'plainreader-favorites';
     const STORAGE_THEME = 'plainreader-theme';
+    const STORAGE_AUDIO_PROGRESS = 'plainreader-audio-progress';
+    const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
+    const STORAGE_AUDIO_LAST_PLAYED = 'plainreader-audio-last-played';
+    const STORAGE_AUDIO_STATE = 'plainreader-audio-state';
     const PAGE_SIZE = 20;
 
     // =========================================
@@ -128,6 +132,15 @@
     const playerTrackCounter = document.getElementById('playerTrackCounter');
     const playerTrackTitle = document.getElementById('playerTrackTitle');
     const btnPlayerBookmark = document.getElementById('btnPlayerBookmark');
+    const tabChaptersBtn = document.getElementById('tabChaptersBtn');
+    const tabBookmarksBtn = document.getElementById('tabBookmarksBtn');
+    const playerBookmarksContainer = document.getElementById('playerBookmarksContainer');
+    const playerBookmarksList = document.getElementById('playerBookmarksList');
+    const playerBookmarksCount = document.getElementById('playerBookmarksCount');
+    const btnAddBookmarkNow = document.getElementById('btnAddBookmarkNow');
+    const bookmarkNowTimePreview = document.getElementById('bookmarkNowTimePreview');
+    const playlistHintText = document.getElementById('playlistHintText');
+    const audioContinueSection = document.getElementById('audioContinueSection');
     const btnPlayerMinimize = document.getElementById('btnPlayerMinimize');
     const btnPlayerClose = document.getElementById('btnPlayerClose');
     const playerCurrentTime = document.getElementById('playerCurrentTime');
@@ -179,16 +192,37 @@
     // =========================================
     // Storage Helpers
     // =========================================
-    function loadFromStorage(key) {
+    function loadFromStorage(key, defaultVal = []) {
         try {
-            return JSON.parse(localStorage.getItem(key)) || [];
+            const val = localStorage.getItem(key);
+            if (val === null || val === undefined) return defaultVal;
+            return JSON.parse(val);
         } catch {
-            return [];
+            return defaultVal;
         }
     }
 
     function saveToStorage(key, data) {
-        localStorage.setItem(key, JSON.stringify(data));
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+        } catch (e) {
+            console.warn('Storage save failed:', e);
+        }
+    }
+
+    function formatRelativeDate(ts) {
+        if (!ts) return '';
+        const now = Date.now();
+        const diff = Math.floor((now - ts) / 1000);
+        if (diff < 60) return 'Vừa xong';
+        if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+        const d = new Date(ts);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const hours = d.getHours().toString().padStart(2, '0');
+        const mins = d.getMinutes().toString().padStart(2, '0');
+        return `${day}/${month} ${hours}:${mins}`;
     }
 
     function isInWishlist(bookKey) {
@@ -1366,9 +1400,6 @@
     // =========================================
     // Curated Audiobooks (Internet Archive)
     // =========================================
-    const STORAGE_AUDIO_STATE = 'plainreader-audio-state';
-    const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
-
     const CURATED_AUDIOBOOKS = [
         {
             identifier: 'cha-giau-cha-ngheo',
@@ -1716,9 +1747,92 @@
     // Audio Tab Initialization & Rendering
     // =========================================
     function initAudiobooksTab() {
+        renderAudioContinueSection();
         if (isAudiobookTabLoaded) return;
         isAudiobookTabLoaded = true;
         renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+    }
+
+    function renderAudioContinueSection() {
+        const section = document.getElementById('audioContinueSection');
+        if (!section) return;
+
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const lastPlayedId = loadFromStorage(STORAGE_AUDIO_LAST_PLAYED, null);
+
+        if (!lastPlayedId || !progressMap[lastPlayedId]) {
+            section.style.display = 'none';
+            return;
+        }
+
+        const p = progressMap[lastPlayedId];
+        if (!p.currentTime || p.currentTime < 3) {
+            section.style.display = 'none';
+            return;
+        }
+
+        const pct = p.percent || 0;
+        const curStr = formatTime(p.currentTime);
+        const durStr = p.duration ? formatTime(p.duration) : '--:--';
+
+        section.style.display = 'block';
+        section.innerHTML = `
+            <div class="audio-continue-card">
+                <div class="continue-left">
+                    <div class="continue-thumb-wrap">
+                        <img class="continue-thumb" src="${p.cover || 'https://archive.org/images/archive_logo.png'}" alt="${escapeHtml(p.title)}" onerror="this.src='https://archive.org/images/archive_logo.png'">
+                        <div class="continue-badge-play">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                <polygon points="6 3 20 12 6 21 6 3"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="continue-info">
+                        <div class="continue-tag">
+                            <span class="continue-pulse"></span>
+                            <span>🎧 Đang nghe dở</span>
+                        </div>
+                        <h4 class="continue-title" title="${escapeHtml(p.title)}">${escapeHtml(p.title)}</h4>
+                        <div class="continue-sub">
+                            <span class="continue-chapter">${escapeHtml(p.trackTitle || ('Chương ' + ((p.trackIndex || 0) + 1)))}</span>
+                            <span class="continue-sep">•</span>
+                            <span class="continue-time">${curStr} / ${durStr} (${pct}%)</span>
+                        </div>
+                        <div class="continue-progress-bar">
+                            <div class="continue-progress-fill" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="continue-actions">
+                    <button class="btn-continue-resume" id="btnContinueResume" title="Nghe tiếp từ ${curStr}">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                            <polygon points="6 3 20 12 6 21 6 3"/>
+                        </svg>
+                        <span>Tiếp tục nghe</span>
+                    </button>
+                    <button class="btn-continue-dismiss" id="btnContinueDismiss" title="Ẩn thanh này">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const btnResume = section.querySelector('#btnContinueResume');
+        if (btnResume) {
+            btnResume.addEventListener('click', () => {
+                loadAndPlayAudiobook(p.identifier, p.trackIndex, true, p.currentTime);
+            });
+        }
+
+        const btnDismiss = section.querySelector('#btnContinueDismiss');
+        if (btnDismiss) {
+            btnDismiss.addEventListener('click', () => {
+                section.style.display = 'none';
+            });
+        }
     }
 
     function renderAudiobooksGrid(books) {
@@ -1744,6 +1858,8 @@
             audiobooksCount.textContent = `${books.length} sách nói`;
         }
 
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+
         books.forEach(b => {
             const card = document.createElement('div');
             card.className = 'audiobook-card';
@@ -1751,6 +1867,11 @@
 
             const coverUrl = b.cover || `https://archive.org/services/img/${b.identifier}`;
             const chapterBadge = b.chapters ? `${b.chapters} chương` : 'Audiobook';
+            const savedProg = progressMap[b.identifier];
+            const hasProgress = savedProg && savedProg.currentTime && savedProg.currentTime > 5;
+            const resumeBadgeHtml = hasProgress 
+                ? `<span class="audiobook-badge-resume">🎧 Tiếp tục (${formatTime(savedProg.currentTime)})</span>` 
+                : '';
 
             card.innerHTML = `
                 <div class="audiobook-cover-wrap">
@@ -1763,6 +1884,7 @@
                         </svg>
                         ${chapterBadge}
                     </span>
+                    ${resumeBadgeHtml}
                     <div class="audiobook-overlay-play">
                         <div class="audiobook-play-circle">
                             <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
@@ -1786,14 +1908,14 @@
                             <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
                             </svg>
-                            <span>Nghe ngay</span>
+                            <span>${hasProgress ? 'Nghe tiếp' : 'Nghe ngay'}</span>
                         </button>
                     </div>
                 </div>
             `;
 
             card.addEventListener('click', () => {
-                loadAndPlayAudiobook(b.identifier, 0, true);
+                loadAndPlayAudiobook(b.identifier, null, true, null);
             });
 
             audiobooksGrid.appendChild(card);
@@ -1913,7 +2035,7 @@
             renderAudiobooksGrid(merged);
 
             if (autoPlayFirst && merged.length > 0) {
-                loadAndPlayAudiobook(merged[0].identifier, 0, true);
+                loadAndPlayAudiobook(merged[0].identifier, null, true, null);
             }
 
             return merged;
@@ -1938,10 +2060,15 @@
     // =========================================
     // Core Audio Player Logic (Replicating Screenshot)
     // =========================================
-    async function loadAndPlayAudiobook(identifier, trackIndex = 0, autoPlay = true, resumeTime = 0) {
-        // If already playing this exact book, just switch track
+    async function loadAndPlayAudiobook(identifier, trackIndex = null, autoPlay = true, resumeTime = null) {
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const savedProg = progressMap[identifier];
+
+        // If already playing this exact book, just switch track or open modal
         if (currentAudiobook && currentAudiobook.identifier === identifier) {
-            playTrack(trackIndex, resumeTime);
+            if (trackIndex !== null && trackIndex !== undefined && trackIndex !== currentTrackIndex) {
+                playTrack(trackIndex, (resumeTime !== null && resumeTime !== undefined) ? resumeTime : 0, autoPlay);
+            }
             openAudioPlayerModal();
             return;
         }
@@ -2024,12 +2151,33 @@
                 }
             }
 
+            // Determine track and resume position
+            let targetTrack = 0;
+            let targetResumeTime = 0;
+            let isAutoResumed = false;
+
+            if (trackIndex !== null && trackIndex !== undefined && trackIndex >= 0) {
+                targetTrack = Math.min(trackIndex, tracks.length - 1);
+                targetResumeTime = (resumeTime !== null && resumeTime !== undefined && resumeTime >= 0) ? resumeTime : 0;
+            } else if (savedProg && typeof savedProg.trackIndex === 'number' && savedProg.trackIndex < tracks.length) {
+                targetTrack = savedProg.trackIndex;
+                targetResumeTime = (savedProg.currentTime && savedProg.currentTime > 2) ? savedProg.currentTime : 0;
+                isAutoResumed = true;
+            }
+
             // Populate Playlist
             renderPlayerPlaylist();
 
+            // Reset playlist tab to Chapters and update bookmark badge
+            switchPlaylistTab('chapters');
+            updateBookmarksBadge();
+
             // Play track
-            const targetTrack = Math.min(Math.max(0, trackIndex), tracks.length - 1);
-            playTrack(targetTrack, resumeTime, autoPlay);
+            playTrack(targetTrack, targetResumeTime, autoPlay);
+
+            if (isAutoResumed && targetResumeTime > 0) {
+                showToast(`🎧 Tiếp tục nghe: ${tracks[targetTrack].title} (${formatTime(targetResumeTime)})`);
+            }
 
             // Show player modal
             openAudioPlayerModal();
@@ -2097,7 +2245,17 @@
         audioElement.playbackRate = SPEED_RATES[currentSpeedIndex];
 
         if (resumeTime > 0) {
-            audioElement.currentTime = resumeTime;
+            const seekFn = () => {
+                try {
+                    audioElement.currentTime = resumeTime;
+                } catch (e) {
+                    console.warn('Seek error:', e);
+                }
+            };
+            audioElement.addEventListener('loadedmetadata', seekFn, { once: true });
+            try {
+                audioElement.currentTime = resumeTime;
+            } catch (e) {}
         }
 
         // Highlight playlist row
@@ -2109,7 +2267,7 @@
             });
         }
 
-        saveAudioState();
+        saveAudioProgress();
     }
 
     function updatePlaylistActiveState() {
@@ -2171,6 +2329,7 @@
 
     audioElement.addEventListener('pause', () => {
         updatePlayPauseIcons(false);
+        saveAudioProgress();
     });
 
     audioElement.addEventListener('timeupdate', () => {
@@ -2182,6 +2341,9 @@
         if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
         if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
 
+        const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
+        if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
+
         if (dur > 0) {
             const percent = (cur / dur) * 100;
             if (playerSeekSlider) playerSeekSlider.value = percent;
@@ -2191,9 +2353,9 @@
             }
         }
 
-        // Throttle state saving
-        if (Math.floor(cur) % 5 === 0) {
-            saveAudioState();
+        // Throttle progress saving every 2 seconds
+        if (Math.floor(cur) % 2 === 0) {
+            saveAudioProgress();
         }
     });
 
@@ -2396,32 +2558,216 @@
         }
     }
 
-    // Bookmark Current Timestamp
-    if (btnPlayerBookmark) {
-        btnPlayerBookmark.addEventListener('click', () => {
-            if (!currentAudiobook || !currentAudiobook.tracks[currentTrackIndex]) return;
-            const curTime = audioElement.currentTime;
-            const track = currentAudiobook.tracks[currentTrackIndex];
+    // =========================================
+    // Bookmarks Management & Tabs
+    // =========================================
+    function switchPlaylistTab(tabName, highlightId = null) {
+        const tabChapters = document.getElementById('tabChaptersBtn');
+        const tabBookmarks = document.getElementById('tabBookmarksBtn');
+        const chaptersList = document.getElementById('playerChaptersList');
+        const bookmarksContainer = document.getElementById('playerBookmarksContainer');
+        const hintText = document.getElementById('playlistHintText');
 
-            const bookmark = {
-                identifier: currentAudiobook.identifier,
-                bookTitle: currentAudiobook.title,
-                trackIndex: currentTrackIndex,
-                trackTitle: track.title,
-                time: curTime,
-                timeFormatted: formatTime(curTime),
-                savedAt: Date.now()
-            };
+        if (tabName === 'bookmarks') {
+            if (tabChapters) tabChapters.classList.remove('active');
+            if (tabBookmarks) tabBookmarks.classList.add('active');
+            if (chaptersList) chaptersList.style.display = 'none';
+            if (bookmarksContainer) bookmarksContainer.style.display = 'flex';
+            if (hintText) hintText.textContent = 'Bấm để nghe đoạn đã lưu';
+            renderPlayerBookmarks(highlightId);
+        } else {
+            if (tabChapters) tabChapters.classList.add('active');
+            if (tabBookmarks) tabBookmarks.classList.remove('active');
+            if (chaptersList) chaptersList.style.display = 'flex';
+            if (bookmarksContainer) bookmarksContainer.style.display = 'none';
+            if (hintText) hintText.textContent = 'Cuộn để xem';
+        }
+    }
 
-            const bookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS) || [];
-            bookmarks.unshift(bookmark);
-            saveToStorage(STORAGE_AUDIO_BOOKMARKS, bookmarks.slice(0, 30));
+    function updateBookmarksBadge() {
+        const countEl = document.getElementById('playerBookmarksCount');
+        if (!countEl) return;
+        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+        const count = currentAudiobook 
+            ? allBookmarks.filter(b => b.identifier === currentAudiobook.identifier).length 
+            : allBookmarks.length;
+        countEl.textContent = count;
+    }
 
+    function addBookmark() {
+        if (!currentAudiobook || !currentAudiobook.tracks || !currentAudiobook.tracks[currentTrackIndex]) {
+            showToast('Vui lòng chọn phát một sách nói trước khi đánh dấu');
+            return;
+        }
+
+        const curTime = Math.floor(audioElement.currentTime || 0);
+        const track = currentAudiobook.tracks[currentTrackIndex];
+        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+
+        // Check if bookmark already exists in current chapter within 4 seconds
+        const duplicate = allBookmarks.find(b => 
+            b.identifier === currentAudiobook.identifier && 
+            b.trackIndex === currentTrackIndex && 
+            Math.abs(b.time - curTime) < 4
+        );
+
+        if (duplicate) {
+            showToast(`⚠️ Mốc ${duplicate.timeFormatted || formatTime(duplicate.time)} đã được lưu trước đó`);
+            switchPlaylistTab('bookmarks', duplicate.id);
+            return;
+        }
+
+        const newBookmark = {
+            id: 'bm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            identifier: currentAudiobook.identifier,
+            bookTitle: currentAudiobook.title,
+            cover: currentAudiobook.cover,
+            trackIndex: currentTrackIndex,
+            trackTitle: track.title,
+            time: curTime,
+            timeFormatted: formatTime(curTime),
+            createdAt: Date.now()
+        };
+
+        allBookmarks.unshift(newBookmark);
+        saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks.slice(0, 100));
+
+        // Visual feedback on top Bookmark button
+        if (btnPlayerBookmark) {
             btnPlayerBookmark.classList.add('is-bookmarked');
-            setTimeout(() => btnPlayerBookmark.classList.remove('is-bookmarked'), 2500);
+            const bookmarkSpan = btnPlayerBookmark.querySelector('span');
+            if (bookmarkSpan) bookmarkSpan.textContent = 'Đã lưu!';
+            setTimeout(() => {
+                btnPlayerBookmark.classList.remove('is-bookmarked');
+                if (bookmarkSpan) bookmarkSpan.textContent = 'Bookmark';
+            }, 2200);
+        }
 
-            showToast(`🔖 Đã đánh dấu: ${track.title} (${formatTime(curTime)})`);
+        updateBookmarksBadge();
+
+        // Switch to bookmarks tab so user instantly sees where it was saved!
+        switchPlaylistTab('bookmarks', newBookmark.id);
+        showToast(`🔖 Đã lưu dấu trang: ${track.title} [${formatTime(curTime)}]`);
+    }
+
+    function deleteBookmark(id) {
+        let allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+        allBookmarks = allBookmarks.filter(b => b.id !== id);
+        saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks);
+        renderPlayerBookmarks();
+        updateBookmarksBadge();
+        showToast('Đã xóa dấu trang');
+    }
+
+    function renderPlayerBookmarks(highlightId = null) {
+        const listEl = document.getElementById('playerBookmarksList');
+        if (!listEl) return;
+
+        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+        const bookBookmarks = currentAudiobook 
+            ? allBookmarks.filter(b => b.identifier === currentAudiobook.identifier)
+            : allBookmarks;
+
+        updateBookmarksBadge();
+        listEl.innerHTML = '';
+
+        if (bookBookmarks.length === 0) {
+            listEl.innerHTML = `
+                <div class="bookmarks-empty-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <p class="bm-empty-title">Chưa có dấu trang nào cho sách này</p>
+                    <p class="bm-empty-sub">Nhấn nút <b>"+ Đánh dấu mốc hiện tại"</b> ở trên hoặc nút <b>Bookmark</b> ở góc phải để ghi nhớ lại các đoạn bạn muốn nghe lại!</p>
+                </div>
+            `;
+            return;
+        }
+
+        bookBookmarks.forEach(bm => {
+            const row = document.createElement('div');
+            row.className = `player-bookmark-row ${bm.id === highlightId ? 'just-added-highlight' : ''}`;
+            const dateStr = formatRelativeDate(bm.createdAt);
+
+            row.innerHTML = `
+                <div class="bm-row-left">
+                    <div class="bm-time-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>${bm.timeFormatted || formatTime(bm.time)}</span>
+                    </div>
+                    <div class="bm-details">
+                        <div class="bm-chapter-name" title="${escapeHtml(bm.trackTitle)}">${escapeHtml(bm.trackTitle)}</div>
+                        <div class="bm-date">${dateStr}</div>
+                    </div>
+                </div>
+                <div class="bm-row-actions">
+                    <button class="bm-action-play" title="Nghe từ mốc này">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        <span>Nghe tiếp</span>
+                    </button>
+                    <button class="bm-action-del" title="Xóa dấu trang">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            // Action: Play from bookmark
+            const btnPlay = row.querySelector('.bm-action-play');
+            if (btnPlay) {
+                btnPlay.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (currentTrackIndex !== bm.trackIndex) {
+                        playTrack(bm.trackIndex, bm.time, true);
+                    } else {
+                        audioElement.currentTime = bm.time;
+                        if (audioElement.paused) audioElement.play();
+                    }
+                    showToast(`▶ Đang nghe từ mốc [${bm.timeFormatted || formatTime(bm.time)}] - ${bm.trackTitle}`);
+                });
+            }
+
+            // Action: Delete bookmark
+            const btnDel = row.querySelector('.bm-action-del');
+            if (btnDel) {
+                btnDel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteBookmark(bm.id);
+                });
+            }
+
+            listEl.appendChild(row);
+
+            if (bm.id === highlightId) {
+                setTimeout(() => {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
         });
+    }
+
+    // Attach Bookmark & Playlist tab event listeners
+    if (btnPlayerBookmark) {
+        btnPlayerBookmark.addEventListener('click', addBookmark);
+    }
+    const btnAddBookmarkNowEl = document.getElementById('btnAddBookmarkNow');
+    if (btnAddBookmarkNowEl) {
+        btnAddBookmarkNowEl.addEventListener('click', addBookmark);
+    }
+    const tabChaptersBtnEl = document.getElementById('tabChaptersBtn');
+    if (tabChaptersBtnEl) {
+        tabChaptersBtnEl.addEventListener('click', () => switchPlaylistTab('chapters'));
+    }
+    const tabBookmarksBtnEl = document.getElementById('tabBookmarksBtn');
+    if (tabBookmarksBtnEl) {
+        tabBookmarksBtnEl.addEventListener('click', () => switchPlaylistTab('bookmarks'));
     }
 
     // Modal Minimize & Close
@@ -2509,18 +2855,47 @@
         }
     });
 
-    // Save and Restore Audio State
+    // Save and Restore Audio State & Progress
+    function saveAudioProgress() {
+        if (!currentAudiobook || !currentAudiobook.tracks || !currentAudiobook.tracks[currentTrackIndex]) return;
+        const cur = Math.floor(audioElement.currentTime || 0);
+        const dur = Math.floor(audioElement.duration || currentAudiobook.tracks[currentTrackIndex]?.duration || 0);
+        const track = currentAudiobook.tracks[currentTrackIndex];
+
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        progressMap[currentAudiobook.identifier] = {
+            identifier: currentAudiobook.identifier,
+            title: currentAudiobook.title,
+            author: currentAudiobook.author,
+            cover: currentAudiobook.cover,
+            trackIndex: currentTrackIndex,
+            trackTitle: track.title,
+            currentTime: cur,
+            duration: dur,
+            percent: dur > 0 ? Math.min(100, Math.round((cur / dur) * 100)) : 0,
+            updatedAt: Date.now()
+        };
+        saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+        saveToStorage(STORAGE_AUDIO_LAST_PLAYED, currentAudiobook.identifier);
+
+        saveAudioState();
+    }
+
     function saveAudioState() {
         if (!currentAudiobook) return;
         const state = {
             identifier: currentAudiobook.identifier,
             trackIndex: currentTrackIndex,
-            time: audioElement.currentTime || 0,
+            time: Math.floor(audioElement.currentTime || 0),
             volume: audioElement.volume,
             speedIndex: currentSpeedIndex
         };
         saveToStorage(STORAGE_AUDIO_STATE, state);
     }
+
+    window.addEventListener('beforeunload', () => {
+        saveAudioProgress();
+    });
 
     function initSavedAudioState() {
         const saved = loadFromStorage(STORAGE_AUDIO_STATE);
@@ -2563,7 +2938,7 @@
 
         if (match) {
             showToast(`Tìm thấy sách nói tiếng Việt: ${match.title}`);
-            loadAndPlayAudiobook(match.identifier, 0, true);
+            loadAndPlayAudiobook(match.identifier, null, true, null);
             return;
         }
 
@@ -2588,6 +2963,7 @@
     initLazyLoadingSections();
     loadRecommendations();
     initSavedAudioState();
+    renderAudioContinueSection();
 
 })();
 

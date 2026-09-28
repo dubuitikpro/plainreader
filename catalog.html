@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=3.6">
+    <link rel="stylesheet" href="catalog.css?v=3.7">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -282,6 +282,11 @@
                 </div>
             </div>
 
+            <!-- Continue Listening Banner -->
+            <div class="audio-continue-section" id="audioContinueSection" style="display: none;">
+                <!-- Rendered dynamically via JS -->
+            </div>
+
             <!-- Audiobooks Grid -->
             <div class="audiobooks-section-header">
                 <h3 class="section-title">
@@ -544,25 +549,50 @@
                     </button>
                 </div>
 
-                <!-- Chapter Playlist Section -->
+                <!-- Chapter Playlist & Bookmarks Section -->
                 <div class="player-playlist-wrap">
                     <div class="playlist-header">
-                        <div class="playlist-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <line x1="8" y1="6" x2="21" y2="6"/>
-                                <line x1="8" y1="12" x2="21" y2="12"/>
-                                <line x1="8" y1="18" x2="21" y2="18"/>
-                                <line x1="3" y1="6" x2="3.01" y2="6"/>
-                                <line x1="3" y1="12" x2="3.01" y2="12"/>
-                                <line x1="3" y1="18" x2="3.01" y2="18"/>
-                            </svg>
-                            <span id="playlistChapterHeader">19 Chương</span>
+                        <div class="playlist-tabs">
+                            <button class="playlist-tab-btn active" id="tabChaptersBtn" type="button" title="Danh sách các chương">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                                <span id="playlistChapterHeader">Danh sách chương</span>
+                            </button>
+                            <button class="playlist-tab-btn" id="tabBookmarksBtn" type="button" title="Các mốc thời gian đã đánh dấu">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                <span>Dấu trang (<span id="playerBookmarksCount">0</span>)</span>
+                            </button>
                         </div>
-                        <span class="playlist-hint">Scroll to view</span>
+                        <span class="playlist-hint" id="playlistHintText">Cuộn để xem</span>
                     </div>
 
+                    <!-- Chapters list -->
                     <div class="player-chapters-list" id="playerChaptersList">
                         <!-- Chapter rows generated dynamically -->
+                    </div>
+
+                    <!-- Bookmarks list -->
+                    <div class="player-bookmarks-container" id="playerBookmarksContainer" style="display: none;">
+                        <div class="bookmarks-action-bar">
+                            <button class="btn-add-bookmark-now" id="btnAddBookmarkNow" type="button" title="Đánh dấu mốc thời gian hiện tại vào danh sách">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                <span>+ Đánh dấu mốc hiện tại (<b id="bookmarkNowTimePreview">00:00</b>)</span>
+                            </button>
+                        </div>
+                        <div class="player-bookmarks-list" id="playerBookmarksList">
+                            <!-- Bookmarks rows generated dynamically -->
+                        </div>
                     </div>
                 </div>
 
@@ -633,6 +663,6 @@
         <p>PlainReader — Sách từ <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a> & Sách nói từ <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a></p>
     </footer>
 
-    <script src="catalog.js?v=3.6"></script>
+    <script src="catalog.js?v=3.7"></script>
 </body>
 </html>

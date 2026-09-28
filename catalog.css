@@ -1543,6 +1543,185 @@ a { color: inherit; text-decoration: none; }
     box-shadow: 0 2px 10px rgba(0, 206, 201, 0.2);
 }
 
+/* Continue Listening Banner */
+.audio-continue-section {
+    margin-bottom: 28px;
+}
+
+.audio-continue-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 22px;
+    background: linear-gradient(135deg, rgba(28, 24, 52, 0.9), rgba(15, 28, 44, 0.9));
+    border: 1px solid rgba(0, 206, 201, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 206, 201, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: fadeInDown 0.35s ease;
+}
+
+.continue-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    flex: 1;
+}
+
+.continue-thumb-wrap {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.continue-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.continue-badge-play {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0.8;
+}
+
+.continue-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.continue-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #00cec9;
+    margin-bottom: 2px;
+}
+
+.continue-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00cec9;
+    box-shadow: 0 0 8px #00cec9;
+    animation: pulse 1.8s infinite;
+}
+
+.continue-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 2px 0 4px;
+}
+
+.continue-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: #cbd5e0;
+    margin-bottom: 6px;
+}
+
+.continue-chapter {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #a29bfe;
+    font-weight: 500;
+}
+
+.continue-sep {
+    color: var(--text-muted);
+}
+
+.continue-time {
+    color: #a0aec0;
+    font-variant-numeric: tabular-nums;
+}
+
+.continue-progress-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 380px;
+}
+
+.continue-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6c5ce7, #00cec9);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.continue-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-continue-resume {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: linear-gradient(135deg, #6c5ce7, #00cec9);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 206, 201, 0.35);
+    transition: all 0.2s ease;
+}
+
+.btn-continue-resume:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 206, 201, 0.5);
+}
+
+.btn-continue-dismiss {
+    padding: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-continue-dismiss:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
 /* Audiobooks Section Header */
 .audiobooks-section-header {
     display: flex;
@@ -2209,13 +2388,42 @@ a { color: inherit; text-decoration: none; }
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.playlist-title {
+.playlist-tabs {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: #f1f2f6;
+    gap: 6px;
+}
+
+.playlist-tab-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.playlist-tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.playlist-tab-btn.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.35), rgba(0, 206, 201, 0.25));
+    border-color: rgba(0, 206, 201, 0.5);
+    box-shadow: 0 2px 8px rgba(0, 206, 201, 0.2);
+}
+
+.playlist-tab-btn svg {
+    flex-shrink: 0;
 }
 
 .playlist-hint {
@@ -2332,6 +2540,246 @@ a { color: inherit; text-decoration: none; }
 
 .chapter-item.active-track .chapter-duration {
     color: #a29bfe;
+}
+
+/* ========================================
+   Player Bookmarks Section & Items
+   ======================================== */
+
+.player-bookmarks-container {
+    max-height: 220px;
+    overflow-y: auto;
+    background: rgba(12, 12, 20, 0.7);
+    display: flex;
+    flex-direction: column;
+}
+
+.player-bookmarks-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.player-bookmarks-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+
+.bookmarks-action-bar {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-add-bookmark-now {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.25), rgba(0, 206, 201, 0.2));
+    border: 1px dashed rgba(0, 206, 201, 0.45);
+    border-radius: 8px;
+    color: #00cec9;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add-bookmark-now:hover {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.45), rgba(0, 206, 201, 0.35));
+    border-style: solid;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 206, 201, 0.25);
+}
+
+.player-bookmarks-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.player-bookmark-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    gap: 12px;
+    transition: background 0.2s ease;
+}
+
+.player-bookmark-row:last-child {
+    border-bottom: none;
+}
+
+.player-bookmark-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.player-bookmark-row.just-added-highlight {
+    animation: bookmarkGlow 2.5s ease-out;
+}
+
+@keyframes bookmarkGlow {
+    0% {
+        background: rgba(0, 206, 201, 0.35);
+        box-shadow: inset 0 0 15px rgba(0, 206, 201, 0.4);
+    }
+    100% {
+        background: transparent;
+        box-shadow: none;
+    }
+}
+
+.bm-row-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.bm-time-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background: rgba(0, 206, 201, 0.12);
+    border: 1px solid rgba(0, 206, 201, 0.3);
+    border-radius: 6px;
+    color: #00cec9;
+    font-family: 'Inter', monospace;
+    font-size: 0.76rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.bm-details {
+    min-width: 0;
+    flex: 1;
+}
+
+.bm-chapter-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f1f2f6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bm-date {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+.bm-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.bm-action-play {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    background: rgba(108, 92, 231, 0.25);
+    border: 1px solid rgba(108, 92, 231, 0.45);
+    border-radius: 6px;
+    color: #a29bfe;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bm-action-play:hover {
+    background: #6c5ce7;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(108, 92, 231, 0.4);
+}
+
+.bm-action-del {
+    padding: 6px 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bm-action-del:hover {
+    background: rgba(235, 87, 87, 0.15);
+    border-color: rgba(235, 87, 87, 0.3);
+    color: #eb5757;
+}
+
+.bookmarks-empty-box {
+    padding: 32px 18px;
+    text-align: center;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.bookmarks-empty-box svg {
+    color: rgba(255, 255, 255, 0.2);
+    margin-bottom: 4px;
+}
+
+.bm-empty-title {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #cbd5e0;
+}
+
+.bm-empty-sub {
+    font-size: 0.74rem;
+    max-width: 340px;
+    line-height: 1.55;
+    color: var(--text-muted);
+}
+
+.bm-empty-sub b {
+    color: #00cec9;
+}
+
+/* Bookmark Active Pulse in Top Header */
+.player-header-btn.is-bookmarked {
+    background: rgba(243, 156, 18, 0.25) !important;
+    border-color: rgba(243, 156, 18, 0.6) !important;
+    color: #f39c12 !important;
+    box-shadow: 0 0 14px rgba(243, 156, 18, 0.4) !important;
+    transform: scale(1.05);
+}
+
+/* Audio card resume badge */
+.audiobook-badge-resume {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(108, 92, 231, 0.9);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    z-index: 2;
 }
 
 /* Giới thiệu Section */
