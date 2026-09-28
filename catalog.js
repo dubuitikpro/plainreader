@@ -714,14 +714,12 @@
     });
 
     if (modalBtnAudiobook) {
-        modalBtnAudiobook.addEventListener('click', () => {
+        modalBtnAudiobook.addEventListener('click', async () => {
             if (!currentModalBook) return;
-            const title = currentModalBook.titleVi || currentModalBook.title || '';
-            const originalTitle = currentModalBook.originalTitle || '';
-            const author = currentModalBook.author || '';
+            const bookToSearch = currentModalBook;
             closeBookModal();
             switchTab('audio');
-            findAndPlayAudiobook(title, originalTitle, author);
+            await findAndPlayAudiobook(bookToSearch);
         });
     }
 
@@ -1373,49 +1371,92 @@
 
     const CURATED_AUDIOBOOKS = [
         {
+            identifier: 'cha-giau-cha-ngheo',
+            title: 'Cha Giàu Cha Nghèo (Dạy Con Làm Giàu)',
+            originalTitle: 'Rich Dad Poor Dad',
+            author: 'Robert T. Kiyosaki',
+            genre: 'self-help',
+            chapters: 13,
+            cover: 'https://archive.org/services/img/cha-giau-cha-ngheo',
+            description: 'Cuốn sách bán chạy kinh điển về giáo dục tài chính của Robert Kiyosaki, vén màn sự khác biệt trong tư duy về tiền bạc giữa người giàu và người nghèo, giúp độc giả làm chủ đồng tiền.',
+            aliases: ['rich dad poor dad', 'rich dad, poor dad', 'day con lam giau', 'cha giau cha ngheo', 'dạy con làm giàu', 'cha giàu cha nghèo', 'rich dad']
+        },
+        {
             identifier: 'mat-day-tam-den.sna',
             title: 'Mặt Dày Tâm Đen',
+            originalTitle: 'Thick Face, Black Heart',
             author: 'Chin-Ning Chu',
             genre: 'self-help',
             chapters: 19,
             cover: 'https://archive.org/services/img/mat-day-tam-den.sna',
-            description: 'Tác phẩm nổi tiếng của Chin-Ning Chu kết hợp triết lý phương Đông và tư duy hành động thực tiễn để khai phá sức mạnh nội tâm, xây dựng bản lĩnh vững vàng vượt qua mọi sóng gió thương trường và đời sống.'
+            description: 'Tác phẩm nổi tiếng của Chin-Ning Chu kết hợp triết lý phương Đông và tư duy hành động thực tiễn để khai phá sức mạnh nội tâm, xây dựng bản lĩnh vững vàng vượt qua mọi sóng gió thương trường và đời sống.',
+            aliases: ['mat day tam den', 'thick face black heart', 'thick face, black heart']
         },
         {
             identifier: 'dac-nhan-tam.sna',
             title: 'Đắc Nhân Tâm',
+            originalTitle: 'How to Win Friends and Influence People',
             author: 'Dale Carnegie',
             genre: 'self-help',
             chapters: 31,
             cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
-            description: 'Cuốn sách nghệ thuật thu phục lòng người kinh điển nhất mọi thời đại của Dale Carnegie, chỉ dẫn cách lắng nghe, thấu hiểu, ứng xử nhân văn và xây dựng những mối quan hệ bền vững.'
+            description: 'Cuốn sách nghệ thuật thu phục lòng người kinh điển nhất mọi thời đại của Dale Carnegie, chỉ dẫn cách lắng nghe, thấu hiểu, ứng xử nhân văn và xây dựng những mối quan hệ bền vững.',
+            aliases: ['dac nhan tam', 'how to win friends and influence people', 'how to win friends & influence people']
+        },
+        {
+            identifier: 'nha-gia-kim.sna',
+            title: 'Nhà Giả Kim',
+            originalTitle: 'The Alchemist',
+            author: 'Paulo Coelho',
+            genre: 'literature',
+            chapters: 12,
+            cover: 'https://archive.org/services/img/nha-gia-kim.sna',
+            description: 'Kiệt tác văn học thế giới kể về hành trình theo đuổi vận mệnh của chàng trai chăn cừu Santiago: Khi bạn thực sự khao khát một điều gì, cả vũ trụ sẽ hợp lực giúp bạn đạt được.',
+            aliases: ['the alchemist', 'nha gia kim', 'o alquimista']
+        },
+        {
+            identifier: 'bogia_201903',
+            title: 'Bố Già (The Godfather)',
+            originalTitle: 'The Godfather',
+            author: 'Mario Puzo',
+            genre: 'literature',
+            chapters: 32,
+            cover: 'https://archive.org/services/img/bogia_201903',
+            description: 'Tác phẩm hình sự - tâm lý xuất sắc nhất về thế giới ngầm mafia Mỹ và gia tộc Corleone dưới sự dẫn dắt của Don Vito Corleone đầy quyền uy và danh dự.',
+            aliases: ['the godfather', 'bo gia', 'bố già']
         },
         {
             identifier: 'tam-quoc-chi-dien-nghia-tap-1.sna',
             title: 'Tam Quốc Diễn Nghĩa',
+            originalTitle: 'Romance of the Three Kingdoms',
             author: 'La Quán Trung',
             genre: 'history-philosophy',
             chapters: 40,
             cover: 'https://archive.org/services/img/tam-quoc-chi-dien-nghia-tap-1.sna',
-            description: 'Đại kiệt tác văn học lịch sử Trung Hoa, khắc họa cuộc tranh hùng thời Tam Quốc với những mưu lược quân sự kiệt xuất, tài trí của Gia Cát Lượng, Tào Tháo, Quan Vũ, Lưu Bị.'
+            description: 'Đại kiệt tác văn học lịch sử Trung Hoa, khắc họa cuộc tranh hùng thời Tam Quốc với những mưu lược quân sự kiệt xuất, tài trí của Gia Cát Lượng, Tào Tháo, Quan Vũ, Lưu Bị.',
+            aliases: ['tam quoc dien nghia', 'tam quoc chi', 'romance of the three kingdoms']
         },
         {
             identifier: 'mat-ma-da-vinci.sna',
             title: 'Mật Mã Da Vinci',
+            originalTitle: 'The Da Vinci Code',
             author: 'Dan Brown',
             genre: 'literature',
             chapters: 105,
             cover: 'https://archive.org/services/img/mat-ma-da-vinci.sna',
-            description: 'Tiểu thuyết trinh thám ly kỳ chấn động thế giới của Dan Brown, theo chân giáo sư biểu tượng học Robert Langdon giải mã các thông điệp ẩn giấu trong các tuyệt tác của Leonardo da Vinci.'
+            description: 'Tiểu thuyết trinh thám ly kỳ chấn động thế giới của Dan Brown, theo chân giáo sư biểu tượng học Robert Langdon giải mã các thông điệp ẩn giấu trong các tuyệt tác của Leonardo da Vinci.',
+            aliases: ['the da vinci code', 'mat ma da vinci']
         },
         {
             identifier: 'suc-manh-tiem-thuc.sna',
             title: 'Sức Mạnh Tiềm Thức',
+            originalTitle: 'The Power of Your Subconscious Mind',
             author: 'Joseph Murphy',
             genre: 'self-help',
             chapters: 20,
             cover: 'https://archive.org/services/img/suc-manh-tiem-thuc.sna',
-            description: 'Khám phá bí mật tiềm ẩn của trí não và tiềm thức, phương pháp khai mở nguồn năng lượng chữa lành, thịnh vượng và hạnh phúc trong mỗi con người.'
+            description: 'Khám phá bí mật tiềm ẩn của trí não và tiềm thức, phương pháp khai mở nguồn năng lượng chữa lành, thịnh vượng và hạnh phúc trong mỗi con người.',
+            aliases: ['suc manh tiem thuc', 'the power of your subconscious mind']
         },
         {
             identifier: 'tuoi-tre-dang-gia-bao-nhieu.sna',
@@ -1424,7 +1465,8 @@
             genre: 'self-help',
             chapters: 17,
             cover: 'https://archive.org/services/img/tuoi-tre-dang-gia-bao-nhieu.sna',
-            description: 'Cuốn sách truyền cảm hứng cho hàng triệu bạn trẻ Việt Nam về việc học tập, đọc sách, trải nghiệm du lịch bụi và tìm ra đam mê đích thực của cuộc đời.'
+            description: 'Cuốn sách truyền cảm hứng cho hàng triệu bạn trẻ Việt Nam về việc học tập, đọc sách, trải nghiệm du lịch bụi và tìm ra đam mê đích thực của cuộc đời.',
+            aliases: ['tuoi tre dang gia bao nhieu']
         },
         {
             identifier: 'gian.sna',
@@ -1433,7 +1475,8 @@
             genre: 'history-philosophy',
             chapters: 15,
             cover: 'https://archive.org/services/img/gian.sna',
-            description: 'Những lời dạy minh triết của Thiền sư Thích Nhất Hạnh về phương pháp ôm ấp và chuyển hóa cơn giận, tìm lại sự an lạc sâu sắc trong tâm hồn và hàn gắn mối quan hệ.'
+            description: 'Những lời dạy minh triết của Thiền sư Thích Nhất Hạnh về phương pháp ôm ấp và chuyển hóa cơn giận, tìm lại sự an lạc sâu sắc trong tâm hồn và hàn gắn mối quan hệ.',
+            aliases: ['gian thich nhat hanh', 'gian']
         },
         {
             identifier: 'tren-duong-bang.sna',
@@ -1442,61 +1485,74 @@
             genre: 'self-help',
             chapters: 21,
             cover: 'https://archive.org/services/img/tren-duong-bang.sna',
-            description: 'Tác phẩm truyền động lực mạnh mẽ của Tony Buổi Sáng dành cho người trẻ dám dấn thân, rèn luyện ngoại ngữ, tính kỷ luật và bản lĩnh vươn ra biển lớn thế giới.'
+            description: 'Tác phẩm truyền động lực mạnh mẽ của Tony Buổi Sáng dành cho người trẻ dám dấn thân, rèn luyện ngoại ngữ, tính kỷ luật và bản lĩnh vươn ra biển lớn thế giới.',
+            aliases: ['tren duong bang', 'tony buoi sang']
         },
         {
             identifier: 'khong-gia-dinh.sna',
             title: 'Không Gia Đình',
+            originalTitle: 'Sans Famille / Nobody\'s Boy',
             author: 'Hector Malot',
             genre: 'literature',
             chapters: 25,
             cover: 'https://archive.org/services/img/khong-gia-dinh.sna',
-            description: 'Hành trình lưu lạc đầy thử thách nhưng ngập tràn tình yêu thương và lòng quả cảm của chú bé Rémi cùng cụ Vitalis và đoàn xiếc thú qua khắp nẻo đường nước Pháp.'
+            description: 'Hành trình lưu lạc đầy thử thách nhưng ngập tràn tình yêu thương và lòng quả cảm của chú bé Rémi cùng cụ Vitalis và đoàn xiếc thú qua khắp nẻo đường nước Pháp.',
+            aliases: ['khong gia dinh', 'sans famille', 'nobody\'s boy']
         },
         {
             identifier: 'hai-so-phan.sna',
             title: 'Hai Số Phận (Kane and Abel)',
+            originalTitle: 'Kane and Abel',
             author: 'Jeffrey Archer',
             genre: 'literature',
             chapters: 35,
             cover: 'https://archive.org/services/img/hai-so-phan.sna',
-            description: 'Tiểu thuyết kinh điển về cuộc đối đầu định mệnh giữa William Kane giàu sang quyền quý và Abel Rosnovski di dân nghèo khó trên thương trường nước Mỹ suốt nửa thế kỷ.'
-        },
-        {
-            identifier: 'art_of_war_librivox',
-            title: 'Binh Pháp Tôn Tử (The Art of War)',
-            author: 'Sun Tzu / Lionel Giles',
-            genre: 'english',
-            chapters: 13,
-            cover: 'https://archive.org/services/img/art_of_war_librivox',
-            description: 'Bộ binh thư quân sự vĩ đại nhất lịch sử phương Đông, đúc kết các quy luật chiến lược, nghệ thuật chỉ huy và triết lý nắm bắt cơ hội được áp dụng rộng rãi trong cả kinh doanh hiện đại.'
+            description: 'Tiểu thuyết kinh điển về cuộc đối đầu định mệnh giữa William Kane giàu sang quyền quý và Abel Rosnovski di dân nghèo khó trên thương trường nước Mỹ suốt nửa thế kỷ.',
+            aliases: ['hai so phan', 'kane and abel', 'kane & abel']
         },
         {
             identifier: 'quang-ganh-lo-di-va-vui-song.sna',
             title: 'Quẳng Gánh Lo Đi Và Vui Sống',
+            originalTitle: 'How to Stop Worrying and Start Living',
             author: 'Dale Carnegie',
             genre: 'self-help',
             chapters: 28,
             cover: 'https://archive.org/services/img/quang-ganh-lo-di-va-vui-song.sna',
-            description: 'Chỉ dẫn tâm lý thiết thực giúp độc giả phân tích và loại bỏ âu lo phiền muộn, sống trọn vẹn từng ngày hôm nay trong niềm vui và sự thanh thản.'
+            description: 'Chỉ dẫn tâm lý thiết thực giúp độc giả phân tích và loại bỏ âu lo phiền muộn, sống trọn vẹn từng ngày hôm nay trong niềm vui và sự thanh thản.',
+            aliases: ['quang ganh lo di va vui song', 'how to stop worrying and start living']
         },
         {
             identifier: 'nghi-giau-lam-giau.sna',
             title: 'Nghĩ Giàu Làm Giàu (Think and Grow Rich)',
+            originalTitle: 'Think and Grow Rich',
             author: 'Napoleon Hill',
             genre: 'self-help',
             chapters: 16,
             cover: 'https://archive.org/services/img/nghi-giau-lam-giau.sna',
-            description: '13 nguyên tắc thành công được đúc kết từ hơn 500 nhân vật kiệt xuất nhất nước Mỹ của Napoleon Hill, mở rộng tầm nhìn về sức mạnh của khát khao và trí tuệ.'
+            description: '13 nguyên tắc thành công được đúc kết từ hơn 500 nhân vật kiệt xuất nhất nước Mỹ của Napoleon Hill, mở rộng tầm nhìn về sức mạnh của khát khao và trí tuệ.',
+            aliases: ['nghi giau lam giau', 'think and grow rich']
         },
         {
             identifier: 'hoang-tu-be.sna',
             title: 'Hoàng Tử Bé',
+            originalTitle: 'The Little Prince',
             author: 'Antoine de Saint-Exupéry',
             genre: 'literature',
             chapters: 27,
             cover: 'https://archive.org/services/img/hoang-tu-be.sna',
-            description: 'Kiệt tác văn học Pháp đẹp đẽ và sâu sắc: "Người ta chỉ có thể nhìn thấy rõ ràng bằng trái tim. Những điều cốt yếu thì mắt thường không nhìn thấy được."'
+            description: 'Kiệt tác văn học Pháp đẹp đẽ và sâu sắc: "Người ta chỉ có thể nhìn thấy rõ ràng bằng trái tim. Những điều cốt yếu thì mắt thường không nhìn thấy được."',
+            aliases: ['hoang tu be', 'the little prince', 'le petit prince']
+        },
+        {
+            identifier: 'art_of_war_librivox',
+            title: 'Binh Pháp Tôn Tử (The Art of War)',
+            originalTitle: 'The Art of War',
+            author: 'Sun Tzu / Lionel Giles',
+            genre: 'english',
+            chapters: 13,
+            cover: 'https://archive.org/services/img/art_of_war_librivox',
+            description: 'Bộ binh thư quân sự vĩ đại nhất lịch sử phương Đông, đúc kết các quy luật chiến lược, nghệ thuật chỉ huy và triết lý nắm bắt cơ hội được áp dụng rộng rãi trong cả kinh doanh hiện đại.',
+            aliases: ['binh phap ton tu', 'the art of war']
         },
         {
             identifier: 'sherlock_holmes_canon_08_02_librivox',
@@ -1505,9 +1561,111 @@
             genre: 'english',
             chapters: 13,
             cover: 'https://archive.org/services/img/sherlock_holmes_canon_08_02_librivox',
-            description: 'Tuyển tập truyện trinh thám đặc sắc đánh dấu sự trở lại ngoạn mục của thám tử đại tài Sherlock Holmes và bác sĩ Watson trên phố Baker.'
+            description: 'Tuyển tập truyện trinh thám đặc sắc đánh dấu sự trở lại ngoạn mục của thám tử đại tài Sherlock Holmes và bác sĩ Watson trên phố Baker.',
+            aliases: ['sherlock holmes']
         }
     ];
+
+    // =========================================
+    // Vietnamese Book Title Resolver & Synonyms
+    // =========================================
+    const VI_TITLE_ALIASES = {
+        'rich dad poor dad': 'Cha Giàu Cha Nghèo',
+        'rich dad, poor dad': 'Cha Giàu Cha Nghèo',
+        'rich dad': 'Cha Giàu Cha Nghèo',
+        'day con lam giau': 'Cha Giàu Cha Nghèo',
+        'dạy con làm giàu': 'Cha Giàu Cha Nghèo',
+        'cha giàu cha nghèo': 'Cha Giàu Cha Nghèo',
+        'cha giau cha ngheo': 'Cha Giàu Cha Nghèo',
+        'think and grow rich': 'Nghĩ Giàu Làm Giàu',
+        'how to win friends and influence people': 'Đắc Nhân Tâm',
+        'how to win friends & influence people': 'Đắc Nhân Tâm',
+        'thick face, black heart': 'Mặt Dày Tâm Đen',
+        'thick face black heart': 'Mặt Dày Tâm Đen',
+        'the da vinci code': 'Mật Mã Da Vinci',
+        'the power of your subconscious mind': 'Sức Mạnh Tiềm Thức',
+        'the little prince': 'Hoàng Tử Bé',
+        'le petit prince': 'Hoàng Tử Bé',
+        'the art of war': 'Binh Pháp Tôn Tử',
+        'the alchemist': 'Nhà Giả Kim',
+        'o alquimista': 'Nhà Giả Kim',
+        'the godfather': 'Bố Già',
+        'norwegian wood': 'Rừng Na Uy',
+        'crime and punishment': 'Tội Ác Và Hình Phạt',
+        'the great gatsby': 'Gatsby Vĩ Đại',
+        'kane and abel': 'Hai Số Phận',
+        'nobody\'s boy': 'Không Gia Đình',
+        'sans famille': 'Không Gia Đình',
+        'les miserables': 'Những Người Khốn Khổ',
+        'les misérables': 'Những Người Khốn Khổ',
+        'the count of monte cristo': 'Bá Tước Monte Cristo',
+        'the old man and the sea': 'Ông Già Và Biển Cả',
+        'pride and prejudice': 'Kiêu Hãnh Và Định Kiến',
+        'war and peace': 'Chiến Tranh Và Hòa Bình',
+        'to kill a mockingbird': 'Giết Con Chim Nhại',
+        '1984': 'Một Chín Tám Tư',
+        'animal farm': 'Trại Súc Vật',
+        'atomic habits': 'Thay Đổi Tí Hon',
+        'sapiens': 'Sapiens Lược Sử Loài Người',
+        'the 7 habits of highly effective people': '7 Thói Quen Của Người Thành Đạt',
+        'man\'s search for meaning': 'Đi Tìm Lẽ Sống',
+        'tuesdays with morrie': 'Những Thứ Ba Với Thầy Morrie',
+        'quang ganh lo di va vui song': 'Quẳng Gánh Lo Đi Và Vui Sống',
+        'how to stop worrying and start living': 'Quẳng Gánh Lo Đi Và Vui Sống'
+    };
+
+    function isVietnamese(str) {
+        if (!str) return false;
+        return /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/i.test(str);
+    }
+
+    async function resolveVietnameseAudioTitle(book) {
+        if (!book) return '';
+        const rawTitle = (book.title || '').trim();
+        const origTitle = (book.originalTitle || '').trim();
+        const lowerRaw = rawTitle.toLowerCase();
+        const lowerOrig = origTitle.toLowerCase();
+
+        // 1. Check known aliases map first (e.g. "rich dad poor dad" -> "Cha Giàu Cha Nghèo")
+        for (const [key, viName] of Object.entries(VI_TITLE_ALIASES)) {
+            if (lowerRaw.includes(key) || (lowerOrig && lowerOrig.includes(key))) {
+                return viName;
+            }
+        }
+
+        // 2. Check if book.titleVi has Vietnamese diacritics
+        if (book.titleVi && isVietnamese(book.titleVi)) {
+            const vi = book.titleVi.trim();
+            // Check if titleVi matches alias
+            const lVi = vi.toLowerCase();
+            for (const [k, v] of Object.entries(VI_TITLE_ALIASES)) {
+                if (lVi.includes(k)) return v;
+            }
+            return vi;
+        }
+
+        // 3. If raw title already contains Vietnamese diacritics
+        if (isVietnamese(rawTitle)) {
+            return rawTitle;
+        }
+
+        // 4. Translate rawTitle or origTitle to Vietnamese via Google Translate API
+        const toTranslate = origTitle || rawTitle;
+        if (toTranslate) {
+            try {
+                const vi = await translateText(toTranslate);
+                if (vi) {
+                    const lVi = vi.toLowerCase();
+                    for (const [k, v] of Object.entries(VI_TITLE_ALIASES)) {
+                        if (lVi.includes(k)) return v;
+                    }
+                    return vi;
+                }
+            } catch { /* fallback */ }
+        }
+
+        return book.titleVi || rawTitle;
+    }
 
     // =========================================
     // Audio Player State & Engine
@@ -1538,10 +1696,13 @@
     }
 
     function cleanChapterTitle(fileName, metadataTitle) {
-        if (metadataTitle && metadataTitle.trim()) {
-            return metadataTitle.trim();
-        }
-        let name = fileName.replace(/\.[^/.]+$/, ''); // remove .mp3
+        let name = (metadataTitle && metadataTitle.trim()) || fileName;
+        // Strip file extension
+        name = name.replace(/\.[^/.]+$/, '');
+        // Strip common promotional / website tags
+        name = name.replace(/\s*[-|–]\s*(?:sachnoi\.app|sachnoi\.cc|SachNoi\.vn|KenhSachNoi\.Com|truyenaudiomoi\.com|Sach Kinh Doanh.*|Sách Nói Hay Nhất.*)$/i, '');
+        name = name.replace(/\s*\|\s*(?:CHA GIÀU CHA NGHÈO|DAY CON LAM GIAU|Sach Kinh Doanh|Audiobook).*$/i, '');
+        name = name.replace(/\s*I\s*(?:DAY CON LAM GIAU|CHA GIAU CHA NGHEO|Audiobook).*$/i, '');
         // Remove leading sequence like "02 - " or "01 - " or "02. "
         name = name.replace(/^\d+[\s\.\-_]+/, '');
         // Format Chapter / Chuong
@@ -1660,27 +1821,63 @@
         });
     }
 
-    // Search Audiobooks
-    async function searchAudiobooks(query) {
+    // Search Audiobooks (Always Searches Vietnamese Audio on Archive.org)
+    async function searchAudiobooks(query, autoPlayFirst = false) {
         const q = (query || '').trim();
         if (!q) {
             renderAudiobooksGrid(CURATED_AUDIOBOOKS);
-            return;
+            return CURATED_AUDIOBOOKS;
         }
 
         if (audiobooksLoading) audiobooksLoading.style.display = 'flex';
         if (audiobooksGrid) audiobooksGrid.style.display = 'none';
 
         try {
-            // Local filter
+            // Determine Vietnamese search term
+            let viQuery = q;
             const lowerQ = q.toLowerCase();
-            const localMatches = CURATED_AUDIOBOOKS.filter(b =>
-                b.title.toLowerCase().includes(lowerQ) ||
-                b.author.toLowerCase().includes(lowerQ)
-            );
 
-            // Remote search on Internet Archive
-            const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(${encodeURIComponent(q)})&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
+            // 1. Check if query matches alias
+            for (const [key, viName] of Object.entries(VI_TITLE_ALIASES)) {
+                if (lowerQ.includes(key) || key.includes(lowerQ)) {
+                    viQuery = viName;
+                    break;
+                }
+            }
+
+            // 2. If query is in English without Vietnamese diacritics, translate to Vietnamese
+            if (viQuery === q && !isVietnamese(q)) {
+                try {
+                    const translated = await translateText(q);
+                    if (translated && isVietnamese(translated)) {
+                        viQuery = translated;
+                        const lowerTrans = translated.toLowerCase();
+                        for (const [k, v] of Object.entries(VI_TITLE_ALIASES)) {
+                            if (lowerTrans.includes(k)) {
+                                viQuery = v;
+                                break;
+                            }
+                        }
+                    }
+                } catch { /* ignore */ }
+            }
+
+            // Local filter against Curated list using both original and Vietnamese term
+            const lowerVi = viQuery.toLowerCase();
+            const localMatches = CURATED_AUDIOBOOKS.filter(b => {
+                const bt = b.title.toLowerCase();
+                const bo = (b.originalTitle || '').toLowerCase();
+                const aliases = (b.aliases || []).map(a => a.toLowerCase());
+                return bt.includes(lowerVi) || lowerVi.includes(bt) ||
+                       bt.includes(lowerQ) || lowerQ.includes(bt) ||
+                       (bo && (bo.includes(lowerQ) || lowerQ.includes(bo))) ||
+                       aliases.some(a => a.includes(lowerQ) || a.includes(lowerVi));
+            });
+
+            // Remote search on Internet Archive using the VIETNAMESE title for Vietnamese audio!
+            const archiveSearchPhrase = viQuery.replace(/["\\]/g, '').trim();
+            const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(title:("${encodeURIComponent(archiveSearchPhrase)}") OR "${encodeURIComponent(archiveSearchPhrase)}")&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
+
             const resp = await fetch(archiveUrl);
             const data = await resp.json();
             const docs = (data.response && data.response.docs) || [];
@@ -1711,13 +1908,20 @@
             });
 
             if (audiobooksSectionTitle) {
-                audiobooksSectionTitle.textContent = `Kết quả audio cho "${q}"`;
+                audiobooksSectionTitle.textContent = `Sách nói tiếng Việt cho "${viQuery}" (${merged.length})`;
             }
             renderAudiobooksGrid(merged);
+
+            if (autoPlayFirst && merged.length > 0) {
+                loadAndPlayAudiobook(merged[0].identifier, 0, true);
+            }
+
+            return merged;
 
         } catch (err) {
             console.error('Audiobook search error:', err);
             showToast('Không thể tìm kiếm sách nói từ Archive.org lúc này');
+            return [];
         } finally {
             if (audiobooksLoading) audiobooksLoading.style.display = 'none';
             if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
@@ -2335,29 +2539,45 @@
         }
     }
 
-    // Connect Open Library Book to Internet Archive Audiobook
-    function findAndPlayAudiobook(title, originalTitle, author) {
-        const q1 = (title || '').toLowerCase().trim();
-        const q2 = (originalTitle || '').toLowerCase().trim();
+    // Connect Open Library Book to Internet Archive Audiobook (Always in Vietnamese!)
+    async function findAndPlayAudiobook(book) {
+        if (!book) return;
 
-        // 1. Look for match in curated list
+        showToast('Đang tìm sách nói tiếng Việt trên Internet Archive...');
+
+        // 1. Resolve Vietnamese title
+        const viTitle = await resolveVietnameseAudioTitle(book);
+        const lowerVi = (viTitle || '').toLowerCase().trim();
+        const lowerOrig = (book.originalTitle || book.title || '').toLowerCase().trim();
+
+        // 2. Look for match in Curated Audiobooks
         const match = CURATED_AUDIOBOOKS.find(b => {
             const bt = b.title.toLowerCase();
-            return (q1 && (bt.includes(q1) || q1.includes(bt))) ||
-                   (q2 && (bt.includes(q2) || q2.includes(bt)));
+            const bo = (b.originalTitle || '').toLowerCase();
+            const aliases = (b.aliases || []).map(a => a.toLowerCase());
+
+            return (lowerVi && (bt.includes(lowerVi) || lowerVi.includes(bt))) ||
+                   (lowerOrig && bo && (bo.includes(lowerOrig) || lowerOrig.includes(bo))) ||
+                   aliases.some(a => (lowerVi && a.includes(lowerVi)) || (lowerOrig && a.includes(lowerOrig)));
         });
 
         if (match) {
-            showToast(`Tìm thấy sách nói: ${match.title}`);
+            showToast(`Tìm thấy sách nói tiếng Việt: ${match.title}`);
             loadAndPlayAudiobook(match.identifier, 0, true);
             return;
         }
 
-        // 2. Otherwise query Internet Archive
-        const searchTerm = originalTitle || title || author;
+        // 3. Query Internet Archive using the VIETNAMESE title!
+        const searchTerm = viTitle || book.titleVi || book.title;
         if (audioSearchInput) audioSearchInput.value = searchTerm;
-        searchAudiobooks(searchTerm);
-        showToast(`Đang tìm kiếm sách nói cho "${title}"...`);
+
+        const results = await searchAudiobooks(searchTerm, true);
+
+        if (results && results.length > 0) {
+            showToast(`Đã tìm thấy sách nói tiếng Việt: ${results[0].title}`);
+        } else {
+            showToast(`Không tìm thấy audio tiếng Việt cho "${searchTerm}". Đang mở kho sách nói.`);
+        }
     }
 
     // =========================================
