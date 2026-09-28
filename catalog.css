@@ -423,11 +423,16 @@ a { color: inherit; text-decoration: none; }
 
 .section-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
+}
+
+.catalog-category-section {
+    scroll-margin-top: 120px;
+    transition: all var(--transition-normal);
 }
 
 .section-title {
@@ -439,11 +444,70 @@ a { color: inherit; text-decoration: none; }
     letter-spacing: -0.01em;
 }
 
-.section-title svg { color: var(--accent); }
+.section-title svg {
+    color: var(--accent);
+    flex-shrink: 0;
+}
 
 .section-subtitle {
     font-size: 0.82rem;
     color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.btn-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-view-all:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(2px);
+}
+
+.btn-back-explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all var(--transition-fast);
+}
+
+.btn-back-explore:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.section-highlight {
+    animation: highlightPulse 1.4s ease-out;
+}
+
+@keyframes highlightPulse {
+    0% { background: transparent; }
+    25% { background: var(--accent-soft); padding: 12px; border-radius: var(--radius-md); }
+    100% { background: transparent; padding: 0; }
 }
 
 .result-count {

@@ -57,7 +57,8 @@
     const resultCount = document.getElementById('resultCount');
     const loadMoreContainer = document.getElementById('loadMoreContainer');
     const btnLoadMore = document.getElementById('btnLoadMore');
-    const trendingSection = document.getElementById('trendingSection');
+    const catalogSectionsContainer = document.getElementById('catalogSectionsContainer');
+    const btnBackToExplore = document.getElementById('btnBackToExplore');
     const catalogLoading = document.getElementById('catalogLoading');
     const wishlistGrid = document.getElementById('wishlistGrid');
     const favoritesGrid = document.getElementById('favoritesGrid');
@@ -217,9 +218,12 @@
         };
     }
 
-    async function fetchTrending() {
+    async function fetchTrending(period = 'daily') {
+        const url = period === 'weekly'
+            ? 'https://openlibrary.org/trending/weekly.json?limit=14'
+            : `${OL_TRENDING}?limit=14`;
         try {
-            const resp = await fetch(`${OL_TRENDING}?limit=20`);
+            const resp = await fetch(url);
             if (!resp.ok) throw new Error('Trending failed');
             const data = await resp.json();
             return (data.works || []).map(w => ({
@@ -235,8 +239,7 @@
                 pages: null,
             }));
         } catch {
-            // Fallback to a subject search if trending endpoint is unavailable
-            return fetchSubjectBooks('fiction', 20);
+            return fetchSubjectBooks(period === 'weekly' ? 'classics' : 'fiction', 12);
         }
     }
 
@@ -463,7 +466,7 @@
         if (page === 1) {
             searchResultsGrid.innerHTML = '';
             searchResultsSection.style.display = 'block';
-            trendingSection.style.display = 'none';
+            catalogSectionsContainer.style.display = 'none';
             recommendationsSection.style.display = 'none';
             loadMoreContainer.style.display = 'none';
         }
@@ -510,13 +513,42 @@
         performSearch(currentQuery, currentPage + 1);
     });
 
-    // Quick tags
+    // Quick tags jump & filter to category section
     quickTags.addEventListener('click', (e) => {
         const tag = e.target.closest('.quick-tag');
         if (!tag) return;
-        const query = tag.dataset.query;
-        searchInput.value = query;
+        const catId = tag.dataset.cat;
+        if (!catId) return;
+
         switchTab('explore');
+        showExploreDefault();
+
+        const sec = document.getElementById(`section-${catId}`);
+        if (sec) {
+            const cat = CATALOG_CATEGORIES.find(c => c.id === catId);
+            if (cat) loadSectionBooks(cat);
+            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            sec.classList.remove('section-highlight');
+            void sec.offsetWidth;
+            sec.classList.add('section-highlight');
+        }
+    });
+
+    btnBackToExplore.addEventListener('click', () => {
+        showExploreDefault();
+        searchInput.value = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    catalogSectionsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-view-all');
+        if (!btn) return;
+        const catId = btn.dataset.cat;
+        const cat = CATALOG_CATEGORIES.find(c => c.id === catId);
+        if (!cat) return;
+
+        const query = cat.subject || cat.title;
+        searchInput.value = query;
         performSearch(query);
     });
 
@@ -599,19 +631,255 @@
     }
 
     // =========================================
-    // Trending
+    // Catalog Categories Definition (Open Library)
     // =========================================
-    async function loadTrending() {
-        showSkeletons(trendingGrid, 8, true);
+    const CATALOG_CATEGORIES = [
+        {
+            id: 'trending-daily',
+            title: 'Sách phổ biến hôm nay',
+            subtitle: 'Được độc giả thế giới tìm đọc nhiều nhất hôm nay',
+            icon: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+            type: 'trending',
+            period: 'daily'
+        },
+        {
+            id: 'trending-weekly',
+            title: 'Thịnh hành trong tuần',
+            subtitle: 'Những cuốn sách nổi bật nhất tuần qua trên Open Library',
+            icon: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+            type: 'trending-weekly',
+            period: 'weekly'
+        },
+        {
+            id: 'fiction',
+            title: 'Tiểu thuyết & Văn học',
+            subtitle: 'Những câu chuyện kinh điển và tác phẩm hư cấu hấp dẫn',
+            icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+            type: 'subject',
+            subject: 'fiction'
+        },
+        {
+            id: 'science',
+            title: 'Khoa học & Tự nhiên',
+            subtitle: 'Khám phá vũ trụ, tự nhiên, công nghệ và phát minh',
+            icon: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+            type: 'subject',
+            subject: 'science'
+        },
+        {
+            id: 'history',
+            title: 'Lịch sử & Văn minh',
+            subtitle: 'Những trang sử hào hùng và bài học của nhân loại',
+            icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+            type: 'subject',
+            subject: 'history'
+        },
+        {
+            id: 'philosophy',
+            title: 'Triết học & Tư tưởng',
+            subtitle: 'Những suy tư sâu sắc về cuộc đời, đạo đức và sự tồn tại',
+            icon: '<path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+            type: 'subject',
+            subject: 'philosophy'
+        },
+        {
+            id: 'self-help',
+            title: 'Phát triển bản thân',
+            subtitle: 'Kỹ năng sống, tư duy tích cực và thói quen thành công',
+            icon: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+            type: 'subject',
+            subject: 'self-help'
+        },
+        {
+            id: 'programming',
+            title: 'Lập trình & Công nghệ',
+            subtitle: 'Khoa học máy tính, kỹ thuật phần mềm và công nghệ số',
+            icon: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+            type: 'subject',
+            subject: 'programming'
+        },
+        {
+            id: 'romance',
+            title: 'Lãng mạn & Tình cảm',
+            subtitle: 'Những câu chuyện tình yêu ngọt ngào và lay động',
+            icon: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+            type: 'subject',
+            subject: 'romance'
+        },
+        {
+            id: 'mystery',
+            title: 'Trinh thám & Bí ẩn',
+            subtitle: 'Những vụ án ly kỳ, điều tra hồi hộp và bất ngờ',
+            icon: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+            type: 'subject',
+            subject: 'mystery'
+        },
+        {
+            id: 'business',
+            title: 'Kinh doanh & Tài chính',
+            subtitle: 'Quản trị, đầu tư, khởi nghiệp và kinh tế học',
+            icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+            type: 'subject',
+            subject: 'business'
+        },
+        {
+            id: 'psychology',
+            title: 'Tâm lý học & Hành vi',
+            subtitle: 'Hiểu về tâm trí, cảm xúc và hành vi con người',
+            icon: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+            type: 'subject',
+            subject: 'psychology'
+        },
+        {
+            id: 'fantasy',
+            title: 'Giả tưởng & Phép thuật',
+            subtitle: 'Thế giới huyền bí, kỳ ảo và những chuyến phiêu lưu',
+            icon: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+            type: 'subject',
+            subject: 'fantasy'
+        },
+        {
+            id: 'science_fiction',
+            title: 'Khoa học viễn tưởng',
+            subtitle: 'Tương lai, du hành không gian và thế giới mới',
+            icon: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>',
+            type: 'subject',
+            subject: 'science_fiction'
+        },
+        {
+            id: 'children',
+            title: 'Sách thiếu nhi',
+            subtitle: 'Những câu chuyện kỳ diệu cho tuổi thơ và thanh thiếu niên',
+            icon: '<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>',
+            type: 'subject',
+            subject: 'children'
+        },
+        {
+            id: 'classics',
+            title: 'Kinh điển thế giới',
+            subtitle: 'Những kiệt tác vượt thời gian của nhân loại',
+            icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/>',
+            type: 'subject',
+            subject: 'classics'
+        },
+        {
+            id: 'biography',
+            title: 'Tiểu sử & Hồi ký',
+            subtitle: 'Chuyện đời những nhân vật vĩ đại và danh nhân thế giới',
+            icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+            type: 'subject',
+            subject: 'biography'
+        },
+        {
+            id: 'art',
+            title: 'Nghệ thuật & Thiết kế',
+            subtitle: 'Hội họa, kiến trúc, âm nhạc và nhiếp ảnh',
+            icon: '<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/>',
+            type: 'subject',
+            subject: 'art'
+        }
+    ];
+
+    const categoryCache = new Map();
+
+    function renderBooksInGrid(grid, books) {
+        grid.innerHTML = '';
+        if (!books || books.length === 0) {
+            grid.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;padding:12px;">Chưa có sách trong danh mục này.</p>';
+            return;
+        }
+        books.forEach(b => grid.appendChild(createBookCard(b)));
+    }
+
+    async function loadSectionBooks(cat) {
+        const grid = document.getElementById(`grid-${cat.id}`);
+        if (!grid) return;
+        if (categoryCache.has(cat.id)) {
+            renderBooksInGrid(grid, categoryCache.get(cat.id));
+            return;
+        }
+
         try {
-            const books = await fetchTrending();
-            trendingGrid.innerHTML = '';
-            books.forEach(book => {
-                trendingGrid.appendChild(createBookCard(book));
-            });
+            let books = [];
+            if (cat.type === 'trending') {
+                books = await fetchTrending('daily');
+            } else if (cat.type === 'trending-weekly') {
+                books = await fetchTrending('weekly');
+            } else if (cat.type === 'subject') {
+                books = await fetchSubjectBooks(cat.subject, 12);
+            }
+
+            categoryCache.set(cat.id, books);
+            renderBooksInGrid(grid, books);
         } catch (err) {
-            console.error('Trending error:', err);
-            trendingGrid.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Không thể tải sách phổ biến.</p>';
+            console.warn(`Failed to load category ${cat.id}:`, err);
+            grid.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;padding:12px;">Đang cập nhật thêm sách...</p>';
+        }
+    }
+
+    function renderCatalogSections() {
+        catalogSectionsContainer.innerHTML = '';
+        CATALOG_CATEGORIES.forEach(cat => {
+            const section = document.createElement('section');
+            section.className = 'section catalog-category-section';
+            section.id = `section-${cat.id}`;
+            section.dataset.catId = cat.id;
+
+            section.innerHTML = `
+                <div class="section-header">
+                    <div>
+                        <h3 class="section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                ${cat.icon}
+                            </svg>
+                            ${cat.title}
+                        </h3>
+                        <p class="section-subtitle">${cat.subtitle}</p>
+                    </div>
+                    <button class="btn-view-all" data-cat="${cat.id}" title="Xem tất cả sách thuộc chủ đề này">
+                        <span>Xem tất cả</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="books-scroll" id="grid-${cat.id}">
+                </div>
+            `;
+            catalogSectionsContainer.appendChild(section);
+
+            const grid = section.querySelector('.books-scroll');
+            showSkeletons(grid, 6, true);
+        });
+    }
+
+    function initLazyLoadingSections() {
+        // Tải ngay 3 danh mục đầu tiên để người dùng thấy sách ngay lập tức
+        CATALOG_CATEGORIES.slice(0, 3).forEach(cat => loadSectionBooks(cat));
+
+        // Tải mượt mà các danh mục tiếp theo khi cuộn trang
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const catId = entry.target.dataset.catId;
+                        const cat = CATALOG_CATEGORIES.find(c => c.id === catId);
+                        if (cat) {
+                            loadSectionBooks(cat);
+                            observer.unobserve(entry.target);
+                        }
+                    }
+                });
+            }, { rootMargin: '300px 0px' });
+
+            CATALOG_CATEGORIES.slice(3).forEach(cat => {
+                const sec = document.getElementById(`section-${cat.id}`);
+                if (sec) observer.observe(sec);
+            });
+        } else {
+            CATALOG_CATEGORIES.slice(3).forEach((cat, idx) => {
+                setTimeout(() => loadSectionBooks(cat), (idx + 1) * 350);
+            });
         }
     }
 
@@ -691,7 +959,7 @@
     // =========================================
     function showExploreDefault() {
         searchResultsSection.style.display = 'none';
-        trendingSection.style.display = 'block';
+        catalogSectionsContainer.style.display = 'block';
         if (favorites.length > 0) recommendationsSection.style.display = 'block';
     }
 
@@ -706,7 +974,8 @@
     // Init
     // =========================================
     updateCounts();
-    loadTrending();
+    renderCatalogSections();
+    initLazyLoadingSections();
     loadRecommendations();
 
 })();
