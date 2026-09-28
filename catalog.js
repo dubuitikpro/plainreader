@@ -2,7 +2,8 @@
  * PlainReader — Book Catalog & Recommendations
  * Nguồn dữ liệu:
  * 1. Kho sách tiếng Việt tuyển chọn (tải tức thì 0ms)
- * 2. Tự động kết nối Open Library API theo thời gian thực (tìm kiếm mọi cuốn sách)
+ * 2. Kết nối Open Library API theo thời gian thực
+ * 3. Tự động tìm kiếm ảnh bìa trên mạng (Wikipedia / Wikimedia / ISBN) nếu Open Library chưa có bìa
  * 
  * Thông tin hiển thị tuân thủ nghiêm ngặt 5 mục:
  * 1. Thumbnail (ảnh bìa)
@@ -23,6 +24,7 @@
 
     const OL_SEARCH_URL = 'https://openlibrary.org/search.json';
     const OL_WORKS_URL = 'https://openlibrary.org';
+    const WIKI_API_URL = 'https://vi.wikipedia.org/w/api.php';
 
     const GRADIENTS = [
         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
@@ -33,6 +35,9 @@
         'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
         'linear-gradient(135deg, #3a6073 0%, #3a7bd5 100%)'
     ];
+
+    // In-memory web cover cache to avoid redundant API requests
+    const webCoverCache = new Map();
 
     // =========================================
     // State
@@ -148,6 +153,39 @@
     }
 
     // =========================================
+    // Tự động tìm kiếm ảnh bìa trên mạng (Wikipedia / Wikimedia)
+    // Nếu Open Library không có ảnh bìa
+    // =========================================
+    async function fetchWebCover(title) {
+        if (!title) return null;
+        const cleanTitle = title.replace(/\(.*?\)/g, '').trim();
+        if (webCoverCache.has(cleanTitle)) {
+            return webCoverCache.get(cleanTitle);
+        }
+
+        try {
+            const url = `${WIKI_API_URL}?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanTitle)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=500&origin=*`;
+            const resp = await fetch(url);
+            if (!resp.ok) {
+                webCoverCache.set(cleanTitle, null);
+                return null;
+            }
+            const data = await resp.json();
+            if (data.query && data.query.pages) {
+                const page = Object.values(data.query.pages)[0];
+                if (page.thumbnail && page.thumbnail.source) {
+                    const thumb = page.thumbnail.source;
+                    webCoverCache.set(cleanTitle, thumb);
+                    return thumb;
+                }
+            }
+        } catch { /* ignore network error */ }
+
+        webCoverCache.set(cleanTitle, null);
+        return null;
+    }
+
+    // =========================================
     // Book Normalizer
     // =========================================
     function normalizeBook(raw) {
@@ -187,8 +225,23 @@
                 const title = doc.title || 'Chưa đặt tên';
                 const author = doc.author_name ? doc.author_name.join(', ') : 'Tác giả';
                 const year = doc.first_publish_year ? String(doc.first_publish_year) : '';
-                const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null;
                 const workKey = doc.key || '';
+
+                let coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null;
+
+                // Nếu Open Library không có cover_i, thử qua ISBN
+                if (!coverUrl && doc.isbn && doc.isbn.length > 0) {
+                    coverUrl = `https://covers.openlibrary.org/b/isbn/${doc.isbn[0]}-L.jpg`;
+                }
+
+                // Nếu vẫn chưa có, kiểm tra trong kho sách tuyển chọn có sẵn
+                if (!coverUrl) {
+                    const normT = removeVietnameseAccents(title);
+                    const localMatch = localBooks.find(lb => removeVietnameseAccents(lb.title) === normT && lb.coverUrl);
+                    if (localMatch) {
+                        coverUrl = localMatch.coverUrl;
+                    }
+                }
 
                 return {
                     id: 'ol-' + (workKey.replace(/\//g, '-') || Math.random().toString(36).slice(2)),
@@ -201,6 +254,7 @@
                     coverUrl: coverUrl,
                     gradient: getRandomGradient(title),
                     isFromOpenLibrary: true,
+                    needsWebCover: !coverUrl // Cần tìm ảnh bìa trên mạng
                 };
             });
         } catch (err) {
@@ -232,7 +286,7 @@
                 ${book.coverUrl ? `
                     <img class="book-cover" src="${book.coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy"
                          onload="this.style.opacity='1';"
-                         onerror="this.style.display='none';"
+                         onerror="this.style.display='none'; this.dispatchEvent(new CustomEvent('cover-failed', {bubbles: true}));"
                          style="opacity:0; transition: opacity 0.3s ease;">
                 ` : ''}
                 <div class="book-actions">
@@ -254,6 +308,45 @@
                 ${book.year ? `<div class="book-year">${escapeHtml(book.year)}</div>` : ''}
             </div>
         `;
+
+        // Nếu cuốn sách chưa có ảnh bìa từ Open Library, tự động tìm trên mạng
+        if (book.needsWebCover && !book.coverUrl) {
+            fetchWebCover(book.title).then(webCover => {
+                if (webCover) {
+                    book.coverUrl = webCover;
+                    book.needsWebCover = false;
+                    const wrapper = card.querySelector('.book-cover-wrapper');
+                    if (wrapper) {
+                        let img = wrapper.querySelector('.book-cover');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.className = 'book-cover';
+                            img.alt = book.title;
+                            img.loading = 'lazy';
+                            img.style.opacity = '0';
+                            img.style.transition = 'opacity 0.3s ease';
+                            wrapper.appendChild(img);
+                        }
+                        img.onload = () => { img.style.opacity = '1'; };
+                        img.src = webCover;
+                    }
+                }
+            });
+        }
+
+        // Nếu ảnh bìa Open Library bị lỗi tải (404), tự động tìm ảnh thay thế trên mạng
+        card.addEventListener('cover-failed', () => {
+            fetchWebCover(book.title).then(webCover => {
+                if (webCover && webCover !== book.coverUrl) {
+                    book.coverUrl = webCover;
+                    const img = card.querySelector('.book-cover');
+                    if (img) {
+                        img.src = webCover;
+                        img.style.display = 'block';
+                    }
+                }
+            });
+        });
 
         card.addEventListener('click', (e) => {
             if (e.target.closest('.book-action-btn')) return;
@@ -317,6 +410,19 @@
         modalCover.alt = book.title;
         modalCover.style.display = book.coverUrl ? 'block' : 'none';
         modalCover.onerror = () => { modalCover.style.display = 'none'; };
+
+        // Nếu modal chưa có ảnh bìa, tự động tìm trên mạng
+        if (!book.coverUrl) {
+            fetchWebCover(book.title).then(webCover => {
+                if (webCover) {
+                    book.coverUrl = webCover;
+                    if (currentModalBook && currentModalBook.key === book.key) {
+                        modalCover.src = webCover;
+                        modalCover.style.display = 'block';
+                    }
+                }
+            });
+        }
 
         // Tên sách & Tác giả
         modalTitle.textContent = book.title;
@@ -463,7 +569,7 @@
     }
 
     // =========================================
-    // Search: Kết hợp kho tiếng Việt + Live Open Library API
+    // Search: Kết hợp kho tiếng Việt + Live Open Library API + Web Cover Fallback
     // =========================================
     async function performSearch(query) {
         const cleanQuery = query.trim();
@@ -473,7 +579,7 @@
         const normalizedQuery = removeVietnameseAccents(cleanQuery);
         const queryTerms = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
 
-        // Hủy yêu cầu Open Library cũ nếu người dùng gõ từ khóa mới
+        // Hủy yêu cầu tìm kiếm cũ nếu người dùng gõ từ khóa mới
         if (searchAbortController) {
             searchAbortController.abort();
         }
