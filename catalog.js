@@ -106,6 +106,66 @@
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
 
+    // Audio Elements
+    const tabAudio = document.getElementById('tabAudio');
+    const contentAudio = document.getElementById('contentAudio');
+    const audioSearchInput = document.getElementById('audioSearchInput');
+    const btnAudioSearch = document.getElementById('btnAudioSearch');
+    const audioGenreTags = document.getElementById('audioGenreTags');
+    const audiobooksGrid = document.getElementById('audiobooksGrid');
+    const audiobooksCount = document.getElementById('audiobooksCount');
+    const audiobooksSectionTitle = document.getElementById('audiobooksSectionTitle');
+    const audiobooksLoading = document.getElementById('audiobooksLoading');
+    const modalBtnAudiobook = document.getElementById('modalBtnAudiobook');
+
+    // Dedicated Audio Player Modal Elements
+    const audioPlayerModal = document.getElementById('audioPlayerModal');
+    const playerBookCover = document.getElementById('playerBookCover');
+    const playerBookTitle = document.getElementById('playerBookTitle');
+    const playerBookAuthor = document.getElementById('playerBookAuthor');
+    const playerTotalChaptersBadge = document.getElementById('playerTotalChaptersBadge');
+    const playerTotalDurationBadge = document.getElementById('playerTotalDurationBadge');
+    const playerTrackCounter = document.getElementById('playerTrackCounter');
+    const playerTrackTitle = document.getElementById('playerTrackTitle');
+    const btnPlayerBookmark = document.getElementById('btnPlayerBookmark');
+    const btnPlayerMinimize = document.getElementById('btnPlayerMinimize');
+    const btnPlayerClose = document.getElementById('btnPlayerClose');
+    const playerCurrentTime = document.getElementById('playerCurrentTime');
+    const playerTotalDuration = document.getElementById('playerTotalDuration');
+    const playerSliderWrap = document.getElementById('playerSliderWrap');
+    const playerSliderFill = document.getElementById('playerSliderFill');
+    const playerSeekSlider = document.getElementById('playerSeekSlider');
+    const btnPlayerRewind15 = document.getElementById('btnPlayerRewind15');
+    const btnPlayerPrev = document.getElementById('btnPlayerPrev');
+    const btnPlayerPlay = document.getElementById('btnPlayerPlay');
+    const btnPlayerNext = document.getElementById('btnPlayerNext');
+    const btnPlayerForward15 = document.getElementById('btnPlayerForward15');
+    const btnPlayerMute = document.getElementById('btnPlayerMute');
+    const volumeIcon = document.getElementById('volumeIcon');
+    const playerVolumeSlider = document.getElementById('playerVolumeSlider');
+    const btnPlayerTimer = document.getElementById('btnPlayerTimer');
+    const playerTimerLabel = document.getElementById('playerTimerLabel');
+    const timerPopupMenu = document.getElementById('timerPopupMenu');
+    const btnPlayerSpeed = document.getElementById('btnPlayerSpeed');
+    const playerSpeedLabel = document.getElementById('playerSpeedLabel');
+    const playlistChapterHeader = document.getElementById('playlistChapterHeader');
+    const playerChaptersList = document.getElementById('playerChaptersList');
+    const playerArchiveLink = document.getElementById('playerArchiveLink');
+    const playerBookDescription = document.getElementById('playerBookDescription');
+
+    // Mini Audio Player Elements
+    const miniAudioPlayer = document.getElementById('miniAudioPlayer');
+    const miniPlayerProgressLine = document.getElementById('miniPlayerProgressLine');
+    const miniPlayerOpen = document.getElementById('miniPlayerOpen');
+    const miniPlayerThumb = document.getElementById('miniPlayerThumb');
+    const miniPlayerTitle = document.getElementById('miniPlayerTitle');
+    const miniPlayerChapter = document.getElementById('miniPlayerChapter');
+    const miniBtnRewind = document.getElementById('miniBtnRewind');
+    const miniBtnPlay = document.getElementById('miniBtnPlay');
+    const miniBtnForward = document.getElementById('miniBtnForward');
+    const miniBtnExpand = document.getElementById('miniBtnExpand');
+    const miniBtnClose = document.getElementById('miniBtnClose');
+
     // =========================================
     // Theme (sync with main app)
     // =========================================
@@ -653,6 +713,18 @@
         refreshAllViews();
     });
 
+    if (modalBtnAudiobook) {
+        modalBtnAudiobook.addEventListener('click', () => {
+            if (!currentModalBook) return;
+            const title = currentModalBook.titleVi || currentModalBook.title || '';
+            const originalTitle = currentModalBook.originalTitle || '';
+            const author = currentModalBook.author || '';
+            closeBookModal();
+            switchTab('audio');
+            findAndPlayAudiobook(title, originalTitle, author);
+        });
+    }
+
     // =========================================
     // Search
     // =========================================
@@ -881,7 +953,9 @@
         document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
 
         // Update tab content
-        [contentExplore, contentWishlist, contentFavorites].forEach(c => c.classList.remove('active'));
+        [contentExplore, contentWishlist, contentFavorites, contentAudio].forEach(c => {
+            if (c) c.classList.remove('active');
+        });
 
         if (tabName === 'explore') {
             contentExplore.classList.add('active');
@@ -891,6 +965,9 @@
         } else if (tabName === 'favorites') {
             contentFavorites.classList.add('active');
             renderFavorites();
+        } else if (tabName === 'audio') {
+            if (contentAudio) contentAudio.classList.add('active');
+            initAudiobooksTab();
         }
     }
 
@@ -1289,11 +1366,1008 @@
     });
 
     // =========================================
+    // Curated Audiobooks (Internet Archive)
+    // =========================================
+    const STORAGE_AUDIO_STATE = 'plainreader-audio-state';
+    const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
+
+    const CURATED_AUDIOBOOKS = [
+        {
+            identifier: 'mat-day-tam-den.sna',
+            title: 'Mặt Dày Tâm Đen',
+            author: 'Chin-Ning Chu',
+            genre: 'self-help',
+            chapters: 19,
+            cover: 'https://archive.org/services/img/mat-day-tam-den.sna',
+            description: 'Tác phẩm nổi tiếng của Chin-Ning Chu kết hợp triết lý phương Đông và tư duy hành động thực tiễn để khai phá sức mạnh nội tâm, xây dựng bản lĩnh vững vàng vượt qua mọi sóng gió thương trường và đời sống.'
+        },
+        {
+            identifier: 'dac-nhan-tam.sna',
+            title: 'Đắc Nhân Tâm',
+            author: 'Dale Carnegie',
+            genre: 'self-help',
+            chapters: 31,
+            cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
+            description: 'Cuốn sách nghệ thuật thu phục lòng người kinh điển nhất mọi thời đại của Dale Carnegie, chỉ dẫn cách lắng nghe, thấu hiểu, ứng xử nhân văn và xây dựng những mối quan hệ bền vững.'
+        },
+        {
+            identifier: 'tam-quoc-chi-dien-nghia-tap-1.sna',
+            title: 'Tam Quốc Diễn Nghĩa',
+            author: 'La Quán Trung',
+            genre: 'history-philosophy',
+            chapters: 40,
+            cover: 'https://archive.org/services/img/tam-quoc-chi-dien-nghia-tap-1.sna',
+            description: 'Đại kiệt tác văn học lịch sử Trung Hoa, khắc họa cuộc tranh hùng thời Tam Quốc với những mưu lược quân sự kiệt xuất, tài trí của Gia Cát Lượng, Tào Tháo, Quan Vũ, Lưu Bị.'
+        },
+        {
+            identifier: 'mat-ma-da-vinci.sna',
+            title: 'Mật Mã Da Vinci',
+            author: 'Dan Brown',
+            genre: 'literature',
+            chapters: 105,
+            cover: 'https://archive.org/services/img/mat-ma-da-vinci.sna',
+            description: 'Tiểu thuyết trinh thám ly kỳ chấn động thế giới của Dan Brown, theo chân giáo sư biểu tượng học Robert Langdon giải mã các thông điệp ẩn giấu trong các tuyệt tác của Leonardo da Vinci.'
+        },
+        {
+            identifier: 'suc-manh-tiem-thuc.sna',
+            title: 'Sức Mạnh Tiềm Thức',
+            author: 'Joseph Murphy',
+            genre: 'self-help',
+            chapters: 20,
+            cover: 'https://archive.org/services/img/suc-manh-tiem-thuc.sna',
+            description: 'Khám phá bí mật tiềm ẩn của trí não và tiềm thức, phương pháp khai mở nguồn năng lượng chữa lành, thịnh vượng và hạnh phúc trong mỗi con người.'
+        },
+        {
+            identifier: 'tuoi-tre-dang-gia-bao-nhieu.sna',
+            title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu',
+            author: 'Rosie Nguyễn',
+            genre: 'self-help',
+            chapters: 17,
+            cover: 'https://archive.org/services/img/tuoi-tre-dang-gia-bao-nhieu.sna',
+            description: 'Cuốn sách truyền cảm hứng cho hàng triệu bạn trẻ Việt Nam về việc học tập, đọc sách, trải nghiệm du lịch bụi và tìm ra đam mê đích thực của cuộc đời.'
+        },
+        {
+            identifier: 'gian.sna',
+            title: 'Giận',
+            author: 'Thích Nhất Hạnh',
+            genre: 'history-philosophy',
+            chapters: 15,
+            cover: 'https://archive.org/services/img/gian.sna',
+            description: 'Những lời dạy minh triết của Thiền sư Thích Nhất Hạnh về phương pháp ôm ấp và chuyển hóa cơn giận, tìm lại sự an lạc sâu sắc trong tâm hồn và hàn gắn mối quan hệ.'
+        },
+        {
+            identifier: 'tren-duong-bang.sna',
+            title: 'Trên Đường Băng',
+            author: 'Tony Buổi Sáng',
+            genre: 'self-help',
+            chapters: 21,
+            cover: 'https://archive.org/services/img/tren-duong-bang.sna',
+            description: 'Tác phẩm truyền động lực mạnh mẽ của Tony Buổi Sáng dành cho người trẻ dám dấn thân, rèn luyện ngoại ngữ, tính kỷ luật và bản lĩnh vươn ra biển lớn thế giới.'
+        },
+        {
+            identifier: 'khong-gia-dinh.sna',
+            title: 'Không Gia Đình',
+            author: 'Hector Malot',
+            genre: 'literature',
+            chapters: 25,
+            cover: 'https://archive.org/services/img/khong-gia-dinh.sna',
+            description: 'Hành trình lưu lạc đầy thử thách nhưng ngập tràn tình yêu thương và lòng quả cảm của chú bé Rémi cùng cụ Vitalis và đoàn xiếc thú qua khắp nẻo đường nước Pháp.'
+        },
+        {
+            identifier: 'hai-so-phan.sna',
+            title: 'Hai Số Phận (Kane and Abel)',
+            author: 'Jeffrey Archer',
+            genre: 'literature',
+            chapters: 35,
+            cover: 'https://archive.org/services/img/hai-so-phan.sna',
+            description: 'Tiểu thuyết kinh điển về cuộc đối đầu định mệnh giữa William Kane giàu sang quyền quý và Abel Rosnovski di dân nghèo khó trên thương trường nước Mỹ suốt nửa thế kỷ.'
+        },
+        {
+            identifier: 'art_of_war_librivox',
+            title: 'Binh Pháp Tôn Tử (The Art of War)',
+            author: 'Sun Tzu / Lionel Giles',
+            genre: 'english',
+            chapters: 13,
+            cover: 'https://archive.org/services/img/art_of_war_librivox',
+            description: 'Bộ binh thư quân sự vĩ đại nhất lịch sử phương Đông, đúc kết các quy luật chiến lược, nghệ thuật chỉ huy và triết lý nắm bắt cơ hội được áp dụng rộng rãi trong cả kinh doanh hiện đại.'
+        },
+        {
+            identifier: 'quang-ganh-lo-di-va-vui-song.sna',
+            title: 'Quẳng Gánh Lo Đi Và Vui Sống',
+            author: 'Dale Carnegie',
+            genre: 'self-help',
+            chapters: 28,
+            cover: 'https://archive.org/services/img/quang-ganh-lo-di-va-vui-song.sna',
+            description: 'Chỉ dẫn tâm lý thiết thực giúp độc giả phân tích và loại bỏ âu lo phiền muộn, sống trọn vẹn từng ngày hôm nay trong niềm vui và sự thanh thản.'
+        },
+        {
+            identifier: 'nghi-giau-lam-giau.sna',
+            title: 'Nghĩ Giàu Làm Giàu (Think and Grow Rich)',
+            author: 'Napoleon Hill',
+            genre: 'self-help',
+            chapters: 16,
+            cover: 'https://archive.org/services/img/nghi-giau-lam-giau.sna',
+            description: '13 nguyên tắc thành công được đúc kết từ hơn 500 nhân vật kiệt xuất nhất nước Mỹ của Napoleon Hill, mở rộng tầm nhìn về sức mạnh của khát khao và trí tuệ.'
+        },
+        {
+            identifier: 'hoang-tu-be.sna',
+            title: 'Hoàng Tử Bé',
+            author: 'Antoine de Saint-Exupéry',
+            genre: 'literature',
+            chapters: 27,
+            cover: 'https://archive.org/services/img/hoang-tu-be.sna',
+            description: 'Kiệt tác văn học Pháp đẹp đẽ và sâu sắc: "Người ta chỉ có thể nhìn thấy rõ ràng bằng trái tim. Những điều cốt yếu thì mắt thường không nhìn thấy được."'
+        },
+        {
+            identifier: 'sherlock_holmes_canon_08_02_librivox',
+            title: 'The Return of Sherlock Holmes',
+            author: 'Arthur Conan Doyle',
+            genre: 'english',
+            chapters: 13,
+            cover: 'https://archive.org/services/img/sherlock_holmes_canon_08_02_librivox',
+            description: 'Tuyển tập truyện trinh thám đặc sắc đánh dấu sự trở lại ngoạn mục của thám tử đại tài Sherlock Holmes và bác sĩ Watson trên phố Baker.'
+        }
+    ];
+
+    // =========================================
+    // Audio Player State & Engine
+    // =========================================
+    const audioElement = new Audio();
+    audioElement.preload = 'metadata';
+
+    let currentAudiobook = null;
+    let currentTrackIndex = 0;
+    let isAudioSeeking = false;
+    let sleepTimerTimeout = null;
+    let sleepTimerMode = '0'; // '0', '15', '30', '45', '60', 'end'
+    const SPEED_RATES = [1.0, 1.25, 1.5, 2.0, 0.75];
+    let currentSpeedIndex = 0;
+    let isAudiobookTabLoaded = false;
+    let currentGenreFilter = 'all';
+
+    function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return '00:00';
+        const s = Math.floor(seconds);
+        const hrs = Math.floor(s / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        const secs = s % 60;
+        if (hrs > 0) {
+            return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function cleanChapterTitle(fileName, metadataTitle) {
+        if (metadataTitle && metadataTitle.trim()) {
+            return metadataTitle.trim();
+        }
+        let name = fileName.replace(/\.[^/.]+$/, ''); // remove .mp3
+        // Remove leading sequence like "02 - " or "01 - " or "02. "
+        name = name.replace(/^\d+[\s\.\-_]+/, '');
+        // Format Chapter / Chuong
+        name = name.replace(/^(?:chuong|chương|chapter)\s*(\d+[a-zA-Z]?)\s*[\-:]?\s*/i, (m, c) => `Chương ${c.toUpperCase()}: `);
+        // Clean underscores and multiple spaces
+        name = name.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+        return name;
+    }
+
+    // =========================================
+    // Audio Tab Initialization & Rendering
+    // =========================================
+    function initAudiobooksTab() {
+        if (isAudiobookTabLoaded) return;
+        isAudiobookTabLoaded = true;
+        renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+    }
+
+    function renderAudiobooksGrid(books) {
+        if (!audiobooksGrid) return;
+        audiobooksGrid.innerHTML = '';
+
+        if (!books || books.length === 0) {
+            audiobooksGrid.innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1; padding: 40px 0;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <h3>Không tìm thấy sách nói phù hợp</h3>
+                    <p>Hãy thử tìm kiếm với từ khóa khác trên Internet Archive</p>
+                </div>
+            `;
+            if (audiobooksCount) audiobooksCount.textContent = '0 sách nói';
+            return;
+        }
+
+        if (audiobooksCount) {
+            audiobooksCount.textContent = `${books.length} sách nói`;
+        }
+
+        books.forEach(b => {
+            const card = document.createElement('div');
+            card.className = 'audiobook-card';
+            card.setAttribute('data-id', b.identifier);
+
+            const coverUrl = b.cover || `https://archive.org/services/img/${b.identifier}`;
+            const chapterBadge = b.chapters ? `${b.chapters} chương` : 'Audiobook';
+
+            card.innerHTML = `
+                <div class="audiobook-cover-wrap">
+                    <img class="audiobook-cover" src="${coverUrl}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='https://archive.org/images/archive_logo.png'">
+                    <span class="audiobook-badge-chapters">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                        </svg>
+                        ${chapterBadge}
+                    </span>
+                    <div class="audiobook-overlay-play">
+                        <div class="audiobook-play-circle">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                                <polygon points="6 3 20 12 6 21 6 3"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="audiobook-info">
+                    <div class="audiobook-title" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</div>
+                    <div class="audiobook-author">${escapeHtml(b.author || 'Internet Archive')}</div>
+                    <div class="audiobook-footer">
+                        <span class="audiobook-source-tag">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                            </svg>
+                            archive.org
+                        </span>
+                        <button class="audiobook-btn-listen" title="Nghe sách này">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            <span>Nghe ngay</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                loadAndPlayAudiobook(b.identifier, 0, true);
+            });
+
+            audiobooksGrid.appendChild(card);
+        });
+    }
+
+    // Genre Filter Buttons
+    if (audioGenreTags) {
+        audioGenreTags.addEventListener('click', (e) => {
+            const tag = e.target.closest('.audio-tag');
+            if (!tag) return;
+
+            audioGenreTags.querySelectorAll('.audio-tag').forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+
+            const genre = tag.dataset.genre || 'all';
+            currentGenreFilter = genre;
+
+            if (genre === 'all') {
+                renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+            } else {
+                const filtered = CURATED_AUDIOBOOKS.filter(b => b.genre === genre);
+                renderAudiobooksGrid(filtered);
+            }
+        });
+    }
+
+    // Search Audiobooks
+    async function searchAudiobooks(query) {
+        const q = (query || '').trim();
+        if (!q) {
+            renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+            return;
+        }
+
+        if (audiobooksLoading) audiobooksLoading.style.display = 'flex';
+        if (audiobooksGrid) audiobooksGrid.style.display = 'none';
+
+        try {
+            // Local filter
+            const lowerQ = q.toLowerCase();
+            const localMatches = CURATED_AUDIOBOOKS.filter(b =>
+                b.title.toLowerCase().includes(lowerQ) ||
+                b.author.toLowerCase().includes(lowerQ)
+            );
+
+            // Remote search on Internet Archive
+            const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(${encodeURIComponent(q)})&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
+            const resp = await fetch(archiveUrl);
+            const data = await resp.json();
+            const docs = (data.response && data.response.docs) || [];
+
+            const remoteBooks = docs.map(d => ({
+                identifier: d.identifier,
+                title: d.title || d.identifier,
+                author: d.creator || 'Internet Archive',
+                cover: `https://archive.org/services/img/${d.identifier}`,
+                description: d.description || '',
+                chapters: null
+            }));
+
+            // Merge & deduplicate by identifier
+            const seen = new Set();
+            const merged = [];
+
+            localMatches.forEach(b => {
+                seen.add(b.identifier);
+                merged.push(b);
+            });
+
+            remoteBooks.forEach(b => {
+                if (!seen.has(b.identifier)) {
+                    seen.add(b.identifier);
+                    merged.push(b);
+                }
+            });
+
+            if (audiobooksSectionTitle) {
+                audiobooksSectionTitle.textContent = `Kết quả audio cho "${q}"`;
+            }
+            renderAudiobooksGrid(merged);
+
+        } catch (err) {
+            console.error('Audiobook search error:', err);
+            showToast('Không thể tìm kiếm sách nói từ Archive.org lúc này');
+        } finally {
+            if (audiobooksLoading) audiobooksLoading.style.display = 'none';
+            if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
+        }
+    }
+
+    if (btnAudioSearch && audioSearchInput) {
+        btnAudioSearch.addEventListener('click', () => searchAudiobooks(audioSearchInput.value));
+        audioSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchAudiobooks(audioSearchInput.value);
+        });
+    }
+
+    // =========================================
+    // Core Audio Player Logic (Replicating Screenshot)
+    // =========================================
+    async function loadAndPlayAudiobook(identifier, trackIndex = 0, autoPlay = true, resumeTime = 0) {
+        // If already playing this exact book, just switch track
+        if (currentAudiobook && currentAudiobook.identifier === identifier) {
+            playTrack(trackIndex, resumeTime);
+            openAudioPlayerModal();
+            return;
+        }
+
+        showToast('Đang tải dữ liệu âm thanh từ Internet Archive...');
+
+        try {
+            const resp = await fetch(`https://archive.org/metadata/${identifier}`);
+            if (!resp.ok) throw new Error('Failed to fetch audiobook metadata');
+            const data = await resp.json();
+
+            const files = data.files || [];
+            // Filter mp3 files
+            let mp3Files = files.filter(f =>
+                f.name &&
+                f.name.toLowerCase().endsWith('.mp3') &&
+                !f.name.includes('_spectrogram') &&
+                !f.name.includes('_64kb')
+            );
+
+            // Fallback if none passed the strict filter
+            if (mp3Files.length === 0) {
+                mp3Files = files.filter(f => f.name && f.name.toLowerCase().endsWith('.mp3'));
+            }
+
+            if (mp3Files.length === 0) {
+                showToast('Tác phẩm này chưa có bản ghi âm MP3 trên Archive.org');
+                return;
+            }
+
+            // Natural sort by file name
+            mp3Files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            // Curated match for richer meta
+            const curated = CURATED_AUDIOBOOKS.find(b => b.identifier === identifier);
+            const bookTitle = (curated && curated.title) || data.metadata.title || identifier;
+            const bookAuthor = (curated && curated.author) || data.metadata.creator || 'Internet Archive';
+            const bookDesc = (curated && curated.description) || data.metadata.description || 'Sách nói từ Internet Archive mở toàn cầu.';
+            const bookCover = (curated && curated.cover) || `https://archive.org/services/img/${identifier}`;
+
+            const tracks = mp3Files.map((f, i) => {
+                const duration = f.length ? parseFloat(f.length) : 0;
+                return {
+                    index: i,
+                    fileName: f.name,
+                    title: cleanChapterTitle(f.name, f.title),
+                    duration: duration,
+                    durationFormatted: formatTime(duration),
+                    url: `https://archive.org/download/${identifier}/${encodeURIComponent(f.name)}`
+                };
+            });
+
+            currentAudiobook = {
+                identifier: identifier,
+                title: bookTitle,
+                author: bookAuthor,
+                description: bookDesc,
+                cover: bookCover,
+                tracks: tracks,
+                totalTracks: tracks.length
+            };
+
+            // Populate Modal UI
+            if (playerBookCover) playerBookCover.src = bookCover;
+            if (playerBookTitle) playerBookTitle.textContent = bookTitle;
+            if (playerBookAuthor) playerBookAuthor.textContent = bookAuthor;
+            if (playerTotalChaptersBadge) playerTotalChaptersBadge.textContent = `${tracks.length} Chương`;
+            if (playlistChapterHeader) playlistChapterHeader.textContent = `${tracks.length} Chương`;
+            if (playerArchiveLink) playerArchiveLink.href = `https://archive.org/details/${identifier}`;
+            if (playerBookDescription) playerBookDescription.innerHTML = bookDesc;
+
+            // Calculate approximate total duration
+            const totalSecs = tracks.reduce((acc, t) => acc + (t.duration || 0), 0);
+            if (playerTotalDurationBadge) {
+                if (totalSecs > 0) {
+                    const hrs = (totalSecs / 3600).toFixed(1);
+                    playerTotalDurationBadge.textContent = `~${hrs} giờ`;
+                } else {
+                    playerTotalDurationBadge.textContent = 'Audiobook';
+                }
+            }
+
+            // Populate Playlist
+            renderPlayerPlaylist();
+
+            // Play track
+            const targetTrack = Math.min(Math.max(0, trackIndex), tracks.length - 1);
+            playTrack(targetTrack, resumeTime, autoPlay);
+
+            // Show player modal
+            openAudioPlayerModal();
+
+        } catch (err) {
+            console.error('Error loading audiobook:', err);
+            showToast('Lỗi tải sách nói từ Internet Archive. Vui lòng thử lại.');
+        }
+    }
+
+    function renderPlayerPlaylist() {
+        if (!playerChaptersList || !currentAudiobook) return;
+        playerChaptersList.innerHTML = '';
+
+        currentAudiobook.tracks.forEach((track, i) => {
+            const row = document.createElement('div');
+            row.className = `chapter-item ${i === currentTrackIndex ? 'active-track' : ''}`;
+            row.setAttribute('data-track-index', i);
+
+            row.innerHTML = `
+                <div class="chapter-item-left">
+                    <div class="chapter-state-icon">
+                        ${i === currentTrackIndex && !audioElement.paused
+                            ? `<div class="wave-anim"><span></span><span></span><span></span></div>`
+                            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                   <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                                   <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                               </svg>`
+                        }
+                    </div>
+                    <div class="chapter-name" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</div>
+                </div>
+                <div class="chapter-duration">${track.durationFormatted || '--:--'}</div>
+            `;
+
+            row.addEventListener('click', () => {
+                playTrack(i, 0, true);
+            });
+
+            playerChaptersList.appendChild(row);
+        });
+    }
+
+    function playTrack(index, resumeTime = 0, autoPlay = true) {
+        if (!currentAudiobook || !currentAudiobook.tracks[index]) return;
+        currentTrackIndex = index;
+        const track = currentAudiobook.tracks[index];
+
+        // Update now playing header
+        if (playerTrackCounter) {
+            playerTrackCounter.textContent = `${index + 1}/${currentAudiobook.totalTracks}`;
+        }
+        if (playerTrackTitle) {
+            playerTrackTitle.textContent = track.title;
+        }
+
+        // Update Mini Player
+        if (miniPlayerThumb) miniPlayerThumb.src = currentAudiobook.cover;
+        if (miniPlayerTitle) miniPlayerTitle.textContent = currentAudiobook.title;
+        if (miniPlayerChapter) miniPlayerChapter.textContent = track.title;
+        if (miniAudioPlayer) miniAudioPlayer.style.display = 'block';
+
+        // Update Audio Source
+        audioElement.src = track.url;
+        audioElement.playbackRate = SPEED_RATES[currentSpeedIndex];
+
+        if (resumeTime > 0) {
+            audioElement.currentTime = resumeTime;
+        }
+
+        // Highlight playlist row
+        updatePlaylistActiveState();
+
+        if (autoPlay) {
+            audioElement.play().catch(err => {
+                console.log('Playback start was blocked by browser:', err);
+            });
+        }
+
+        saveAudioState();
+    }
+
+    function updatePlaylistActiveState() {
+        if (!playerChaptersList) return;
+        const rows = playerChaptersList.querySelectorAll('.chapter-item');
+        rows.forEach((r, idx) => {
+            const isCurrent = idx === currentTrackIndex;
+            r.classList.toggle('active-track', isCurrent);
+            const iconWrap = r.querySelector('.chapter-state-icon');
+            if (iconWrap) {
+                if (isCurrent && !audioElement.paused) {
+                    iconWrap.innerHTML = `<div class="wave-anim"><span></span><span></span><span></span></div>`;
+                } else {
+                    iconWrap.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                        </svg>
+                    `;
+                }
+            }
+            if (isCurrent) {
+                r.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
+
+    function toggleAudioPlay() {
+        if (!audioElement.src) return;
+        if (audioElement.paused) {
+            audioElement.play().catch(e => console.log('Play failed:', e));
+        } else {
+            audioElement.pause();
+        }
+    }
+
+    function updatePlayPauseIcons(isPlaying) {
+        if (btnPlayerPlay) {
+            const playIcon = btnPlayerPlay.querySelector('.icon-play');
+            const pauseIcon = btnPlayerPlay.querySelector('.icon-pause');
+            if (playIcon) playIcon.style.display = isPlaying ? 'none' : 'block';
+            if (pauseIcon) pauseIcon.style.display = isPlaying ? 'block' : 'none';
+        }
+
+        if (miniBtnPlay) {
+            const miniPlayIcon = miniBtnPlay.querySelector('.mini-icon-play');
+            const miniPauseIcon = miniBtnPlay.querySelector('.mini-icon-pause');
+            if (miniPlayIcon) miniPlayIcon.style.display = isPlaying ? 'none' : 'block';
+            if (miniPauseIcon) miniPauseIcon.style.display = isPlaying ? 'block' : 'none';
+        }
+
+        updatePlaylistActiveState();
+    }
+
+    // Audio Element Event Listeners
+    audioElement.addEventListener('play', () => {
+        updatePlayPauseIcons(true);
+    });
+
+    audioElement.addEventListener('pause', () => {
+        updatePlayPauseIcons(false);
+    });
+
+    audioElement.addEventListener('timeupdate', () => {
+        if (isAudioSeeking) return;
+
+        const cur = audioElement.currentTime;
+        const dur = audioElement.duration || (currentAudiobook && currentAudiobook.tracks[currentTrackIndex]?.duration) || 0;
+
+        if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
+        if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
+
+        if (dur > 0) {
+            const percent = (cur / dur) * 100;
+            if (playerSeekSlider) playerSeekSlider.value = percent;
+            if (playerSliderFill) playerSliderFill.style.width = `${percent}%`;
+            if (miniPlayerProgressLine) {
+                miniPlayerProgressLine.style.setProperty('--mini-progress', `${percent}%`);
+            }
+        }
+
+        // Throttle state saving
+        if (Math.floor(cur) % 5 === 0) {
+            saveAudioState();
+        }
+    });
+
+    audioElement.addEventListener('ended', () => {
+        if (sleepTimerMode === 'end') {
+            audioElement.pause();
+            setSleepTimer('0');
+            showToast('Đã dừng phát theo hẹn giờ hết chương');
+            return;
+        }
+
+        // Auto advance to next chapter
+        if (currentAudiobook && currentTrackIndex < currentAudiobook.tracks.length - 1) {
+            playTrack(currentTrackIndex + 1, 0, true);
+        } else {
+            updatePlayPauseIcons(false);
+        }
+    });
+
+    audioElement.addEventListener('error', (e) => {
+        console.error('Audio stream error:', e);
+        showToast('Lỗi phát âm thanh từ nguồn máy chủ Internet Archive.');
+    });
+
+    // Scrubber seeking
+    if (playerSeekSlider) {
+        playerSeekSlider.addEventListener('input', () => {
+            isAudioSeeking = true;
+            const dur = audioElement.duration || 0;
+            const targetSec = (playerSeekSlider.value / 100) * dur;
+            if (playerCurrentTime) playerCurrentTime.textContent = formatTime(targetSec);
+            if (playerSliderFill) playerSliderFill.style.width = `${playerSeekSlider.value}%`;
+        });
+
+        playerSeekSlider.addEventListener('change', () => {
+            const dur = audioElement.duration || 0;
+            const targetSec = (playerSeekSlider.value / 100) * dur;
+            audioElement.currentTime = targetSec;
+            isAudioSeeking = false;
+        });
+    }
+
+    // Transport buttons
+    if (btnPlayerPlay) btnPlayerPlay.addEventListener('click', toggleAudioPlay);
+    if (miniBtnPlay) miniBtnPlay.addEventListener('click', toggleAudioPlay);
+
+    if (btnPlayerRewind15) {
+        btnPlayerRewind15.addEventListener('click', () => {
+            audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+        });
+    }
+
+    if (btnPlayerForward15) {
+        btnPlayerForward15.addEventListener('click', () => {
+            const dur = audioElement.duration || Infinity;
+            audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+        });
+    }
+
+    if (miniBtnRewind) {
+        miniBtnRewind.addEventListener('click', () => {
+            audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+        });
+    }
+
+    if (miniBtnForward) {
+        miniBtnForward.addEventListener('click', () => {
+            const dur = audioElement.duration || Infinity;
+            audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+        });
+    }
+
+    if (btnPlayerPrev) {
+        btnPlayerPrev.addEventListener('click', () => {
+            if (audioElement.currentTime > 5) {
+                audioElement.currentTime = 0;
+            } else if (currentAudiobook && currentTrackIndex > 0) {
+                playTrack(currentTrackIndex - 1, 0, true);
+            }
+        });
+    }
+
+    if (btnPlayerNext) {
+        btnPlayerNext.addEventListener('click', () => {
+            if (currentAudiobook && currentTrackIndex < currentAudiobook.tracks.length - 1) {
+                playTrack(currentTrackIndex + 1, 0, true);
+            }
+        });
+    }
+
+    // Volume Slider & Mute
+    let lastVolume = 1;
+    if (playerVolumeSlider) {
+        playerVolumeSlider.addEventListener('input', () => {
+            const val = parseFloat(playerVolumeSlider.value);
+            audioElement.volume = val;
+            updateVolumeIcon(val);
+        });
+    }
+
+    if (btnPlayerMute) {
+        btnPlayerMute.addEventListener('click', () => {
+            if (audioElement.volume > 0) {
+                lastVolume = audioElement.volume;
+                audioElement.volume = 0;
+                if (playerVolumeSlider) playerVolumeSlider.value = 0;
+                updateVolumeIcon(0);
+            } else {
+                audioElement.volume = lastVolume || 1;
+                if (playerVolumeSlider) playerVolumeSlider.value = audioElement.volume;
+                updateVolumeIcon(audioElement.volume);
+            }
+        });
+    }
+
+    function updateVolumeIcon(vol) {
+        if (!volumeIcon) return;
+        if (vol === 0) {
+            volumeIcon.innerHTML = `
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+            `;
+        } else if (vol < 0.5) {
+            volumeIcon.innerHTML = `
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            `;
+        } else {
+            volumeIcon.innerHTML = `
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            `;
+        }
+    }
+
+    // Playback Speed Toggle
+    if (btnPlayerSpeed) {
+        btnPlayerSpeed.addEventListener('click', () => {
+            currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_RATES.length;
+            const rate = SPEED_RATES[currentSpeedIndex];
+            audioElement.playbackRate = rate;
+            if (playerSpeedLabel) playerSpeedLabel.textContent = `${rate}x`;
+            showToast(`Tốc độ phát: ${rate}x`);
+        });
+    }
+
+    // Sleep Timer
+    if (btnPlayerTimer) {
+        btnPlayerTimer.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!timerPopupMenu) return;
+            timerPopupMenu.style.display = timerPopupMenu.style.display === 'none' ? 'flex' : 'none';
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (timerPopupMenu && !e.target.closest('.player-timer-dropdown')) {
+            timerPopupMenu.style.display = 'none';
+        }
+    });
+
+    if (timerPopupMenu) {
+        timerPopupMenu.addEventListener('click', (e) => {
+            const opt = e.target.closest('.timer-opt');
+            if (!opt) return;
+
+            timerPopupMenu.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
+            opt.classList.add('active');
+
+            const val = opt.dataset.minutes;
+            setSleepTimer(val);
+            timerPopupMenu.style.display = 'none';
+        });
+    }
+
+    function setSleepTimer(option) {
+        sleepTimerMode = option;
+        if (sleepTimerTimeout) {
+            clearTimeout(sleepTimerTimeout);
+            sleepTimerTimeout = null;
+        }
+
+        if (option === '0') {
+            if (playerTimerLabel) playerTimerLabel.textContent = 'Timer';
+            showToast('Đã tắt hẹn giờ');
+        } else if (option === 'end') {
+            if (playerTimerLabel) playerTimerLabel.textContent = 'Hết chương';
+            showToast('Hẹn giờ tắt: Sau khi hết chương này');
+        } else {
+            const mins = parseInt(option, 10);
+            if (playerTimerLabel) playerTimerLabel.textContent = `${mins}m`;
+            showToast(`Đã hẹn giờ tắt sau ${mins} phút`);
+
+            sleepTimerTimeout = setTimeout(() => {
+                audioElement.pause();
+                setSleepTimer('0');
+                showToast('⏱️ Đã tắt nhạc theo hẹn giờ');
+            }, mins * 60 * 1000);
+        }
+    }
+
+    // Bookmark Current Timestamp
+    if (btnPlayerBookmark) {
+        btnPlayerBookmark.addEventListener('click', () => {
+            if (!currentAudiobook || !currentAudiobook.tracks[currentTrackIndex]) return;
+            const curTime = audioElement.currentTime;
+            const track = currentAudiobook.tracks[currentTrackIndex];
+
+            const bookmark = {
+                identifier: currentAudiobook.identifier,
+                bookTitle: currentAudiobook.title,
+                trackIndex: currentTrackIndex,
+                trackTitle: track.title,
+                time: curTime,
+                timeFormatted: formatTime(curTime),
+                savedAt: Date.now()
+            };
+
+            const bookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS) || [];
+            bookmarks.unshift(bookmark);
+            saveToStorage(STORAGE_AUDIO_BOOKMARKS, bookmarks.slice(0, 30));
+
+            btnPlayerBookmark.classList.add('is-bookmarked');
+            setTimeout(() => btnPlayerBookmark.classList.remove('is-bookmarked'), 2500);
+
+            showToast(`🔖 Đã đánh dấu: ${track.title} (${formatTime(curTime)})`);
+        });
+    }
+
+    // Modal Minimize & Close
+    function openAudioPlayerModal() {
+        if (audioPlayerModal) {
+            audioPlayerModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function minimizeAudioPlayerModal() {
+        if (audioPlayerModal) {
+            audioPlayerModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        if (miniAudioPlayer && currentAudiobook) {
+            miniAudioPlayer.style.display = 'block';
+        }
+    }
+
+    function closeAudioPlayer(stopAudio = false) {
+        if (stopAudio) {
+            audioElement.pause();
+            audioElement.src = '';
+            currentAudiobook = null;
+            if (miniAudioPlayer) miniAudioPlayer.style.display = 'none';
+        }
+        if (audioPlayerModal) {
+            audioPlayerModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (btnPlayerMinimize) btnPlayerMinimize.addEventListener('click', minimizeAudioPlayerModal);
+    if (btnPlayerClose) {
+        btnPlayerClose.addEventListener('click', () => {
+            // If playing, minimize instead of abruptly killing playback
+            if (!audioElement.paused) {
+                minimizeAudioPlayerModal();
+                showToast('Audio đang phát trong thanh mini phía dưới màn hình');
+            } else {
+                closeAudioPlayer(true);
+            }
+        });
+    }
+
+    if (audioPlayerModal) {
+        audioPlayerModal.addEventListener('click', (e) => {
+            if (e.target === audioPlayerModal) {
+                minimizeAudioPlayerModal();
+            }
+        });
+    }
+
+    // Mini Player Open & Controls
+    if (miniPlayerOpen) {
+        miniPlayerOpen.addEventListener('click', openAudioPlayerModal);
+    }
+    if (miniBtnExpand) {
+        miniBtnExpand.addEventListener('click', openAudioPlayerModal);
+    }
+    if (miniBtnClose) {
+        miniBtnClose.addEventListener('click', () => {
+            closeAudioPlayer(true);
+            showToast('Đã dừng phát sách nói');
+        });
+    }
+
+    // Keyboard Shortcuts for Audio Player
+    document.addEventListener('keydown', (e) => {
+        if (audioPlayerModal && audioPlayerModal.style.display === 'flex') {
+            if (e.key === 'Escape') {
+                minimizeAudioPlayerModal();
+            } else if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                toggleAudioPlay();
+            } else if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+            } else if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                const dur = audioElement.duration || Infinity;
+                audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+            }
+        }
+    });
+
+    // Save and Restore Audio State
+    function saveAudioState() {
+        if (!currentAudiobook) return;
+        const state = {
+            identifier: currentAudiobook.identifier,
+            trackIndex: currentTrackIndex,
+            time: audioElement.currentTime || 0,
+            volume: audioElement.volume,
+            speedIndex: currentSpeedIndex
+        };
+        saveToStorage(STORAGE_AUDIO_STATE, state);
+    }
+
+    function initSavedAudioState() {
+        const saved = loadFromStorage(STORAGE_AUDIO_STATE);
+        if (saved && saved.identifier) {
+            // Restore volume & speed
+            if (typeof saved.volume === 'number') {
+                audioElement.volume = saved.volume;
+                if (playerVolumeSlider) playerVolumeSlider.value = saved.volume;
+                updateVolumeIcon(saved.volume);
+            }
+            if (typeof saved.speedIndex === 'number' && SPEED_RATES[saved.speedIndex]) {
+                currentSpeedIndex = saved.speedIndex;
+                audioElement.playbackRate = SPEED_RATES[currentSpeedIndex];
+                if (playerSpeedLabel) playerSpeedLabel.textContent = `${SPEED_RATES[currentSpeedIndex]}x`;
+            }
+        }
+    }
+
+    // Connect Open Library Book to Internet Archive Audiobook
+    function findAndPlayAudiobook(title, originalTitle, author) {
+        const q1 = (title || '').toLowerCase().trim();
+        const q2 = (originalTitle || '').toLowerCase().trim();
+
+        // 1. Look for match in curated list
+        const match = CURATED_AUDIOBOOKS.find(b => {
+            const bt = b.title.toLowerCase();
+            return (q1 && (bt.includes(q1) || q1.includes(bt))) ||
+                   (q2 && (bt.includes(q2) || q2.includes(bt)));
+        });
+
+        if (match) {
+            showToast(`Tìm thấy sách nói: ${match.title}`);
+            loadAndPlayAudiobook(match.identifier, 0, true);
+            return;
+        }
+
+        // 2. Otherwise query Internet Archive
+        const searchTerm = originalTitle || title || author;
+        if (audioSearchInput) audioSearchInput.value = searchTerm;
+        searchAudiobooks(searchTerm);
+        showToast(`Đang tìm kiếm sách nói cho "${title}"...`);
+    }
+
+    // =========================================
     // Init
     // =========================================
     updateCounts();
     renderCatalogSections();
     initLazyLoadingSections();
     loadRecommendations();
+    initSavedAudioState();
 
 })();
+
