@@ -1598,6 +1598,180 @@
     ];
 
     // =========================================
+    // Curated Audiobooks (YouTube Music)
+    // =========================================
+    const CURATED_YOUTUBE_AUDIOBOOKS = [
+        {
+            identifier: 'yt_YMJLyfRJZ0w',
+            videoId: 'YMJLyfRJZ0w',
+            title: 'Đắc Nhân Tâm (Bản Chuẩn Trọn Bộ 5.3 Giờ)',
+            originalTitle: 'How to Win Friends and Influence People',
+            author: 'Dale Carnegie / Trạm Dừng Audio',
+            genre: 'self-help',
+            chapters: 4,
+            duration: 19180,
+            durationFormatted: '5:19:40',
+            cover: 'https://i.ytimg.com/vi/YMJLyfRJZ0w/hqdefault.jpg',
+            description: 'Cuốn sách nghệ thuật thu phục lòng người kinh điển nhất mọi thời đại của Dale Carnegie. Hướng dẫn nghệ thuật giao tiếp đỉnh cao, lắng nghe và thấu hiểu người khác.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Phần 1: Nghệ thuật thu phục lòng người', time: 0 },
+                { index: 1, title: 'Phần 2: Sáu cách tạo thiện cảm với người khác', time: 4200 },
+                { index: 2, title: 'Phần 3: Mười hai cách hướng người khác theo suy nghĩ của bạn', time: 8400 },
+                { index: 3, title: 'Phần 4: Chuyển hóa người khác mà không gây bất hòa', time: 13800 }
+            ],
+            aliases: ['dac nhan tam', 'đắc nhân tâm', 'how to win friends']
+        },
+        {
+            identifier: 'yt_QCzY-rJJhGE',
+            videoId: 'QCzY-rJJhGE',
+            title: 'Cha Giàu Cha Nghèo (Dạy Con Làm Giàu Full 3.5 Giờ)',
+            originalTitle: 'Rich Dad Poor Dad',
+            author: 'Robert T. Kiyosaki',
+            genre: 'self-help',
+            chapters: 6,
+            duration: 12600,
+            durationFormatted: '3:30:00',
+            cover: 'https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg',
+            description: 'Sách giáo dục tài chính kinh điển của Robert Kiyosaki, vén màn sự khác biệt trong tư duy về tiền bạc giữa người giàu và người nghèo, giúp bạn làm chủ đồng tiền.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Chương 1: Người giàu không làm việc vì tiền', time: 0 },
+                { index: 1, title: 'Chương 2: Tại sao phải dạy con về tài chính', time: 2400 },
+                { index: 2, title: 'Chương 3: Hãy nghĩ đến việc kinh doanh của mình', time: 4800 },
+                { index: 3, title: 'Chương 4: Lịch sử các thứ thuế và quyền lực của tập đoàn', time: 6900 },
+                { index: 4, title: 'Chương 5: Người giàu tạo ra tiền', time: 9200 },
+                { index: 5, title: 'Chương 6: Hãy làm việc để học - Đừng làm việc vì tiền', time: 11100 }
+            ],
+            aliases: ['cha giau cha ngheo', 'cha giàu cha nghèo', 'dạy con làm giàu', 'rich dad poor dad']
+        },
+        {
+            identifier: 'yt_OdLBXi09iSs',
+            videoId: 'OdLBXi09iSs',
+            title: 'Nghĩ Giàu & Làm Giàu (Think and Grow Rich Full 7.6 Giờ)',
+            originalTitle: 'Think and Grow Rich',
+            author: 'Napoleon Hill / Voiz FM',
+            genre: 'self-help',
+            chapters: 5,
+            duration: 27360,
+            durationFormatted: '7:36:00',
+            cover: 'https://i.ytimg.com/vi/OdLBXi09iSs/hqdefault.jpg',
+            description: '13 nguyên tắc thành công được đúc kết từ hơn 500 nhân vật kiệt xuất nhất nước Mỹ của Napoleon Hill, mở rộng tầm nhìn về sức mạnh của khát khao và trí tuệ.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Bước 1: Khát vọng - Điểm khởi đầu của mọi thành công', time: 0 },
+                { index: 1, title: 'Bước 2: Niềm tin - Hình dung và tin tưởng vào mục tiêu', time: 5400 },
+                { index: 2, title: 'Bước 3: Tự kỷ ám thị - Công cụ tác động tiềm thức', time: 11000 },
+                { index: 3, title: 'Bước 4: Kiến thức chuyên sâu & Trí tưởng tượng', time: 16500 },
+                { index: 4, title: 'Bước 5: Kế hoạch có tổ chức & Lòng kiên trì', time: 22000 }
+            ],
+            aliases: ['nghi giau lam giau', 'nghĩ giàu làm giàu', 'think and grow rich']
+        },
+        {
+            identifier: 'yt_VqZsr9N2-kU',
+            videoId: 'VqZsr9N2-kU',
+            title: '7 Thói Quen Hiệu Quả (The 7 Habits of Highly Effective People)',
+            originalTitle: 'The 7 Habits of Highly Effective People',
+            author: 'Stephen R. Covey',
+            genre: 'self-help',
+            chapters: 7,
+            duration: 21600,
+            durationFormatted: '6:00:00',
+            cover: 'https://i.ytimg.com/vi/VqZsr9N2-kU/hqdefault.jpg',
+            description: 'Khung tư duy toàn diện để giải quyết các vấn đề cá nhân và nghề nghiệp, xây dựng tính chủ động, tầm nhìn dài hạn và tinh thần hợp tác cùng thắng.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Thói quen 1: Luôn chủ động', time: 0 },
+                { index: 1, title: 'Thói quen 2: Bắt đầu bằng mục tiêu đã xác định', time: 3200 },
+                { index: 2, title: 'Thói quen 3: Ưu tiên điều quan trọng nhất', time: 6500 },
+                { index: 3, title: 'Thói quen 4: Tư duy cùng thắng (Win-Win)', time: 10200 },
+                { index: 4, title: 'Thói quen 5: Lắng nghe và thấu hiểu trước', time: 13900 },
+                { index: 5, title: 'Thói quen 6: Đồng tâm hiệp lực', time: 17200 },
+                { index: 6, title: 'Thói quen 7: Rèn giũa bản thân', time: 19500 }
+            ],
+            aliases: ['7 thoi quen', '7 thói quen', 'the 7 habits']
+        },
+        {
+            identifier: 'yt_0vVz4uUekx8',
+            videoId: '0vVz4uUekx8',
+            title: 'Đọc Vị Bất Kỳ Ai - Để Không Bị Thao Túng Và Lợi Dụng',
+            originalTitle: 'Read People Deeper',
+            author: 'TS. David J. Lieberman',
+            genre: 'self-help',
+            chapters: 4,
+            duration: 14400,
+            durationFormatted: '4:00:00',
+            cover: 'https://i.ytimg.com/vi/0vVz4uUekx8/hqdefault.jpg',
+            description: 'Các kỹ thuật tâm lý học thực chiến giúp bạn nhanh chóng nhận biết suy nghĩ, cảm xúc thật và độ trung thực của đối phương trong mọi cuộc trò chuyện.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Phần 1: Nhận biết cảm xúc và suy nghĩ ẩn giấu', time: 0 },
+                { index: 1, title: 'Phần 2: Nhận biết dấu hiệu nói dối', time: 3500 },
+                { index: 2, title: 'Phần 3: Đọc vị sự tự tin và lo lắng', time: 7000 },
+                { index: 3, title: 'Phần 4: Xây dựng hàng rào tâm lý tự vệ', time: 10500 }
+            ],
+            aliases: ['doc vi bat ky ai', 'đọc vị bất kỳ ai']
+        },
+        {
+            identifier: 'yt_GG41ek9OBEw',
+            videoId: 'GG41ek9OBEw',
+            title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu (Sách Nói Truyền Cảm Hứng)',
+            author: 'Rosie Nguyễn',
+            genre: 'self-help',
+            chapters: 5,
+            duration: 16200,
+            durationFormatted: '4:30:00',
+            cover: 'https://i.ytimg.com/vi/GG41ek9OBEw/hqdefault.jpg',
+            description: 'Cuốn sách truyền cảm hứng cho hàng triệu độc giả trẻ: Hãy đầu tư cho việc học, mở rộng tầm nhìn qua trang sách và những chuyến đi trải nghiệm.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Phần 1: Tôi đã học như thế nào', time: 0 },
+                { index: 1, title: 'Phần 2: Học đi đôi với hành', time: 3600 },
+                { index: 2, title: 'Phần 3: Đi là một cách tự học', time: 7200 },
+                { index: 3, title: 'Phần 4: Lấp lánh trước khi tỏa sáng', time: 11000 },
+                { index: 4, title: 'Phần 5: Vượt qua khủng hoảng tuổi trẻ', time: 14000 }
+            ],
+            aliases: ['tuoi tre dang gia bao nhieu', 'tuổi trẻ đáng giá bao nhiêu']
+        },
+        {
+            identifier: 'yt_m6sA7qFh8i8',
+            videoId: 'm6sA7qFh8i8',
+            title: 'Nhà Giả Kim (The Alchemist - Trọn Bộ)',
+            originalTitle: 'The Alchemist',
+            author: 'Paulo Coelho',
+            genre: 'literature',
+            chapters: 2,
+            duration: 14800,
+            durationFormatted: '4:06:00',
+            cover: 'https://i.ytimg.com/vi/m6sA7qFh8i8/hqdefault.jpg',
+            description: 'Kiệt tác văn học về hành trình đi tìm kho báu và sứ mệnh cuộc đời: "Khi bạn khao khát một điều gì, toàn bộ vũ trụ sẽ hợp lực giúp bạn đạt được."',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Phần 1: Giấc mơ và chuyến hành trình sa mạc', time: 0 },
+                { index: 1, title: 'Phần 2: Ốc đảo, Nhà Giả Kim và Kho báu kim tự tháp', time: 7400 }
+            ],
+            aliases: ['nha gia kim', 'nhà giả kim', 'the alchemist']
+        },
+        {
+            identifier: 'yt_5qap5aO4i9A',
+            videoId: '5qap5aO4i9A',
+            title: 'Nhạc Lofi Đọc Sách & Học Tập Thư Giãn (Relaxing Lofi Beats 3h)',
+            author: 'Lofi Chill / Reading Vibes',
+            genre: 'english',
+            chapters: 1,
+            duration: 10800,
+            durationFormatted: '3:00:00',
+            cover: 'https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg',
+            description: 'Những giai điệu Lofi Hip Hop êm dịu, ấm áp giúp tăng khả năng tập trung, ghi nhớ sâu và tạo không gian đọc sách tĩnh lặng, thư thái.',
+            type: 'youtube',
+            chapterList: [
+                { index: 0, title: 'Lofi Beats for Deep Focus & Reading', time: 0 }
+            ],
+            aliases: ['lofi doc sach', 'nhac doc sach', 'lofi reading', 'music for reading']
+        }
+    ];
+
+    // =========================================
     // Vietnamese Book Title Resolver & Synonyms
     // =========================================
     const VI_TITLE_ALIASES = {
@@ -1704,6 +1878,8 @@
     const audioElement = new Audio();
     audioElement.preload = 'metadata';
 
+    let currentAudioSource = 'archive'; // 'archive' | 'youtube'
+    let currentAudioType = 'archive';   // 'archive' | 'youtube'
     let currentAudiobook = null;
     let currentTrackIndex = 0;
     let isAudioSeeking = false;
@@ -1713,6 +1889,19 @@
     let currentSpeedIndex = 0;
     let isAudiobookTabLoaded = false;
     let currentGenreFilter = 'all';
+
+    // YouTube Player State
+    let ytPlayer = null;
+    let isYtApiReady = false;
+    let ytCurrentItem = null;
+    let ytProgressInterval = null;
+    let isVideoMode = false;
+
+    // Hook YouTube IFrame API Ready Callback
+    window.onYouTubeIframeAPIReady = function() {
+        isYtApiReady = true;
+        console.log('YouTube IFrame API Ready');
+    };
 
     function formatTime(seconds) {
         if (isNaN(seconds) || seconds < 0) return '00:00';
@@ -1748,9 +1937,87 @@
     // =========================================
     function initAudiobooksTab() {
         renderAudioContinueSection();
+        initAudioSourceSwitcher();
+        initVideoModeToggle();
+
         if (isAudiobookTabLoaded) return;
         isAudiobookTabLoaded = true;
-        renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+        if (currentAudioSource === 'youtube') {
+            renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+        } else {
+            renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+        }
+    }
+
+    function initAudioSourceSwitcher() {
+        const btnArchive = document.getElementById('btnSourceArchive');
+        const btnYoutube = document.getElementById('btnSourceYoutube');
+        const searchInput = document.getElementById('audioSearchInput');
+        const searchBtn = document.getElementById('btnAudioSearch');
+        const titleEl = document.getElementById('audiobooksSectionTitle');
+
+        if (btnArchive && !btnArchive._inited) {
+            btnArchive._inited = true;
+            btnArchive.addEventListener('click', () => {
+                if (currentAudioSource === 'archive') return;
+                currentAudioSource = 'archive';
+                btnArchive.classList.add('active');
+                if (btnYoutube) btnYoutube.classList.remove('active');
+                if (searchInput) {
+                    searchInput.placeholder = 'Tìm theo tên tác phẩm, tác giả trên Web Archive (Mặt dày tâm đen, Đắc nhân tâm, Tam quốc...)';
+                    searchInput.value = '';
+                }
+                if (searchBtn) {
+                    const span = searchBtn.querySelector('span');
+                    if (span) span.textContent = 'Tìm sách Archive';
+                }
+                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
+                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+            });
+        }
+
+        if (btnYoutube && !btnYoutube._inited) {
+            btnYoutube._inited = true;
+            btnYoutube.addEventListener('click', () => {
+                if (currentAudioSource === 'youtube') return;
+                currentAudioSource = 'youtube';
+                btnYoutube.classList.add('active');
+                if (btnArchive) btnArchive.classList.remove('active');
+                if (searchInput) {
+                    searchInput.placeholder = 'Tìm sách nói, podcast trên YouTube Music hoặc dán link/ID video...';
+                    searchInput.value = '';
+                }
+                if (searchBtn) {
+                    const span = searchBtn.querySelector('span');
+                    if (span) span.textContent = 'Tìm YouTube';
+                }
+                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)';
+                renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+            });
+        }
+    }
+
+    function initVideoModeToggle() {
+        const btnToggleVideo = document.getElementById('btnToggleVideoMode');
+        const ytScreen = document.getElementById('playerYoutubeScreen');
+        const coverBox = document.getElementById('playerCoverBox');
+        const toggleText = document.getElementById('toggleVideoModeText');
+
+        if (!btnToggleVideo || btnToggleVideo._inited) return;
+        btnToggleVideo._inited = true;
+
+        btnToggleVideo.addEventListener('click', () => {
+            isVideoMode = !isVideoMode;
+            if (isVideoMode) {
+                if (ytScreen) ytScreen.style.display = 'block';
+                if (coverBox) coverBox.style.display = 'none';
+                if (toggleText) toggleText.textContent = '🎵 Chế độ Audio';
+            } else {
+                if (ytScreen) ytScreen.style.display = 'none';
+                if (coverBox) coverBox.style.display = 'block';
+                if (toggleText) toggleText.textContent = '📺 Xem Video';
+            }
+        });
     }
 
     function renderAudioContinueSection() {
@@ -1771,9 +2038,11 @@
             return;
         }
 
+        const isYt = p.type === 'youtube' || (p.identifier && p.identifier.startsWith('yt_'));
         const pct = p.percent || 0;
         const curStr = formatTime(p.currentTime);
         const durStr = p.duration ? formatTime(p.duration) : '--:--';
+        const sourceLabel = isYt ? 'YouTube Music' : 'Internet Archive';
 
         section.style.display = 'block';
         section.innerHTML = `
@@ -1790,7 +2059,7 @@
                     <div class="continue-info">
                         <div class="continue-tag">
                             <span class="continue-pulse"></span>
-                            <span>🎧 Đang nghe dở</span>
+                            <span>🎧 Đang nghe dở (${sourceLabel})</span>
                         </div>
                         <h4 class="continue-title" title="${escapeHtml(p.title)}">${escapeHtml(p.title)}</h4>
                         <div class="continue-sub">
@@ -1823,7 +2092,22 @@
         const btnResume = section.querySelector('#btnContinueResume');
         if (btnResume) {
             btnResume.addEventListener('click', () => {
-                loadAndPlayAudiobook(p.identifier, p.trackIndex, true, p.currentTime);
+                if (isYt) {
+                    const videoId = p.videoId || p.identifier.replace(/^yt_/, '');
+                    const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === videoId) || {
+                        identifier: p.identifier,
+                        videoId: videoId,
+                        title: p.title,
+                        author: p.author || 'YouTube',
+                        cover: p.cover,
+                        duration: p.duration,
+                        durationFormatted: formatTime(p.duration),
+                        type: 'youtube'
+                    };
+                    loadAndPlayYoutube(found, p.currentTime, true);
+                } else {
+                    loadAndPlayAudiobook(p.identifier, p.trackIndex, true, p.currentTime);
+                }
             });
         }
 
@@ -1835,11 +2119,14 @@
         }
     }
 
-    function renderAudiobooksGrid(books) {
+    function renderAudiobooksGrid(books, sourceType = currentAudioSource) {
         if (!audiobooksGrid) return;
         audiobooksGrid.innerHTML = '';
 
         if (!books || books.length === 0) {
+            const emptyText = sourceType === 'youtube'
+                ? 'Hãy thử tìm kiếm từ khóa khác hoặc dán link video trên YouTube'
+                : 'Hãy thử tìm kiếm với từ khóa khác trên Internet Archive';
             audiobooksGrid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1 / -1; padding: 40px 0;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
@@ -1847,7 +2134,7 @@
                         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                     <h3>Không tìm thấy sách nói phù hợp</h3>
-                    <p>Hãy thử tìm kiếm với từ khóa khác trên Internet Archive</p>
+                    <p>${emptyText}</p>
                 </div>
             `;
             if (audiobooksCount) audiobooksCount.textContent = '0 sách nói';
@@ -1861,17 +2148,40 @@
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
 
         books.forEach(b => {
+            const isYt = b.type === 'youtube' || sourceType === 'youtube' || (b.identifier && b.identifier.startsWith('yt_'));
             const card = document.createElement('div');
-            card.className = 'audiobook-card';
+            card.className = `audiobook-card ${isYt ? 'audiobook-card-youtube' : ''}`;
             card.setAttribute('data-id', b.identifier);
 
-            const coverUrl = b.cover || `https://archive.org/services/img/${b.identifier}`;
-            const chapterBadge = b.chapters ? `${b.chapters} chương` : 'Audiobook';
+            const coverUrl = b.cover || (b.videoId ? `https://i.ytimg.com/vi/${b.videoId}/hqdefault.jpg` : `https://archive.org/services/img/${b.identifier}`);
+            const chapterBadge = b.chapters ? `${b.chapters} chương` : (isYt ? 'YouTube Audio' : 'Audiobook');
             const savedProg = progressMap[b.identifier];
             const hasProgress = savedProg && savedProg.currentTime && savedProg.currentTime > 5;
             const resumeBadgeHtml = hasProgress 
                 ? `<span class="audiobook-badge-resume">🎧 Tiếp tục (${formatTime(savedProg.currentTime)})</span>` 
                 : '';
+
+            const sourceTagHtml = isYt
+                ? `
+                    <span class="audiobook-source-tag is-youtube">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff"/>
+                        </svg>
+                        YouTube Music
+                    </span>
+                  `
+                : `
+                    <span class="audiobook-source-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                        </svg>
+                        archive.org
+                    </span>
+                  `;
+
+            const badgeYoutubeHtml = isYt ? `<span class="audiobook-badge-youtube">YouTube Music</span>` : '';
 
             card.innerHTML = `
                 <div class="audiobook-cover-wrap">
@@ -1884,6 +2194,7 @@
                         </svg>
                         ${chapterBadge}
                     </span>
+                    ${badgeYoutubeHtml}
                     ${resumeBadgeHtml}
                     <div class="audiobook-overlay-play">
                         <div class="audiobook-play-circle">
@@ -1895,15 +2206,9 @@
                 </div>
                 <div class="audiobook-info">
                     <div class="audiobook-title" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</div>
-                    <div class="audiobook-author">${escapeHtml(b.author || 'Internet Archive')}</div>
+                    <div class="audiobook-author">${escapeHtml(b.author || (isYt ? 'YouTube' : 'Internet Archive'))}</div>
                     <div class="audiobook-footer">
-                        <span class="audiobook-source-tag">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="2" y1="12" x2="22" y2="12"/>
-                            </svg>
-                            archive.org
-                        </span>
+                        ${sourceTagHtml}
                         <button class="audiobook-btn-listen" title="Nghe sách này">
                             <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
@@ -1915,7 +2220,11 @@
             `;
 
             card.addEventListener('click', () => {
-                loadAndPlayAudiobook(b.identifier, null, true, null);
+                if (isYt) {
+                    loadAndPlayYoutube(b, null, true);
+                } else {
+                    loadAndPlayAudiobook(b.identifier, null, true, null);
+                }
             });
 
             audiobooksGrid.appendChild(card);
@@ -1934,24 +2243,29 @@
             const genre = tag.dataset.genre || 'all';
             currentGenreFilter = genre;
 
+            const collection = currentAudioSource === 'youtube' ? CURATED_YOUTUBE_AUDIOBOOKS : CURATED_AUDIOBOOKS;
             if (genre === 'all') {
-                renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+                renderAudiobooksGrid(collection, currentAudioSource);
             } else {
-                const filtered = CURATED_AUDIOBOOKS.filter(b => b.genre === genre);
-                renderAudiobooksGrid(filtered);
+                const filtered = collection.filter(b => b.genre === genre);
+                renderAudiobooksGrid(filtered, currentAudioSource);
             }
         });
     }
 
-    // Search Audiobooks (Always Searches Vietnamese Audio on Archive.org)
+    // Search Audiobooks on Internet Archive
     async function searchAudiobooks(query, autoPlayFirst = false) {
         const q = (query || '').trim();
         if (!q) {
-            renderAudiobooksGrid(CURATED_AUDIOBOOKS);
+            renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
             return CURATED_AUDIOBOOKS;
         }
 
-        if (audiobooksLoading) audiobooksLoading.style.display = 'flex';
+        if (audiobooksLoading) {
+            audiobooksLoading.style.display = 'flex';
+            const loadText = audiobooksLoading.querySelector('p');
+            if (loadText) loadText.textContent = 'Đang tải danh sách sách nói từ Internet Archive...';
+        }
         if (audiobooksGrid) audiobooksGrid.style.display = 'none';
 
         try {
@@ -1959,7 +2273,6 @@
             let viQuery = q;
             const lowerQ = q.toLowerCase();
 
-            // 1. Check if query matches alias
             for (const [key, viName] of Object.entries(VI_TITLE_ALIASES)) {
                 if (lowerQ.includes(key) || key.includes(lowerQ)) {
                     viQuery = viName;
@@ -1967,7 +2280,6 @@
                 }
             }
 
-            // 2. If query is in English without Vietnamese diacritics, translate to Vietnamese
             if (viQuery === q && !isVietnamese(q)) {
                 try {
                     const translated = await translateText(q);
@@ -1984,7 +2296,7 @@
                 } catch { /* ignore */ }
             }
 
-            // Local filter against Curated list using both original and Vietnamese term
+            // Local filter against Curated list
             const lowerVi = viQuery.toLowerCase();
             const localMatches = CURATED_AUDIOBOOKS.filter(b => {
                 const bt = b.title.toLowerCase();
@@ -1996,7 +2308,7 @@
                        aliases.some(a => a.includes(lowerQ) || a.includes(lowerVi));
             });
 
-            // Remote search on Internet Archive using the VIETNAMESE title for Vietnamese audio!
+            // Remote search on Internet Archive
             const archiveSearchPhrase = viQuery.replace(/["\\]/g, '').trim();
             const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(title:("${encodeURIComponent(archiveSearchPhrase)}") OR "${encodeURIComponent(archiveSearchPhrase)}")&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
 
@@ -2030,9 +2342,9 @@
             });
 
             if (audiobooksSectionTitle) {
-                audiobooksSectionTitle.textContent = `Sách nói tiếng Việt cho "${viQuery}" (${merged.length})`;
+                audiobooksSectionTitle.textContent = `Sách nói Archive cho "${viQuery}" (${merged.length})`;
             }
-            renderAudiobooksGrid(merged);
+            renderAudiobooksGrid(merged, 'archive');
 
             if (autoPlayFirst && merged.length > 0) {
                 loadAndPlayAudiobook(merged[0].identifier, null, true, null);
@@ -2050,10 +2362,398 @@
         }
     }
 
+    // Search Audiobooks on YouTube Music (Invidious CORS API & Direct Link)
+    async function searchYoutubeAudiobooks(query) {
+        const q = (query || '').trim();
+        if (!q) {
+            renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+            return CURATED_YOUTUBE_AUDIOBOOKS;
+        }
+
+        if (audiobooksLoading) {
+            audiobooksLoading.style.display = 'flex';
+            const loadText = audiobooksLoading.querySelector('p');
+            if (loadText) loadText.textContent = 'Đang tìm kiếm trên YouTube Music...';
+        }
+        if (audiobooksGrid) audiobooksGrid.style.display = 'none';
+
+        try {
+            // Check if query is a direct YouTube URL or 11-char ID
+            const ytRegex = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([a-zA-Z0-9_-]{11})|^([a-zA-Z0-9_-]{11})$/;
+            const match = q.match(ytRegex);
+            const directVideoId = match ? (match[1] || match[2]) : null;
+
+            if (directVideoId) {
+                const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${directVideoId}&format=json`;
+                try {
+                    const resp = await fetch(oembedUrl);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        const singleItem = {
+                            identifier: `yt_${directVideoId}`,
+                            videoId: directVideoId,
+                            title: data.title || 'YouTube Audio',
+                            author: data.author_name || 'YouTube',
+                            genre: 'self-help',
+                            duration: 0,
+                            durationFormatted: 'YouTube',
+                            cover: `https://i.ytimg.com/vi/${directVideoId}/hqdefault.jpg`,
+                            description: `Được thêm từ link YouTube: ${data.title}`,
+                            type: 'youtube',
+                            chapters: 1
+                        };
+                        if (audiobooksLoading) audiobooksLoading.style.display = 'none';
+                        if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
+                        renderAudiobooksGrid([singleItem, ...CURATED_YOUTUBE_AUDIOBOOKS], 'youtube');
+                        showToast(`Đã tìm thấy: ${singleItem.title}`);
+                        return [singleItem];
+                    }
+                } catch (e) {
+                    console.warn('oEmbed fetch error:', e);
+                }
+            }
+
+            // Local filter against Curated YouTube list
+            const lowerQ = q.toLowerCase();
+            const localMatches = CURATED_YOUTUBE_AUDIOBOOKS.filter(b => {
+                const bt = b.title.toLowerCase();
+                const ba = (b.author || '').toLowerCase();
+                const aliases = (b.aliases || []).map(a => a.toLowerCase());
+                return bt.includes(lowerQ) || ba.includes(lowerQ) || aliases.some(a => a.includes(lowerQ));
+            });
+
+            // Remote search via Invidious public CORS API
+            let remoteVideos = [];
+            try {
+                const searchUrl = `https://invidious.f5.si/api/v1/search?q=${encodeURIComponent(q + ' sách nói')}&type=video`;
+                const res = await fetch(searchUrl, { signal: AbortSignal.timeout(6000) });
+                if (res.ok) {
+                    const items = await res.json();
+                    if (Array.isArray(items)) {
+                        remoteVideos = items.filter(v => v.videoId).slice(0, 15).map(v => ({
+                            identifier: `yt_${v.videoId}`,
+                            videoId: v.videoId,
+                            title: v.title || 'Sách nói YouTube',
+                            author: v.author || 'YouTube Music',
+                            genre: 'self-help',
+                            duration: v.lengthSeconds || 0,
+                            durationFormatted: formatTime(v.lengthSeconds || 0),
+                            cover: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+                            description: `Sách nói phát từ YouTube: ${v.title}`,
+                            type: 'youtube',
+                            chapters: 1
+                        }));
+                    }
+                }
+            } catch (err) {
+                console.warn('Invidious search error, fallback to local matches:', err);
+            }
+
+            // Merge & deduplicate
+            const seen = new Set();
+            const results = [];
+            localMatches.forEach(b => {
+                seen.add(b.videoId);
+                results.push(b);
+            });
+            remoteVideos.forEach(b => {
+                if (!seen.has(b.videoId)) {
+                    seen.add(b.videoId);
+                    results.push(b);
+                }
+            });
+
+            if (audiobooksSectionTitle) {
+                audiobooksSectionTitle.textContent = `Sách nói YouTube cho "${q}" (${results.length})`;
+            }
+            renderAudiobooksGrid(results, 'youtube');
+            return results;
+
+        } catch (err) {
+            console.error('YouTube search error:', err);
+            renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+            showToast('Không thể kết nối tìm kiếm YouTube. Đang hiển thị danh sách tuyển chọn.');
+            return CURATED_YOUTUBE_AUDIOBOOKS;
+        } finally {
+            if (audiobooksLoading) audiobooksLoading.style.display = 'none';
+            if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
+        }
+    }
+
+    function triggerAudioSearch() {
+        const query = audioSearchInput ? audioSearchInput.value.trim() : '';
+        if (currentAudioSource === 'youtube') {
+            searchYoutubeAudiobooks(query);
+        } else {
+            searchAudiobooks(query);
+        }
+    }
+
     if (btnAudioSearch && audioSearchInput) {
-        btnAudioSearch.addEventListener('click', () => searchAudiobooks(audioSearchInput.value));
+        btnAudioSearch.addEventListener('click', triggerAudioSearch);
         audioSearchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') searchAudiobooks(audioSearchInput.value);
+            if (e.key === 'Enter') triggerAudioSearch();
+        });
+    }
+
+    // =========================================
+    // Core YouTube Audio Player Logic
+    // =========================================
+    function loadAndPlayYoutube(item, startTime = null, autoPlay = true) {
+        if (!item || !item.videoId) return;
+
+        // Stop archive audio playback
+        if (!audioElement.paused) {
+            audioElement.pause();
+        }
+
+        currentAudioType = 'youtube';
+        ytCurrentItem = item;
+
+        // Check progress
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const savedProg = progressMap[item.identifier || `yt_${item.videoId}`];
+
+        let targetResumeTime = 0;
+        let isAutoResumed = false;
+        if (startTime !== null && startTime !== undefined && startTime >= 0) {
+            targetResumeTime = startTime;
+        } else if (savedProg && savedProg.currentTime && savedProg.currentTime > 2) {
+            targetResumeTime = savedProg.currentTime;
+            isAutoResumed = true;
+        }
+
+        // Setup UI in player modal
+        if (playerBookCover) playerBookCover.src = item.cover || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`;
+        if (playerBookTitle) playerBookTitle.textContent = item.title;
+        if (playerBookAuthor) playerBookAuthor.textContent = item.author || 'YouTube';
+        if (playerTrackTitle) playerTrackTitle.textContent = item.title;
+        if (playerTrackCounter) playerTrackCounter.textContent = '1/1';
+
+        // Badge styling for YouTube
+        const sourceTag = document.getElementById('playerSourceTag');
+        if (sourceTag) sourceTag.classList.add('is-youtube');
+        if (playerSourceTagText) playerSourceTagText.textContent = 'Source: YouTube Music';
+
+        const coverBadge = document.getElementById('playerCoverBadge');
+        const badgeSourceText = document.getElementById('playerBadgeSourceText');
+        const badgeIcon = document.getElementById('playerCoverBadgeIcon');
+        if (badgeSourceText) badgeSourceText.textContent = 'YouTube Music';
+        if (coverBadge) coverBadge.style.color = '#ff4757';
+        if (badgeIcon) {
+            badgeIcon.innerHTML = `
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor"/>
+            `;
+        }
+
+        // Show Video Mode toggle button
+        const btnToggleVideo = document.getElementById('btnToggleVideoMode');
+        if (btnToggleVideo) {
+            btnToggleVideo.style.display = 'inline-flex';
+        }
+
+        // Duration badges
+        if (playerTotalDurationBadge) {
+            playerTotalDurationBadge.textContent = item.durationFormatted || (item.duration ? formatTime(item.duration) : 'YouTube Audio');
+        }
+        if (playerTotalChaptersBadge) {
+            playerTotalChaptersBadge.textContent = item.chapterList ? `${item.chapterList.length} Phần` : 'YouTube Audio';
+        }
+        if (playlistChapterHeader) {
+            playlistChapterHeader.textContent = item.chapterList ? `${item.chapterList.length} Phần` : '1 Phần';
+        }
+
+        // External Link & Description
+        if (playerArchiveLink) {
+            playerArchiveLink.href = `https://music.youtube.com/watch?v=${item.videoId}`;
+        }
+        const extText = document.getElementById('playerExternalLinkText');
+        if (extText) extText.textContent = 'Mở trên YouTube Music';
+
+        if (playerBookDescription) {
+            playerBookDescription.textContent = item.description || item.title;
+        }
+
+        // Mini player
+        if (miniPlayerThumb) miniPlayerThumb.src = item.cover || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`;
+        if (miniPlayerTitle) miniPlayerTitle.textContent = item.title;
+        if (miniPlayerChapter) miniPlayerChapter.textContent = item.author || 'YouTube Music';
+        if (miniAudioPlayer) miniAudioPlayer.style.display = 'block';
+
+        // Render chapters in playlist
+        renderYoutubePlaylist(item);
+
+        // Switch to chapters tab and update bookmark badge
+        switchPlaylistTab('chapters');
+        updateBookmarksBadge();
+
+        // Open player modal
+        openAudioPlayerModal();
+
+        // Initialize / control YouTube IFrame player
+        initOrPlayYoutubeVideo(item.videoId, targetResumeTime, autoPlay);
+
+        if (isAutoResumed && targetResumeTime > 0) {
+            showToast(`🎧 Tiếp tục nghe YouTube: ${item.title} (${formatTime(targetResumeTime)})`);
+        }
+    }
+
+    function initOrPlayYoutubeVideo(videoId, startTime = 0, autoPlay = true) {
+        const startSec = Math.max(0, Math.floor(startTime));
+
+        if (typeof YT === 'undefined' || !YT.Player) {
+            console.log('Waiting for YouTube API ready...');
+            let attempts = 0;
+            const checkYt = setInterval(() => {
+                attempts++;
+                if (typeof YT !== 'undefined' && YT.Player) {
+                    clearInterval(checkYt);
+                    initOrPlayYoutubeVideo(videoId, startTime, autoPlay);
+                } else if (attempts > 30) {
+                    clearInterval(checkYt);
+                    showToast('Không thể tải YouTube Player API. Vui lòng kiểm tra kết nối mạng.');
+                }
+            }, 200);
+            return;
+        }
+
+        if (!ytPlayer) {
+            ytPlayer = new YT.Player('youtubePlayerIframe', {
+                videoId: videoId,
+                playerVars: {
+                    autoplay: autoPlay ? 1 : 0,
+                    playsinline: 1,
+                    rel: 0,
+                    controls: 1,
+                    start: startSec
+                },
+                events: {
+                    onReady: (e) => {
+                        if (autoPlay) {
+                            e.target.playVideo();
+                        }
+                        if (startSec > 0) {
+                            e.target.seekTo(startSec, true);
+                        }
+                        startYtProgressLoop();
+                    },
+                    onStateChange: handleYtStateChange,
+                    onError: (err) => {
+                        console.error('YouTube player error:', err);
+                        showToast('Video không khả dụng hoặc bị hạn chế nhúng bản quyền.');
+                    }
+                }
+            });
+        } else {
+            if (ytPlayer.loadVideoById) {
+                ytPlayer.loadVideoById({
+                    videoId: videoId,
+                    startSeconds: startSec
+                });
+                if (!autoPlay && ytPlayer.pauseVideo) {
+                    setTimeout(() => ytPlayer.pauseVideo(), 100);
+                }
+                startYtProgressLoop();
+            }
+        }
+    }
+
+    function handleYtStateChange(event) {
+        if (!event) return;
+        const state = event.data;
+        // YT.PlayerState: PLAYING = 1, PAUSED = 2, ENDED = 0, BUFFERING = 3
+        if (state === 1) { // Playing
+            updatePlayPauseIcons(true);
+            startYtProgressLoop();
+        } else if (state === 2) { // Paused
+            updatePlayPauseIcons(false);
+            stopYtProgressLoop();
+            saveAudioProgress();
+        } else if (state === 0) { // Ended
+            updatePlayPauseIcons(false);
+            stopYtProgressLoop();
+            if (sleepTimerMode === 'end') {
+                setSleepTimer('0');
+                showToast('Đã dừng phát theo hẹn giờ');
+            }
+        }
+    }
+
+    function startYtProgressLoop() {
+        stopYtProgressLoop();
+        ytProgressInterval = setInterval(() => {
+            if (currentAudioType !== 'youtube' || !ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') {
+                stopYtProgressLoop();
+                return;
+            }
+            if (isAudioSeeking) return;
+
+            const cur = ytPlayer.getCurrentTime() || 0;
+            const dur = ytPlayer.getDuration() || (ytCurrentItem ? ytCurrentItem.duration : 0) || 0;
+
+            if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
+            if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
+
+            const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
+            if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
+
+            if (dur > 0) {
+                const percent = (cur / dur) * 100;
+                if (playerSeekSlider) playerSeekSlider.value = percent;
+                if (playerSliderFill) playerSliderFill.style.width = `${percent}%`;
+                if (miniPlayerProgressLine) {
+                    miniPlayerProgressLine.style.setProperty('--mini-progress', `${percent}%`);
+                }
+            }
+
+            // Save progress every 3 seconds
+            if (Math.floor(cur) % 3 === 0) {
+                saveAudioProgress();
+            }
+        }, 500);
+    }
+
+    function stopYtProgressLoop() {
+        if (ytProgressInterval) {
+            clearInterval(ytProgressInterval);
+            ytProgressInterval = null;
+        }
+    }
+
+    function renderYoutubePlaylist(item) {
+        if (!playerChaptersList) return;
+        playerChaptersList.innerHTML = '';
+
+        const chapters = (item.chapterList && item.chapterList.length > 0) 
+            ? item.chapterList 
+            : [{ index: 0, title: item.title, time: 0 }];
+
+        chapters.forEach((ch, idx) => {
+            const row = document.createElement('div');
+            row.className = `chapter-item ${idx === 0 ? 'active-track' : ''}`;
+            row.innerHTML = `
+                <div class="chapter-item-left">
+                    <div class="chapter-state-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </div>
+                    <div class="chapter-name" title="${escapeHtml(ch.title)}">${escapeHtml(ch.title)}</div>
+                </div>
+                <div class="chapter-duration">${formatTime(ch.time)}</div>
+            `;
+
+            row.addEventListener('click', () => {
+                if (ytPlayer && ytPlayer.seekTo) {
+                    ytPlayer.seekTo(ch.time, true);
+                    ytPlayer.playVideo();
+                }
+                playerChaptersList.querySelectorAll('.chapter-item').forEach(r => r.classList.remove('active-track'));
+                row.classList.add('active-track');
+            });
+
+            playerChaptersList.appendChild(row);
         });
     }
 
@@ -2131,6 +2831,39 @@
                 totalTracks: tracks.length
             };
 
+            // Pause YouTube playback and switch type
+            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                ytPlayer.pauseVideo();
+            }
+            stopYtProgressLoop();
+            currentAudioType = 'archive';
+            ytCurrentItem = null;
+
+            // Reset video / cover box
+            const ytScreen = document.getElementById('playerYoutubeScreen');
+            if (ytScreen) ytScreen.style.display = 'none';
+            const coverBox = document.getElementById('playerCoverBox');
+            if (coverBox) coverBox.style.display = 'block';
+            const btnToggleVideo = document.getElementById('btnToggleVideoMode');
+            if (btnToggleVideo) btnToggleVideo.style.display = 'none';
+
+            // Reset badges to Archive theme
+            const sourceTag = document.getElementById('playerSourceTag');
+            if (sourceTag) sourceTag.classList.remove('is-youtube');
+            if (playerSourceTagText) playerSourceTagText.textContent = 'Source: Internet Archive';
+
+            const coverBadge = document.getElementById('playerCoverBadge');
+            const badgeSourceText = document.getElementById('playerBadgeSourceText');
+            const badgeIcon = document.getElementById('playerCoverBadgeIcon');
+            if (badgeSourceText) badgeSourceText.textContent = 'Internet Archive';
+            if (coverBadge) coverBadge.style.color = '#00cec9';
+            if (badgeIcon) {
+                badgeIcon.innerHTML = `
+                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                `;
+            }
+
             // Populate Modal UI
             if (playerBookCover) playerBookCover.src = bookCover;
             if (playerBookTitle) playerBookTitle.textContent = bookTitle;
@@ -2138,6 +2871,8 @@
             if (playerTotalChaptersBadge) playerTotalChaptersBadge.textContent = `${tracks.length} Chương`;
             if (playlistChapterHeader) playlistChapterHeader.textContent = `${tracks.length} Chương`;
             if (playerArchiveLink) playerArchiveLink.href = `https://archive.org/details/${identifier}`;
+            const extText = document.getElementById('playerExternalLinkText');
+            if (extText) extText.textContent = 'Mở trên Archive.org';
             if (playerBookDescription) playerBookDescription.innerHTML = bookDesc;
 
             // Calculate approximate total duration
@@ -2296,6 +3031,17 @@
     }
 
     function toggleAudioPlay() {
+        if (currentAudioType === 'youtube') {
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
+            const state = ytPlayer.getPlayerState();
+            if (state === 1) { // Playing
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+            return;
+        }
+
         if (!audioElement.src) return;
         if (audioElement.paused) {
             audioElement.play().catch(e => console.log('Play failed:', e));
@@ -2384,16 +3130,30 @@
     if (playerSeekSlider) {
         playerSeekSlider.addEventListener('input', () => {
             isAudioSeeking = true;
-            const dur = audioElement.duration || 0;
+            let dur = 0;
+            if (currentAudioType === 'youtube') {
+                dur = (ytPlayer && ytPlayer.getDuration) ? ytPlayer.getDuration() : (ytCurrentItem ? ytCurrentItem.duration : 0);
+            } else {
+                dur = audioElement.duration || (currentAudiobook && currentAudiobook.tracks[currentTrackIndex]?.duration) || 0;
+            }
             const targetSec = (playerSeekSlider.value / 100) * dur;
             if (playerCurrentTime) playerCurrentTime.textContent = formatTime(targetSec);
             if (playerSliderFill) playerSliderFill.style.width = `${playerSeekSlider.value}%`;
         });
 
         playerSeekSlider.addEventListener('change', () => {
-            const dur = audioElement.duration || 0;
-            const targetSec = (playerSeekSlider.value / 100) * dur;
-            audioElement.currentTime = targetSec;
+            let dur = 0;
+            if (currentAudioType === 'youtube') {
+                dur = (ytPlayer && ytPlayer.getDuration) ? ytPlayer.getDuration() : (ytCurrentItem ? ytCurrentItem.duration : 0);
+                const targetSec = (playerSeekSlider.value / 100) * dur;
+                if (ytPlayer && ytPlayer.seekTo) {
+                    ytPlayer.seekTo(targetSec, true);
+                }
+            } else {
+                dur = audioElement.duration || (currentAudiobook && currentAudiobook.tracks[currentTrackIndex]?.duration) || 0;
+                const targetSec = (playerSeekSlider.value / 100) * dur;
+                audioElement.currentTime = targetSec;
+            }
             isAudioSeeking = false;
         });
     }
@@ -2404,44 +3164,100 @@
 
     if (btnPlayerRewind15) {
         btnPlayerRewind15.addEventListener('click', () => {
-            audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+            if (currentAudioType === 'youtube') {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime() || 0;
+                    ytPlayer.seekTo(Math.max(0, cur - 15), true);
+                }
+            } else {
+                audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+            }
         });
     }
 
     if (btnPlayerForward15) {
         btnPlayerForward15.addEventListener('click', () => {
-            const dur = audioElement.duration || Infinity;
-            audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+            if (currentAudioType === 'youtube') {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime() || 0;
+                    const dur = (ytPlayer.getDuration && ytPlayer.getDuration()) || (ytCurrentItem ? ytCurrentItem.duration : Infinity);
+                    ytPlayer.seekTo(Math.min(dur, cur + 15), true);
+                }
+            } else {
+                const dur = audioElement.duration || Infinity;
+                audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+            }
         });
     }
 
     if (miniBtnRewind) {
         miniBtnRewind.addEventListener('click', () => {
-            audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+            if (currentAudioType === 'youtube') {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime() || 0;
+                    ytPlayer.seekTo(Math.max(0, cur - 15), true);
+                }
+            } else {
+                audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+            }
         });
     }
 
     if (miniBtnForward) {
         miniBtnForward.addEventListener('click', () => {
-            const dur = audioElement.duration || Infinity;
-            audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+            if (currentAudioType === 'youtube') {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime() || 0;
+                    const dur = (ytPlayer.getDuration && ytPlayer.getDuration()) || (ytCurrentItem ? ytCurrentItem.duration : Infinity);
+                    ytPlayer.seekTo(Math.min(dur, cur + 15), true);
+                }
+            } else {
+                const dur = audioElement.duration || Infinity;
+                audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+            }
         });
     }
 
     if (btnPlayerPrev) {
         btnPlayerPrev.addEventListener('click', () => {
-            if (audioElement.currentTime > 5) {
-                audioElement.currentTime = 0;
-            } else if (currentAudiobook && currentTrackIndex > 0) {
-                playTrack(currentTrackIndex - 1, 0, true);
+            if (currentAudioType === 'youtube') {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const cur = ytPlayer.getCurrentTime() || 0;
+                    if (cur > 5) {
+                        ytPlayer.seekTo(0, true);
+                    } else if (ytCurrentItem && ytCurrentItem.chapterList) {
+                        const chapters = ytCurrentItem.chapterList;
+                        const prevCh = [...chapters].reverse().find(c => c.time < cur - 2);
+                        if (prevCh) ytPlayer.seekTo(prevCh.time, true);
+                        else ytPlayer.seekTo(0, true);
+                    } else {
+                        ytPlayer.seekTo(0, true);
+                    }
+                }
+            } else {
+                if (audioElement.currentTime > 5) {
+                    audioElement.currentTime = 0;
+                } else if (currentAudiobook && currentTrackIndex > 0) {
+                    playTrack(currentTrackIndex - 1, 0, true);
+                }
             }
         });
     }
 
     if (btnPlayerNext) {
         btnPlayerNext.addEventListener('click', () => {
-            if (currentAudiobook && currentTrackIndex < currentAudiobook.tracks.length - 1) {
-                playTrack(currentTrackIndex + 1, 0, true);
+            if (currentAudioType === 'youtube') {
+                if (ytPlayer && ytPlayer.getCurrentTime && ytCurrentItem && ytCurrentItem.chapterList) {
+                    const cur = ytPlayer.getCurrentTime() || 0;
+                    const nextCh = ytCurrentItem.chapterList.find(c => c.time > cur + 2);
+                    if (nextCh) {
+                        ytPlayer.seekTo(nextCh.time, true);
+                    }
+                }
+            } else {
+                if (currentAudiobook && currentTrackIndex < currentAudiobook.tracks.length - 1) {
+                    playTrack(currentTrackIndex + 1, 0, true);
+                }
             }
         });
     }
@@ -2452,21 +3268,31 @@
         playerVolumeSlider.addEventListener('input', () => {
             const val = parseFloat(playerVolumeSlider.value);
             audioElement.volume = val;
+            if (ytPlayer && ytPlayer.setVolume) {
+                ytPlayer.setVolume(val * 100);
+            }
             updateVolumeIcon(val);
         });
     }
 
     if (btnPlayerMute) {
         btnPlayerMute.addEventListener('click', () => {
-            if (audioElement.volume > 0) {
-                lastVolume = audioElement.volume;
+            const isYt = currentAudioType === 'youtube';
+            if (audioElement.volume > 0 || (isYt && ytPlayer && !ytPlayer.isMuted())) {
+                lastVolume = audioElement.volume || 1;
                 audioElement.volume = 0;
+                if (ytPlayer && ytPlayer.mute) ytPlayer.mute();
                 if (playerVolumeSlider) playerVolumeSlider.value = 0;
                 updateVolumeIcon(0);
             } else {
-                audioElement.volume = lastVolume || 1;
-                if (playerVolumeSlider) playerVolumeSlider.value = audioElement.volume;
-                updateVolumeIcon(audioElement.volume);
+                const restoreVol = lastVolume || 1;
+                audioElement.volume = restoreVol;
+                if (ytPlayer && ytPlayer.unMute) {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(restoreVol * 100);
+                }
+                if (playerVolumeSlider) playerVolumeSlider.value = restoreVol;
+                updateVolumeIcon(restoreVol);
             }
         });
     }
@@ -2498,6 +3324,9 @@
             currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_RATES.length;
             const rate = SPEED_RATES[currentSpeedIndex];
             audioElement.playbackRate = rate;
+            if (ytPlayer && ytPlayer.setPlaybackRate) {
+                ytPlayer.setPlaybackRate(rate);
+            }
             if (playerSpeedLabel) playerSpeedLabel.textContent = `${rate}x`;
             showToast(`Tốc độ phát: ${rate}x`);
         });
@@ -2552,6 +3381,9 @@
 
             sleepTimerTimeout = setTimeout(() => {
                 audioElement.pause();
+                if (ytPlayer && ytPlayer.pauseVideo) {
+                    ytPlayer.pauseVideo();
+                }
                 setSleepTimer('0');
                 showToast('⏱️ Đã tắt nhạc theo hẹn giờ');
             }, mins * 60 * 1000);
@@ -2588,13 +3420,70 @@
         const countEl = document.getElementById('playerBookmarksCount');
         if (!countEl) return;
         const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-        const count = currentAudiobook 
-            ? allBookmarks.filter(b => b.identifier === currentAudiobook.identifier).length 
+        const currentId = currentAudioType === 'youtube'
+            ? (ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null)
+            : (currentAudiobook ? currentAudiobook.identifier : null);
+
+        const count = currentId 
+            ? allBookmarks.filter(b => b.identifier === currentId).length 
             : allBookmarks.length;
         countEl.textContent = count;
     }
 
     function addBookmark() {
+        if (currentAudioType === 'youtube') {
+            if (!ytCurrentItem) {
+                showToast('Vui lòng chọn phát một video/audio trước khi đánh dấu');
+                return;
+            }
+            const curTime = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
+            const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
+            const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+
+            const duplicate = allBookmarks.find(b =>
+                b.identifier === identifier &&
+                Math.abs(b.time - curTime) < 4
+            );
+
+            if (duplicate) {
+                showToast(`⚠️ Mốc ${duplicate.timeFormatted || formatTime(duplicate.time)} đã được lưu trước đó`);
+                switchPlaylistTab('bookmarks', duplicate.id);
+                return;
+            }
+
+            const newBookmark = {
+                id: 'bm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                identifier: identifier,
+                type: 'youtube',
+                videoId: ytCurrentItem.videoId,
+                bookTitle: ytCurrentItem.title,
+                cover: ytCurrentItem.cover || `https://i.ytimg.com/vi/${ytCurrentItem.videoId}/hqdefault.jpg`,
+                trackIndex: 0,
+                trackTitle: ytCurrentItem.title,
+                time: curTime,
+                timeFormatted: formatTime(curTime),
+                createdAt: Date.now()
+            };
+
+            allBookmarks.unshift(newBookmark);
+            saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks.slice(0, 100));
+
+            if (btnPlayerBookmark) {
+                btnPlayerBookmark.classList.add('is-bookmarked');
+                const bookmarkSpan = btnPlayerBookmark.querySelector('span');
+                if (bookmarkSpan) bookmarkSpan.textContent = 'Đã lưu!';
+                setTimeout(() => {
+                    btnPlayerBookmark.classList.remove('is-bookmarked');
+                    if (bookmarkSpan) bookmarkSpan.textContent = 'Bookmark';
+                }, 2200);
+            }
+
+            updateBookmarksBadge();
+            switchPlaylistTab('bookmarks', newBookmark.id);
+            showToast(`🔖 Đã lưu dấu trang YouTube: [${formatTime(curTime)}]`);
+            return;
+        }
+
         if (!currentAudiobook || !currentAudiobook.tracks || !currentAudiobook.tracks[currentTrackIndex]) {
             showToast('Vui lòng chọn phát một sách nói trước khi đánh dấu');
             return;
@@ -2604,7 +3493,6 @@
         const track = currentAudiobook.tracks[currentTrackIndex];
         const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
 
-        // Check if bookmark already exists in current chapter within 4 seconds
         const duplicate = allBookmarks.find(b => 
             b.identifier === currentAudiobook.identifier && 
             b.trackIndex === currentTrackIndex && 
@@ -2620,6 +3508,7 @@
         const newBookmark = {
             id: 'bm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
             identifier: currentAudiobook.identifier,
+            type: 'archive',
             bookTitle: currentAudiobook.title,
             cover: currentAudiobook.cover,
             trackIndex: currentTrackIndex,
@@ -2632,7 +3521,6 @@
         allBookmarks.unshift(newBookmark);
         saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks.slice(0, 100));
 
-        // Visual feedback on top Bookmark button
         if (btnPlayerBookmark) {
             btnPlayerBookmark.classList.add('is-bookmarked');
             const bookmarkSpan = btnPlayerBookmark.querySelector('span');
@@ -2644,8 +3532,6 @@
         }
 
         updateBookmarksBadge();
-
-        // Switch to bookmarks tab so user instantly sees where it was saved!
         switchPlaylistTab('bookmarks', newBookmark.id);
         showToast(`🔖 Đã lưu dấu trang: ${track.title} [${formatTime(curTime)}]`);
     }
@@ -2664,8 +3550,12 @@
         if (!listEl) return;
 
         const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-        const bookBookmarks = currentAudiobook 
-            ? allBookmarks.filter(b => b.identifier === currentAudiobook.identifier)
+        const currentId = currentAudioType === 'youtube'
+            ? (ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null)
+            : (currentAudiobook ? currentAudiobook.identifier : null);
+
+        const bookBookmarks = currentId 
+            ? allBookmarks.filter(b => b.identifier === currentId)
             : allBookmarks;
 
         updateBookmarksBadge();
@@ -2724,11 +3614,30 @@
             if (btnPlay) {
                 btnPlay.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (currentTrackIndex !== bm.trackIndex) {
-                        playTrack(bm.trackIndex, bm.time, true);
+                    if (bm.type === 'youtube' || (bm.identifier && bm.identifier.startsWith('yt_'))) {
+                        const targetId = bm.videoId || bm.identifier.replace(/^yt_/, '');
+                        if (currentAudioType !== 'youtube' || !ytCurrentItem || ytCurrentItem.videoId !== targetId) {
+                            const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === targetId) || {
+                                identifier: bm.identifier,
+                                videoId: targetId,
+                                title: bm.bookTitle,
+                                cover: bm.cover,
+                                type: 'youtube'
+                            };
+                            loadAndPlayYoutube(found, bm.time, true);
+                        } else {
+                            if (ytPlayer && ytPlayer.seekTo) {
+                                ytPlayer.seekTo(bm.time, true);
+                                ytPlayer.playVideo();
+                            }
+                        }
                     } else {
-                        audioElement.currentTime = bm.time;
-                        if (audioElement.paused) audioElement.play();
+                        if (currentTrackIndex !== bm.trackIndex) {
+                            playTrack(bm.trackIndex, bm.time, true);
+                        } else {
+                            audioElement.currentTime = bm.time;
+                            if (audioElement.paused) audioElement.play();
+                        }
                     }
                     showToast(`▶ Đang nghe từ mốc [${bm.timeFormatted || formatTime(bm.time)}] - ${bm.trackTitle}`);
                 });
@@ -2783,7 +3692,7 @@
             audioPlayerModal.style.display = 'none';
             document.body.style.overflow = '';
         }
-        if (miniAudioPlayer && currentAudiobook) {
+        if (miniAudioPlayer && (currentAudiobook || ytCurrentItem)) {
             miniAudioPlayer.style.display = 'block';
         }
     }
@@ -2792,7 +3701,12 @@
         if (stopAudio) {
             audioElement.pause();
             audioElement.src = '';
+            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                ytPlayer.pauseVideo();
+            }
+            stopYtProgressLoop();
             currentAudiobook = null;
+            ytCurrentItem = null;
             if (miniAudioPlayer) miniAudioPlayer.style.display = 'none';
         }
         if (audioPlayerModal) {
@@ -2804,8 +3718,8 @@
     if (btnPlayerMinimize) btnPlayerMinimize.addEventListener('click', minimizeAudioPlayerModal);
     if (btnPlayerClose) {
         btnPlayerClose.addEventListener('click', () => {
-            // If playing, minimize instead of abruptly killing playback
-            if (!audioElement.paused) {
+            const isPlaying = (currentAudioType === 'youtube' && ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 1) || (!audioElement.paused);
+            if (isPlaying) {
                 minimizeAudioPlayerModal();
                 showToast('Audio đang phát trong thanh mini phía dưới màn hình');
             } else {
@@ -2846,25 +3760,68 @@
                 toggleAudioPlay();
             } else if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT') {
                 e.preventDefault();
-                audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+                if (currentAudioType === 'youtube') {
+                    if (ytPlayer && ytPlayer.getCurrentTime) {
+                        const cur = ytPlayer.getCurrentTime() || 0;
+                        ytPlayer.seekTo(Math.max(0, cur - 15), true);
+                    }
+                } else {
+                    audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
+                }
             } else if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT') {
                 e.preventDefault();
-                const dur = audioElement.duration || Infinity;
-                audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+                if (currentAudioType === 'youtube') {
+                    if (ytPlayer && ytPlayer.getCurrentTime) {
+                        const cur = ytPlayer.getCurrentTime() || 0;
+                        const dur = (ytPlayer.getDuration && ytPlayer.getDuration()) || Infinity;
+                        ytPlayer.seekTo(Math.min(dur, cur + 15), true);
+                    }
+                } else {
+                    const dur = audioElement.duration || Infinity;
+                    audioElement.currentTime = Math.min(dur, audioElement.currentTime + 15);
+                }
             }
         }
     });
 
     // Save and Restore Audio State & Progress
     function saveAudioProgress() {
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+
+        if (currentAudioType === 'youtube') {
+            if (!ytCurrentItem) return;
+            const cur = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
+            const dur = Math.floor(ytPlayer && ytPlayer.getDuration ? (ytPlayer.getDuration() || ytCurrentItem.duration || 0) : (ytCurrentItem.duration || 0));
+            const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
+
+            progressMap[identifier] = {
+                identifier: identifier,
+                type: 'youtube',
+                videoId: ytCurrentItem.videoId,
+                title: ytCurrentItem.title,
+                author: ytCurrentItem.author || 'YouTube',
+                cover: ytCurrentItem.cover || `https://i.ytimg.com/vi/${ytCurrentItem.videoId}/hqdefault.jpg`,
+                trackIndex: 0,
+                trackTitle: ytCurrentItem.title,
+                currentTime: cur,
+                duration: dur,
+                percent: dur > 0 ? Math.min(100, Math.round((cur / dur) * 100)) : 0,
+                updatedAt: Date.now()
+            };
+            saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+            saveToStorage(STORAGE_AUDIO_LAST_PLAYED, identifier);
+            saveAudioState();
+            return;
+        }
+
         if (!currentAudiobook || !currentAudiobook.tracks || !currentAudiobook.tracks[currentTrackIndex]) return;
         const cur = Math.floor(audioElement.currentTime || 0);
         const dur = Math.floor(audioElement.duration || currentAudiobook.tracks[currentTrackIndex]?.duration || 0);
         const track = currentAudiobook.tracks[currentTrackIndex];
 
-        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
         progressMap[currentAudiobook.identifier] = {
             identifier: currentAudiobook.identifier,
+            type: 'archive',
             title: currentAudiobook.title,
             author: currentAudiobook.author,
             cover: currentAudiobook.cover,
@@ -2882,11 +3839,20 @@
     }
 
     function saveAudioState() {
-        if (!currentAudiobook) return;
+        const identifier = currentAudioType === 'youtube'
+            ? (ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null)
+            : (currentAudiobook ? currentAudiobook.identifier : null);
+        if (!identifier) return;
+
+        const curTime = currentAudioType === 'youtube'
+            ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
+            : Math.floor(audioElement.currentTime || 0);
+
         const state = {
-            identifier: currentAudiobook.identifier,
+            identifier: identifier,
+            type: currentAudioType,
             trackIndex: currentTrackIndex,
-            time: Math.floor(audioElement.currentTime || 0),
+            time: curTime,
             volume: audioElement.volume,
             speedIndex: currentSpeedIndex
         };
@@ -2918,40 +3884,59 @@
     async function findAndPlayAudiobook(book) {
         if (!book) return;
 
-        showToast('Đang tìm sách nói tiếng Việt trên Internet Archive...');
+        showToast('Đang tìm sách nói tiếng Việt...');
 
         // 1. Resolve Vietnamese title
         const viTitle = await resolveVietnameseAudioTitle(book);
         const lowerVi = (viTitle || '').toLowerCase().trim();
         const lowerOrig = (book.originalTitle || book.title || '').toLowerCase().trim();
 
-        // 2. Look for match in Curated Audiobooks
-        const match = CURATED_AUDIOBOOKS.find(b => {
+        // 2. Look for match in Curated YouTube or Archive
+        const ytMatch = CURATED_YOUTUBE_AUDIOBOOKS.find(b => {
             const bt = b.title.toLowerCase();
             const bo = (b.originalTitle || '').toLowerCase();
             const aliases = (b.aliases || []).map(a => a.toLowerCase());
-
             return (lowerVi && (bt.includes(lowerVi) || lowerVi.includes(bt))) ||
                    (lowerOrig && bo && (bo.includes(lowerOrig) || lowerOrig.includes(bo))) ||
                    aliases.some(a => (lowerVi && a.includes(lowerVi)) || (lowerOrig && a.includes(lowerOrig)));
         });
 
-        if (match) {
-            showToast(`Tìm thấy sách nói tiếng Việt: ${match.title}`);
-            loadAndPlayAudiobook(match.identifier, null, true, null);
+        const archiveMatch = CURATED_AUDIOBOOKS.find(b => {
+            const bt = b.title.toLowerCase();
+            const bo = (b.originalTitle || '').toLowerCase();
+            const aliases = (b.aliases || []).map(a => a.toLowerCase());
+            return (lowerVi && (bt.includes(lowerVi) || lowerVi.includes(bt))) ||
+                   (lowerOrig && bo && (bo.includes(lowerOrig) || lowerOrig.includes(bo))) ||
+                   aliases.some(a => (lowerVi && a.includes(lowerVi)) || (lowerOrig && a.includes(lowerOrig)));
+        });
+
+        if (ytMatch) {
+            showToast(`Tìm thấy sách nói trên YouTube: ${ytMatch.title}`);
+            loadAndPlayYoutube(ytMatch, 0, true);
             return;
         }
 
-        // 3. Query Internet Archive using the VIETNAMESE title!
+        if (archiveMatch) {
+            showToast(`Tìm thấy sách nói tiếng Việt: ${archiveMatch.title}`);
+            loadAndPlayAudiobook(archiveMatch.identifier, null, true, null);
+            return;
+        }
+
+        // 3. Fallback: Search on current source
         const searchTerm = viTitle || book.titleVi || book.title;
         if (audioSearchInput) audioSearchInput.value = searchTerm;
 
-        const results = await searchAudiobooks(searchTerm, true);
-
-        if (results && results.length > 0) {
-            showToast(`Đã tìm thấy sách nói tiếng Việt: ${results[0].title}`);
+        if (currentAudioSource === 'youtube') {
+            searchYoutubeAudiobooks(searchTerm);
         } else {
-            showToast(`Không tìm thấy audio tiếng Việt cho "${searchTerm}". Đang mở kho sách nói.`);
+            const results = await searchAudiobooks(searchTerm, true);
+            if (!results || results.length === 0) {
+                // Try searching YouTube as fallback!
+                showToast(`Chưa có audio trên Archive, đang tìm trên YouTube: "${searchTerm}"`);
+                const btnYt = document.getElementById('btnSourceYoutube');
+                if (btnYt) btnYt.click();
+                searchYoutubeAudiobooks(searchTerm);
+            }
         }
     }
 

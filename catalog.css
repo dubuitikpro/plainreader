@@ -1451,7 +1451,51 @@ a { color: inherit; text-decoration: none; }
     font-size: 0.95rem;
     line-height: 1.6;
     color: var(--text-secondary);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+}
+
+/* Audio Source Switcher */
+.audio-source-switcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.source-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.source-tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.source-tab-btn.active[data-source="archive"] {
+    background: linear-gradient(135deg, rgba(9, 132, 227, 0.4), rgba(0, 206, 201, 0.3));
+    border-color: #00cec9;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 206, 201, 0.25);
+}
+
+.source-tab-btn.active[data-source="youtube"] {
+    background: linear-gradient(135deg, rgba(235, 87, 87, 0.4), rgba(255, 71, 87, 0.3));
+    border-color: #ff4757;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
 }
 
 .audio-search-container {
@@ -1800,6 +1844,44 @@ a { color: inherit; text-decoration: none; }
     gap: 4px;
 }
 
+.audiobook-badge-youtube {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #ff4757, #eb2f06);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+.audiobook-badge-youtube svg {
+    flex-shrink: 0;
+}
+
+.audiobook-card.is-youtube:hover .audiobook-play-circle {
+    background: linear-gradient(135deg, #ff4757, #eb2f06);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6);
+}
+
+.audiobook-card.is-youtube .audiobook-btn-listen {
+    color: #ff4757;
+    background: rgba(255, 71, 87, 0.12);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.audiobook-card.is-youtube:hover .audiobook-btn-listen {
+    background: #ff4757;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+}
+
 .audiobook-overlay-play {
     position: absolute;
     inset: 0;
@@ -1951,7 +2033,7 @@ a { color: inherit; text-decoration: none; }
     flex-direction: column;
 }
 
-.player-cover-box {
+.player-media-wrap {
     position: relative;
     width: 100%;
     border-radius: 16px;
@@ -1959,11 +2041,57 @@ a { color: inherit; text-decoration: none; }
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: #101018;
+    height: 330px;
+}
+
+.player-cover-box {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.player-youtube-screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 5;
+}
+
+.player-youtube-screen iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.btn-toggle-video-mode {
+    margin-top: 10px;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: rgba(255, 71, 87, 0.12);
+    border: 1px solid rgba(255, 71, 87, 0.35);
+    border-radius: 8px;
+    color: #ff4757;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle-video-mode:hover {
+    background: #ff4757;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(255, 71, 87, 0.4);
 }
 
 .player-book-cover {
     width: 100%;
-    height: 330px;
+    height: 100%;
     object-fit: cover;
     display: block;
 }
@@ -2049,6 +2177,12 @@ a { color: inherit; text-decoration: none; }
     border-radius: 20px;
     font-size: 0.74rem;
     color: #a0aec0;
+}
+
+.player-source-tag.is-youtube {
+    background: rgba(255, 71, 87, 0.15);
+    border-color: rgba(255, 71, 87, 0.4);
+    color: #ff4757;
 }
 
 .player-now-playing-pill {
