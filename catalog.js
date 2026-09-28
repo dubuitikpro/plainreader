@@ -2703,10 +2703,16 @@
         if (playerTrackTitle) playerTrackTitle.textContent = item.title;
         if (playerTrackCounter) playerTrackCounter.textContent = '1/1';
 
-        // Badge styling for YouTube
+        // Badge & Theme styling for YouTube
         const sourceTag = document.getElementById('playerSourceTag');
         if (sourceTag) sourceTag.classList.add('is-youtube');
         if (playerSourceTagText) playerSourceTagText.textContent = 'Source: YouTube Music';
+
+        if (audioPlayerModal) {
+            audioPlayerModal.classList.add('is-youtube');
+            const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+            if (dialog) dialog.classList.add('is-youtube');
+        }
 
         const coverBadge = document.getElementById('playerCoverBadge');
         const badgeSourceText = document.getElementById('playerBadgeSourceText');
@@ -3024,6 +3030,12 @@
             const sourceTag = document.getElementById('playerSourceTag');
             if (sourceTag) sourceTag.classList.remove('is-youtube');
             if (playerSourceTagText) playerSourceTagText.textContent = 'Source: Internet Archive';
+
+            if (audioPlayerModal) {
+                audioPlayerModal.classList.remove('is-youtube');
+                const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+                if (dialog) dialog.classList.remove('is-youtube');
+            }
 
             const coverBadge = document.getElementById('playerCoverBadge');
             const badgeSourceText = document.getElementById('playerBadgeSourceText');
@@ -3882,6 +3894,15 @@
     // Modal Minimize & Close
     function openAudioPlayerModal() {
         if (audioPlayerModal) {
+            if (currentAudioType === 'youtube') {
+                audioPlayerModal.classList.add('is-youtube');
+                const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+                if (dialog) dialog.classList.add('is-youtube');
+            } else {
+                audioPlayerModal.classList.remove('is-youtube');
+                const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+                if (dialog) dialog.classList.remove('is-youtube');
+            }
             audioPlayerModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=4.1">
+    <link rel="stylesheet" href="catalog.css?v=4.2">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -418,91 +418,93 @@
     <!-- Dedicated Audiobook Player Modal (matching screenshot) -->
     <div class="audio-player-overlay" id="audioPlayerModal" style="display:none;">
         <div class="audio-player-dialog">
-            <!-- Left Column: Book Artwork, Video & Meta -->
-            <div class="player-left-col">
-                <div class="player-media-wrap">
-                    <div class="player-cover-box" id="playerCoverBox">
-                        <img id="playerBookCover" src="" alt="Book Cover" class="player-book-cover">
-                        <div class="player-cover-badge" id="playerCoverBadge">
-                            <svg id="playerCoverBadgeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-                                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-                            </svg>
-                            <span id="playerBadgeSourceText">Internet Archive</span>
-                        </div>
-                    </div>
-                    <!-- YouTube Video Screen Embed -->
-                    <div class="player-youtube-screen" id="playerYoutubeScreen" style="display: none;">
-                        <div id="youtubePlayerIframe"></div>
-                    </div>
+            <!-- Top Header Bar (Always at top of modal) -->
+            <div class="player-top-bar">
+                <div class="player-source-tag" id="playerSourceTag">
+                    <svg id="playerSourceTagIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    <span id="playerSourceTagText">Source: Internet</span>
+                </div>
+                
+                <div class="player-now-playing-pill">
+                    <span class="now-playing-dot"></span>
+                    <span>Now Playing</span>
                 </div>
 
-                <!-- Video / Audio View Mode Toggle for YouTube -->
-                <button class="btn-toggle-video-mode" id="btnToggleVideoMode" type="button" style="display: none;" title="Chuyển chế độ xem Video / nghe Audio">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                    </svg>
-                    <span id="toggleVideoModeText">Xem Video</span>
-                </button>
+                <div class="player-track-info-header">
+                    <span id="playerTrackCounter" class="player-track-counter">1/19</span>
+                    <span id="playerTrackTitle" class="player-track-title">Đang tải...</span>
+                </div>
 
-                <div class="player-left-details">
-                    <h3 id="playerBookTitle" class="player-book-title">Mặt Dày Tâm Đen</h3>
-                    <p id="playerBookAuthor" class="player-book-author">Chin-Ning Chu</p>
-                    <div class="player-meta-badges">
-                        <span class="player-badge" id="playerTotalChaptersBadge">19 Chương</span>
-                        <span class="player-badge" id="playerTotalDurationBadge">~10 giờ</span>
-                    </div>
+                <div class="player-top-actions">
+                    <button class="player-header-btn" id="btnPlayerBookmark" title="Đánh dấu mốc thời gian đang nghe">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>Bookmark</span>
+                    </button>
+                    <button class="player-header-btn player-minimize-btn" id="btnPlayerMinimize" title="Thu nhỏ player (vẫn tiếp tục nghe)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                    <button class="player-header-btn player-close-btn" id="btnPlayerClose" title="Đóng">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <!-- Right Column: Player Controls & Chapter List (Replicating Screenshot) -->
-            <div class="player-card-box">
-                <!-- Top Header Bar -->
-                <div class="player-top-bar">
-                    <div class="player-source-tag" id="playerSourceTag">
-                        <svg id="playerSourceTagIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="2" y1="12" x2="22" y2="12"/>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            <!-- Dialog Body -->
+            <div class="player-dialog-body">
+                <!-- Left Column: Book Artwork, Video & Meta -->
+                <div class="player-left-col">
+                    <div class="player-media-wrap">
+                        <div class="player-cover-box" id="playerCoverBox">
+                            <img id="playerBookCover" src="" alt="Book Cover" class="player-book-cover">
+                            <div class="player-cover-badge" id="playerCoverBadge">
+                                <svg id="playerCoverBadgeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                                </svg>
+                                <span id="playerBadgeSourceText">Internet Archive</span>
+                            </div>
+                        </div>
+                        <!-- YouTube Video Screen Embed -->
+                        <div class="player-youtube-screen" id="playerYoutubeScreen" style="display: none;">
+                            <div id="youtubePlayerIframe"></div>
+                        </div>
+                    </div>
+
+                    <!-- Video / Audio View Mode Toggle for YouTube -->
+                    <button class="btn-toggle-video-mode" id="btnToggleVideoMode" type="button" style="display: none;" title="Chuyển chế độ xem Video / nghe Audio">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
                         </svg>
-                        <span id="playerSourceTagText">Source: Internet</span>
-                    </div>
-                    
-                    <div class="player-now-playing-pill">
-                        <span class="now-playing-dot"></span>
-                        <span>Now Playing</span>
-                    </div>
+                        <span id="toggleVideoModeText">Xem Video</span>
+                    </button>
 
-                    <div class="player-track-info-header">
-                        <span id="playerTrackCounter" class="player-track-counter">1/19</span>
-                        <span id="playerTrackTitle" class="player-track-title">Đang tải...</span>
-                    </div>
-
-                    <div class="player-top-actions">
-                        <button class="player-header-btn" id="btnPlayerBookmark" title="Đánh dấu mốc thời gian đang nghe">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            <span>Bookmark</span>
-                        </button>
-                        <button class="player-header-btn player-minimize-btn" id="btnPlayerMinimize" title="Thu nhỏ player (vẫn tiếp tục nghe)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                        </button>
-                        <button class="player-header-btn player-close-btn" id="btnPlayerClose" title="Đóng">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </button>
+                    <div class="player-left-details">
+                        <h3 id="playerBookTitle" class="player-book-title">Mặt Dày Tâm Đen</h3>
+                        <p id="playerBookAuthor" class="player-book-author">Chin-Ning Chu</p>
+                        <div class="player-meta-badges">
+                            <span class="player-badge" id="playerTotalChaptersBadge">19 Chương</span>
+                            <span class="player-badge" id="playerTotalDurationBadge">~10 giờ</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Scrubber / Progress Bar -->
-                <div class="player-scrubber-row">
+                <!-- Right Column: Player Controls & Chapter List (Replicating Screenshot) -->
+                <div class="player-card-box">
+                    <!-- Scrubber / Progress Bar -->
+                    <div class="player-scrubber-row">
                     <span class="player-time-display" id="playerCurrentTime">00:00</span>
                     <div class="player-slider-wrap" id="playerSliderWrap">
                         <div class="player-slider-fill" id="playerSliderFill"></div>
@@ -660,6 +662,7 @@
             </div>
         </div>
     </div>
+    </div>
 
     <!-- Floating Mini Player -->
     <div class="mini-audio-player" id="miniAudioPlayer" style="display:none;">
@@ -709,6 +712,6 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="catalog.js?v=4.1"></script>
+    <script src="catalog.js?v=4.2"></script>
 </body>
 </html>
