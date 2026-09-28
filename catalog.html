@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Khám phá, tìm kiếm và quản lý bộ sưu tập sách của bạn với PlainReader Catalog">
+    <title>Thư Viện Sách — PlainReader</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+    <!-- Background animated elements -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="catalog-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="index.html" class="logo" title="Về trang chủ">
+                    <img src="icon-192.png" alt="PlainReader" class="logo-img">
+                    <h1>PlainReader</h1>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Đọc sách
+                </a>
+                <a href="catalog.html" class="nav-link active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                    Thư viện
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Search Section -->
+    <section class="hero-search">
+        <div class="hero-content">
+            <h2 class="hero-title">Khám phá thế giới sách</h2>
+            <p class="hero-subtitle">Tìm kiếm hàng triệu cuốn sách từ Open Library</p>
+            <div class="search-box" id="searchBox">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Tìm theo tên sách, tác giả, chủ đề..." autocomplete="off">
+                <button id="btnSearch" class="search-btn" title="Tìm kiếm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="quick-tags" id="quickTags">
+                <button class="quick-tag" data-query="fiction">Tiểu thuyết</button>
+                <button class="quick-tag" data-query="science">Khoa học</button>
+                <button class="quick-tag" data-query="history">Lịch sử</button>
+                <button class="quick-tag" data-query="philosophy">Triết học</button>
+                <button class="quick-tag" data-query="self help">Phát triển bản thân</button>
+                <button class="quick-tag" data-query="programming">Lập trình</button>
+                <button class="quick-tag" data-query="romance">Lãng mạn</button>
+                <button class="quick-tag" data-query="mystery">Trinh thám</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="catalog-main">
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <div class="tabs" id="tabs">
+                <button class="tab active" data-tab="explore" id="tabExplore">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Khám phá
+                </button>
+                <button class="tab" data-tab="wishlist" id="tabWishlist">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Muốn đọc
+                    <span class="tab-count" id="wishlistCount">0</span>
+                </button>
+                <button class="tab" data-tab="favorites" id="tabFavorites">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    Ưa thích
+                    <span class="tab-count" id="favoritesCount">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Explore Tab Content -->
+        <div class="tab-content active" id="contentExplore">
+            <!-- Recommendations Section -->
+            <section class="section" id="recommendationsSection" style="display:none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        Đề xuất cho bạn
+                    </h3>
+                    <p class="section-subtitle">Dựa trên sách ưa thích của bạn</p>
+                </div>
+                <div class="books-scroll" id="recommendationsGrid">
+                    <!-- Recommendation cards inserted here -->
+                </div>
+            </section>
+
+            <!-- Trending Section -->
+            <section class="section" id="trendingSection">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                        Sách phổ biến
+                    </h3>
+                </div>
+                <div class="books-scroll" id="trendingGrid">
+                    <!-- Trending cards inserted here -->
+                </div>
+            </section>
+
+            <!-- Search Results -->
+            <section class="section" id="searchResultsSection" style="display:none;">
+                <div class="section-header">
+                    <h3 class="section-title" id="searchResultsTitle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        Kết quả tìm kiếm
+                    </h3>
+                    <span class="result-count" id="resultCount"></span>
+                </div>
+                <div class="books-grid" id="searchResultsGrid">
+                    <!-- Search result cards inserted here -->
+                </div>
+                <div class="load-more-container" id="loadMoreContainer" style="display:none;">
+                    <button id="btnLoadMore" class="btn-load-more">Xem thêm</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Wishlist Tab Content -->
+        <div class="tab-content" id="contentWishlist">
+            <div class="empty-state" id="wishlistEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                <h3>Chưa có sách muốn đọc</h3>
+                <p>Tìm kiếm và thêm sách vào danh sách đọc của bạn</p>
+            </div>
+            <div class="books-grid" id="wishlistGrid">
+                <!-- Wishlist cards inserted here -->
+            </div>
+        </div>
+
+        <!-- Favorites Tab Content -->
+        <div class="tab-content" id="contentFavorites">
+            <div class="empty-state" id="favoritesEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <h3>Chưa có sách ưa thích</h3>
+                <p>Đánh dấu những cuốn sách yêu thích để nhận đề xuất phù hợp</p>
+            </div>
+            <div class="books-grid" id="favoritesGrid">
+                <!-- Favorite cards inserted here -->
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="catalog-loading" id="catalogLoading" style="display:none;">
+            <div class="catalog-spinner"></div>
+            <p>Đang tải sách...</p>
+        </div>
+    </main>
+
+    <!-- Book Detail Modal -->
+    <div class="modal-overlay" id="bookModal" style="display:none;">
+        <div class="modal-card">
+            <button class="modal-close" id="btnCloseModal" title="Đóng">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div class="modal-body">
+                <div class="modal-cover">
+                    <img id="modalCover" src="" alt="Book Cover">
+                </div>
+                <div class="modal-info">
+                    <h2 id="modalTitle" class="modal-title"></h2>
+                    <p id="modalAuthor" class="modal-author"></p>
+                    <div class="modal-meta">
+                        <span id="modalYear" class="meta-badge"></span>
+                        <span id="modalPages" class="meta-badge"></span>
+                        <span id="modalLanguage" class="meta-badge"></span>
+                    </div>
+                    <div class="modal-subjects" id="modalSubjects"></div>
+                    <p id="modalDescription" class="modal-description"></p>
+                    <div class="modal-actions">
+                        <button id="modalBtnWishlist" class="modal-action-btn wishlist-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span>Muốn đọc</span>
+                        </button>
+                        <button id="modalBtnFavorite" class="modal-action-btn favorite-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                            <span>Ưa thích</span>
+                        </button>
+                        <a id="modalBtnOpenLibrary" class="modal-action-btn ol-btn" href="#" target="_blank" rel="noopener noreferrer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                            <span>Open Library</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Footer -->
+    <footer id="catalogFooter">
+        <p>PlainReader — Dữ liệu sách từ <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a></p>
+    </footer>
+
+    <script src="catalog.js"></script>
+</body>
+</html>
