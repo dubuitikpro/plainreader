@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=2.3">
+    <link rel="stylesheet" href="catalog.css">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -52,14 +52,14 @@
     <!-- Hero Search Section -->
     <section class="hero-search">
         <div class="hero-content">
-            <h2 class="hero-title">Khám phá sách</h2>
-            <p class="hero-subtitle">Tìm kiếm, lưu trữ sách muốn đọc và sách ưa thích của bạn</p>
+            <h2 class="hero-title">Khám phá thế giới sách</h2>
+            <p class="hero-subtitle">Tìm kiếm hàng triệu cuốn sách từ Open Library</p>
             <div class="search-box" id="searchBox">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                     <circle cx="11" cy="11" r="8"/>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Tìm theo tên sách, tác giả..." autocomplete="off">
+                <input type="text" id="searchInput" placeholder="Tìm theo tên sách, tác giả, chủ đề..." autocomplete="off">
                 <button id="btnSearch" class="search-btn" title="Tìm kiếm">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
                         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -67,18 +67,15 @@
                     </svg>
                 </button>
             </div>
-
             <div class="quick-tags" id="quickTags">
-                <button class="quick-tag" data-query="bestseller">🔥 Phổ biến</button>
-                <button class="quick-tag" data-query="văn học">Văn học</button>
-                <button class="quick-tag" data-query="tiểu thuyết">Tiểu thuyết</button>
-                <button class="quick-tag" data-query="tâm lý">Tâm lý</button>
-                <button class="quick-tag" data-query="kỹ năng sống">Kỹ năng</button>
-                <button class="quick-tag" data-query="triết học">Triết học</button>
-                <button class="quick-tag" data-query="lịch sử">Lịch sử</button>
-                <button class="quick-tag" data-query="kinh tế">Kinh tế</button>
-                <button class="quick-tag" data-query="khoa học">Khoa học</button>
-                <button class="quick-tag" data-query="thiếu nhi">Thiếu nhi</button>
+                <button class="quick-tag" data-query="fiction">Tiểu thuyết</button>
+                <button class="quick-tag" data-query="science">Khoa học</button>
+                <button class="quick-tag" data-query="history">Lịch sử</button>
+                <button class="quick-tag" data-query="philosophy">Triết học</button>
+                <button class="quick-tag" data-query="self help">Phát triển bản thân</button>
+                <button class="quick-tag" data-query="programming">Lập trình</button>
+                <button class="quick-tag" data-query="romance">Lãng mạn</button>
+                <button class="quick-tag" data-query="mystery">Trinh thám</button>
             </div>
         </div>
     </section>
@@ -218,26 +215,13 @@
                 <div class="modal-info">
                     <h2 id="modalTitle" class="modal-title"></h2>
                     <p id="modalAuthor" class="modal-author"></p>
-
-                    <!-- Rich metadata from Open Library / Database -->
-                    <div class="modal-meta" id="modalMeta">
-                        <span id="modalYear" class="meta-badge" style="display:none;"></span>
-                        <span id="modalPublisher" class="meta-badge" style="display:none;"></span>
-                        <span id="modalPages" class="meta-badge" style="display:none;"></span>
-                        <span id="modalLanguage" class="meta-badge" style="display:none;"></span>
-                        <span id="modalEditions" class="meta-badge" style="display:none;"></span>
-                        <span id="modalRating" class="meta-badge badge-rating" style="display:none;"></span>
-                        <span id="modalISBN" class="meta-badge" style="display:none;"></span>
+                    <div class="modal-meta">
+                        <span id="modalYear" class="meta-badge"></span>
+                        <span id="modalPages" class="meta-badge"></span>
+                        <span id="modalLanguage" class="meta-badge"></span>
                     </div>
-
-                    <!-- Subjects / Topics / Categories -->
-                    <div class="modal-subjects" id="modalSubjects" style="display:none;"></div>
-
-                    <!-- Book Description -->
-                    <div class="modal-desc-heading">Tóm tắt & Giới thiệu:</div>
+                    <div class="modal-subjects" id="modalSubjects"></div>
                     <p id="modalDescription" class="modal-description"></p>
-
-                    <!-- Modal Actions & Links -->
                     <div class="modal-actions">
                         <button id="modalBtnWishlist" class="modal-action-btn wishlist-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
@@ -251,14 +235,14 @@
                             </svg>
                             <span>Ưa thích</span>
                         </button>
-                        <a id="modalBtnOpenLibrary" class="modal-action-btn ol-link-btn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+                        <a id="modalBtnOpenLibrary" class="modal-action-btn ol-btn" href="#" target="_blank" rel="noopener noreferrer">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
                             </svg>
-                            <span>Xem trên Open Library ↗</span>
+                            <span>Open Library</span>
                         </a>
-                        <div id="modalStoreLinks" class="modal-store-links" style="display:none;"></div>
                     </div>
                 </div>
             </div>
@@ -272,10 +256,9 @@
 
     <!-- Footer -->
     <footer id="catalogFooter">
-        <p>PlainReader — Thư viện & bộ sưu tập sách cá nhân</p>
+        <p>PlainReader — Dữ liệu sách từ <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a></p>
     </footer>
 
-    <script src="vietnamese-books-data.js?v=2.3"></script>
-    <script src="catalog.js?v=2.3"></script>
+    <script src="catalog.js"></script>
 </body>
 </html>
