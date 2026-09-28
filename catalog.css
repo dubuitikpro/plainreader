@@ -816,11 +816,24 @@ a { color: inherit; text-decoration: none; }
     font-size: 0.82rem;
     font-weight: 600;
     line-height: 1.3;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    color: var(--text-primary);
+}
+
+.book-original-title {
+    font-size: 0.69rem;
+    font-style: italic;
+    color: var(--text-muted);
+    line-height: 1.25;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.85;
 }
 
 .book-author {
@@ -1004,9 +1017,35 @@ a { color: inherit; text-decoration: none; }
 .modal-title {
     font-size: 1.4rem;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     letter-spacing: -0.02em;
     line-height: 1.3;
+}
+
+.modal-original-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.modal-original-title .label-orig {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+}
+
+.modal-original-title .text-orig {
+    font-style: italic;
+    color: var(--text-secondary);
 }
 
 .modal-author {
@@ -1050,12 +1089,79 @@ a { color: inherit; text-decoration: none; }
     font-weight: 500;
 }
 
+.modal-desc-wrapper {
+    margin-bottom: 24px;
+}
+
+.modal-desc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.desc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.desc-badge.en {
+    color: #a29bfe;
+    background: rgba(108, 92, 231, 0.08);
+    border-color: rgba(108, 92, 231, 0.2);
+}
+
+.btn-toggle-orig-desc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-toggle-orig-desc:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
 .modal-description {
     font-size: 0.88rem;
     line-height: 1.7;
     color: var(--text-secondary);
-    margin-bottom: 24px;
-    max-height: 200px;
+    margin-bottom: 0;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.modal-original-desc-box {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-description-en {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-top: 6px;
+    max-height: 140px;
     overflow-y: auto;
 }
 

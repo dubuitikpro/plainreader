@@ -96,6 +96,11 @@
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
     const modalBtnFavorite = document.getElementById('modalBtnFavorite');
     const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
+    const modalOriginalTitle = document.getElementById('modalOriginalTitle');
+    const modalOriginalTitleText = document.getElementById('modalOriginalTitleText');
+    const btnToggleOrigDesc = document.getElementById('btnToggleOrigDesc');
+    const modalOriginalDescBox = document.getElementById('modalOriginalDescBox');
+    const modalOriginalDescription = document.getElementById('modalOriginalDescription');
 
     // Toast
     const toast = document.getElementById('toast');
@@ -178,12 +183,123 @@
     }
 
     // =========================================
+    // Translation System (Google Translate API + Local Cache)
+    // =========================================
+    const STORAGE_TRANS_CACHE = 'plainreader-trans-cache';
+    const translationCache = new Map();
+
+    (function initTranslationCache() {
+        try {
+            const raw = localStorage.getItem(STORAGE_TRANS_CACHE);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                Object.entries(parsed).forEach(([k, v]) => translationCache.set(k, v));
+            }
+        } catch { /* ignore */ }
+    })();
+
+    let saveCacheTimeout;
+    function saveTranslationCache() {
+        clearTimeout(saveCacheTimeout);
+        saveCacheTimeout = setTimeout(() => {
+            try {
+                const obj = {};
+                let count = 0;
+                for (const [k, v] of translationCache.entries()) {
+                    if (count++ > 1500) break;
+                    obj[k] = v;
+                }
+                localStorage.setItem(STORAGE_TRANS_CACHE, JSON.stringify(obj));
+            } catch { /* ignore */ }
+        }, 1000);
+    }
+
+    async function translateText(text) {
+        if (!text || typeof text !== 'string') return text;
+        const clean = text.trim();
+        if (!clean) return clean;
+        if (translationCache.has(clean)) {
+            return translationCache.get(clean);
+        }
+        try {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(clean)}`;
+            const res = await fetch(url);
+            if (!res.ok) return clean;
+            const data = await res.json();
+            if (data && data[0]) {
+                const translated = data[0].map(x => x[0]).join('').trim();
+                if (translated) {
+                    translationCache.set(clean, translated);
+                    saveTranslationCache();
+                    return translated;
+                }
+            }
+        } catch (err) {
+            console.warn('Translation failed:', err);
+        }
+        return clean;
+    }
+
+    async function batchTranslateBooks(books) {
+        if (!books || !Array.isArray(books) || books.length === 0) return books;
+
+        books.forEach(b => {
+            b.originalTitle = b.originalTitle || b.title;
+            if (translationCache.has(b.originalTitle)) {
+                b.titleVi = translationCache.get(b.originalTitle);
+            }
+        });
+
+        const needed = books.filter(b => !b.titleVi);
+        if (needed.length === 0) return books;
+
+        const chunkSize = 20;
+        for (let i = 0; i < needed.length; i += chunkSize) {
+            const chunk = needed.slice(i, i + chunkSize);
+            const combined = chunk.map(b => b.originalTitle.replace(/[\r\n]+/g, ' ')).join('\n');
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(combined)}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data[0]) {
+                        const raw = data[0].map(x => x[0]).join('');
+                        const lines = raw.split('\n');
+                        if (lines.length === chunk.length) {
+                            chunk.forEach((b, idx) => {
+                                const trans = (lines[idx] || '').trim();
+                                b.titleVi = trans || b.originalTitle;
+                                if (trans) translationCache.set(b.originalTitle, trans);
+                            });
+                        } else {
+                            await Promise.all(chunk.map(async b => {
+                                b.titleVi = await translateText(b.originalTitle);
+                            }));
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Batch translation error:', err);
+                chunk.forEach(b => {
+                    b.titleVi = b.titleVi || b.originalTitle;
+                });
+            }
+        }
+
+        saveTranslationCache();
+        return books;
+    }
+
+    // =========================================
     // Book Data Normalization
     // =========================================
     function normalizeSearchBook(doc) {
+        const title = doc.title || 'Không có tiêu đề';
         return {
             key: doc.key || '',
-            title: doc.title || 'Không có tiêu đề',
+            title: title,
+            originalTitle: title,
+            titleVi: translationCache.get(title) || null,
             author: doc.author_name ? doc.author_name.join(', ') : 'Không rõ tác giả',
             coverId: doc.cover_i || null,
             coverEditionKey: doc.cover_edition_key || null,
@@ -196,9 +312,12 @@
     }
 
     function normalizeSubjectBook(work) {
+        const title = work.title || 'Không có tiêu đề';
         return {
             key: work.key || '',
-            title: work.title || 'Không có tiêu đề',
+            title: title,
+            originalTitle: title,
+            titleVi: translationCache.get(title) || null,
             author: work.authors ? work.authors.map(a => a.name).join(', ') : 'Không rõ tác giả',
             coverId: work.cover_id || null,
             coverEditionKey: work.cover_edition_key || null,
@@ -206,6 +325,24 @@
             subjects: (work.subject || []).slice(0, 5),
             language: null,
             editionCount: work.edition_count || 0,
+            pages: null,
+        };
+    }
+
+    function normalizeTrendingWork(w) {
+        const title = w.title || 'Không có tiêu đề';
+        return {
+            key: w.key || '',
+            title: title,
+            originalTitle: title,
+            titleVi: translationCache.get(title) || null,
+            author: w.author_name ? w.author_name.join(', ') : (w.author_key ? w.author_key.join(', ') : 'Không rõ tác giả'),
+            coverId: w.cover_i || null,
+            coverEditionKey: w.cover_edition_key || null,
+            year: w.first_publish_year || null,
+            subjects: (w.subject || []).slice(0, 5),
+            language: null,
+            editionCount: w.edition_count || 0,
             pages: null,
         };
     }
@@ -229,24 +366,11 @@
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Search failed');
         const data = await resp.json();
+        const books = (data.docs || []).map(normalizeSearchBook);
+        await batchTranslateBooks(books);
         return {
             total: data.numFound || 0,
-            books: (data.docs || []).map(normalizeSearchBook),
-        };
-    }
-
-    function normalizeTrendingWork(w) {
-        return {
-            key: w.key || '',
-            title: w.title || 'Không có tiêu đề',
-            author: w.author_name ? w.author_name.join(', ') : (w.author_key ? w.author_key.join(', ') : 'Không rõ tác giả'),
-            coverId: w.cover_i || null,
-            coverEditionKey: w.cover_edition_key || null,
-            year: w.first_publish_year || null,
-            subjects: (w.subject || []).slice(0, 5),
-            language: null,
-            editionCount: w.edition_count || 0,
-            pages: null,
+            books: books,
         };
     }
 
@@ -258,7 +382,9 @@
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('Trending failed');
             const data = await resp.json();
-            return (data.works || []).map(normalizeTrendingWork);
+            const books = (data.works || []).map(normalizeTrendingWork);
+            await batchTranslateBooks(books);
+            return books;
         } catch {
             return fetchSubjectBooks(period === 'weekly' ? 'classics' : 'fiction', limit, (page - 1) * limit);
         }
@@ -269,7 +395,9 @@
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Subject fetch failed');
         const data = await resp.json();
-        return (data.works || []).map(normalizeSubjectBook);
+        const books = (data.works || []).map(normalizeSubjectBook);
+        await batchTranslateBooks(books);
+        return books;
     }
 
     async function fetchBookDetails(workKey) {
@@ -292,11 +420,16 @@
         const wishlisted = isInWishlist(book.key);
         const favorited = isInFavorites(book.key);
 
+        const displayTitle = book.titleVi || book.title;
+        const originalTitle = (book.originalTitle && book.originalTitle.toLowerCase() !== displayTitle.toLowerCase())
+            ? book.originalTitle
+            : '';
+
         card.innerHTML = `
             <div class="book-cover-wrapper">
                 ${coverUrl
-                    ? `<img class="book-cover" src="${coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'book-cover-placeholder\\'>${escapeHtml(book.title)}</div>'">`
-                    : `<div class="book-cover-placeholder">${escapeHtml(book.title)}</div>`
+                    ? `<img class="book-cover" src="${coverUrl}" alt="${escapeHtml(displayTitle)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'book-cover-placeholder\\'>${escapeHtml(displayTitle)}</div>'">`
+                    : `<div class="book-cover-placeholder">${escapeHtml(displayTitle)}</div>`
                 }
                 <div class="book-actions">
                     <button class="book-action-btn btn-wishlist ${wishlisted ? 'is-wishlisted' : ''}" title="${wishlisted ? 'Bỏ muốn đọc' : 'Muốn đọc'}">
@@ -312,7 +445,8 @@
                 </div>
             </div>
             <div class="book-info">
-                <div class="book-title">${escapeHtml(book.title)}</div>
+                <div class="book-title" title="${escapeHtml(displayTitle)}">${escapeHtml(displayTitle)}</div>
+                ${originalTitle ? `<div class="book-original-title" title="Tên gốc: ${escapeHtml(originalTitle)}">${escapeHtml(originalTitle)}</div>` : ''}
                 <div class="book-author">${escapeHtml(book.author)}</div>
                 ${book.year ? `<div class="book-year">${book.year}</div>` : ''}
             </div>
@@ -389,12 +523,30 @@
             modalCover.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect fill="%2312121a" width="200" height="300"/><text fill="%235a5a6e" x="100" y="150" text-anchor="middle" font-size="14">No Cover</text></svg>';
         }
 
-        modalTitle.textContent = book.title;
+        const displayTitle = book.titleVi || book.title;
+        modalTitle.textContent = displayTitle;
+
+        // Original Title
+        const originalTitle = (book.originalTitle && book.originalTitle.toLowerCase() !== displayTitle.toLowerCase())
+            ? book.originalTitle
+            : (book.titleVi ? book.title : '');
+
+        if (originalTitle && originalTitle.toLowerCase() !== displayTitle.toLowerCase()) {
+            modalOriginalTitle.style.display = 'inline-flex';
+            modalOriginalTitleText.textContent = originalTitle;
+        } else {
+            modalOriginalTitle.style.display = 'none';
+        }
+
         modalAuthor.textContent = book.author;
         modalYear.textContent = book.year ? `📅 ${book.year}` : '';
         modalPages.textContent = book.pages ? `📄 ${book.pages} trang` : '';
         modalLanguage.textContent = book.language ? `🌐 ${book.language.toUpperCase()}` : '';
-        modalDescription.textContent = 'Đang tải mô tả...';
+
+        modalDescription.textContent = 'Đang tải và dịch mô tả...';
+        btnToggleOrigDesc.style.display = 'none';
+        modalOriginalDescBox.style.display = 'none';
+        modalOriginalDescription.textContent = '';
         modalSubjects.innerHTML = '';
 
         // Actions
@@ -411,13 +563,31 @@
         // Fetch detailed info
         try {
             const details = await fetchBookDetails(book.key);
+            let rawDesc = '';
             if (details.description) {
-                const desc = typeof details.description === 'string'
+                rawDesc = typeof details.description === 'string'
                     ? details.description
-                    : details.description.value || '';
-                modalDescription.textContent = desc || 'Không có mô tả.';
+                    : (details.description.value || '');
+            }
+
+            if (rawDesc && rawDesc.trim()) {
+                modalOriginalDescription.textContent = rawDesc.trim();
+                modalDescription.textContent = 'Đang dịch mô tả sang tiếng Việt...';
+
+                // Automatically translate description to Vietnamese
+                const translatedVi = await translateText(rawDesc);
+                modalDescription.textContent = translatedVi || rawDesc;
+
+                // Show button to view original English description
+                if (translatedVi && translatedVi.trim().toLowerCase() !== rawDesc.trim().toLowerCase()) {
+                    btnToggleOrigDesc.style.display = 'inline-block';
+                    btnToggleOrigDesc.textContent = 'Xem bản gốc (English)';
+                } else {
+                    btnToggleOrigDesc.style.display = 'none';
+                }
             } else {
-                modalDescription.textContent = 'Không có mô tả.';
+                modalDescription.textContent = 'Không có mô tả cho tác phẩm này.';
+                btnToggleOrigDesc.style.display = 'none';
             }
 
             if (details.subjects && details.subjects.length > 0) {
@@ -426,7 +596,8 @@
                 ).join('');
             }
         } catch {
-            modalDescription.textContent = 'Không thể tải mô tả.';
+            modalDescription.textContent = 'Không thể tải mô tả tác phẩm.';
+            btnToggleOrigDesc.style.display = 'none';
             if (book.subjects && book.subjects.length > 0) {
                 modalSubjects.innerHTML = book.subjects.map(s =>
                     `<span class="subject-tag">${escapeHtml(s)}</span>`
@@ -434,6 +605,13 @@
             }
         }
     }
+
+    // Toggle original English description in modal
+    btnToggleOrigDesc.addEventListener('click', () => {
+        const isHidden = modalOriginalDescBox.style.display === 'none';
+        modalOriginalDescBox.style.display = isHidden ? 'block' : 'none';
+        btnToggleOrigDesc.textContent = isHidden ? 'Ẩn bản gốc (English)' : 'Xem bản gốc (English)';
+    });
 
     function closeBookModal() {
         bookModal.style.display = 'none';
@@ -584,12 +762,7 @@
             let books = [];
             if (cat.type === 'trending' || cat.type === 'trending-weekly') {
                 const period = cat.period || (cat.type === 'trending-weekly' ? 'weekly' : 'daily');
-                const url = `https://openlibrary.org/trending/${period}.json?limit=24&page=1`;
-                const resp = await fetch(url);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    books = (data.works || []).map(normalizeTrendingWork);
-                }
+                books = await fetchTrending(period, 1, 24);
                 categoryTotalCount.textContent = `${books.length}+ sách thịnh hành`;
             } else if (cat.type === 'subject') {
                 const url = `${OL_SUBJECTS}${encodeURIComponent(cat.subject.toLowerCase())}.json?limit=24&offset=0`;
@@ -601,6 +774,7 @@
                     categoryTotalCount.textContent = currentCategoryTotalCount > 0 
                         ? `${currentCategoryTotalCount.toLocaleString()} sách` 
                         : `${books.length} sách`;
+                    await batchTranslateBooks(books);
                 }
             }
 
@@ -635,12 +809,7 @@
             if (currentActiveCategory.type === 'trending' || currentActiveCategory.type === 'trending-weekly') {
                 currentCategoryPage++;
                 const period = currentActiveCategory.period || (currentActiveCategory.type === 'trending-weekly' ? 'weekly' : 'daily');
-                const url = `https://openlibrary.org/trending/${period}.json?limit=24&page=${currentCategoryPage}`;
-                const resp = await fetch(url);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    newBooks = (data.works || []).map(normalizeTrendingWork);
-                }
+                newBooks = await fetchTrending(period, currentCategoryPage, 24);
             } else if (currentActiveCategory.type === 'subject') {
                 currentCategoryOffset += 24;
                 const url = `${OL_SUBJECTS}${encodeURIComponent(currentActiveCategory.subject.toLowerCase())}.json?limit=24&offset=${currentCategoryOffset}`;
@@ -648,6 +817,7 @@
                 if (resp.ok) {
                     const data = await resp.json();
                     newBooks = (data.works || []).map(normalizeSubjectBook);
+                    await batchTranslateBooks(newBooks);
                 }
             }
 
