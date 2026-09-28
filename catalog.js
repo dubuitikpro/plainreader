@@ -308,6 +308,78 @@
         }, 1000);
     }
 
+    // Clean up raw Open Library description text
+    function cleanDescriptionText(desc) {
+        if (!desc || typeof desc !== 'string') return '';
+        return desc
+            // Replace markdown links [label](url) with just label
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Remove markdown formatting like ***, **, __, etc.
+            .replace(/[*_~`]{1,3}/g, '')
+            // Remove standard Open Library / Wikipedia citation blocks like "--------\nFrom Wikipedia..."
+            .replace(/----+[\s\S]*?(From Wikipedia|Source:)/gi, '')
+            .replace(/\r\n/g, '\n')
+            .trim();
+    }
+
+    // Helper to translate a single text chunk via POST or GET with fallbacks
+    async function requestTranslation(chunk) {
+        if (!chunk || !chunk.trim()) return chunk;
+        const q = chunk.trim();
+
+        // 1. Primary: Google Translate GTX via POST (bypasses URL length limits, reliable on iOS Safari WebKit)
+        try {
+            const resp = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                },
+                body: 'q=' + encodeURIComponent(q)
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data && data[0]) {
+                    const translated = data[0].map(x => x[0]).join('').trim();
+                    if (translated) return translated;
+                }
+            }
+        } catch (err) {
+            console.warn('POST translation error:', err);
+        }
+
+        // 2. Secondary: Google Translate GTX via GET (fallback for shorter chunks)
+        try {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(q.slice(0, 1500))}`;
+            const resp = await fetch(url);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data && data[0]) {
+                    const translated = data[0].map(x => x[0]).join('').trim();
+                    if (translated) return translated;
+                }
+            }
+        } catch (err) {
+            console.warn('GET translation error:', err);
+        }
+
+        // 3. Tertiary: MyMemory Translation API
+        try {
+            const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q.slice(0, 500))}&langpair=en|vi`;
+            const resp = await fetch(mmUrl);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data && data.responseData && data.responseData.translatedText) {
+                    const trans = data.responseData.translatedText.trim();
+                    if (trans && !trans.includes('MYMEMORY WARNING')) return trans;
+                }
+            }
+        } catch (err) {
+            console.warn('MyMemory translation error:', err);
+        }
+
+        return q;
+    }
+
     async function translateText(text) {
         if (!text || typeof text !== 'string') return text;
         const clean = text.trim();
@@ -315,23 +387,52 @@
         if (translationCache.has(clean)) {
             return translationCache.get(clean);
         }
-        try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(clean)}`;
-            const res = await fetch(url);
-            if (!res.ok) return clean;
-            const data = await res.json();
-            if (data && data[0]) {
-                const translated = data[0].map(x => x[0]).join('').trim();
-                if (translated) {
-                    translationCache.set(clean, translated);
-                    saveTranslationCache();
-                    return translated;
-                }
+
+        // If text is short (title or single paragraph < 2500 chars), translate directly
+        if (clean.length <= 2500) {
+            const result = await requestTranslation(clean);
+            if (result && result !== clean) {
+                translationCache.set(clean, result);
+                saveTranslationCache();
+                return result;
             }
-        } catch (err) {
-            console.warn('Translation failed:', err);
+            return result || clean;
         }
-        return clean;
+
+        // For long text (e.g. detailed book descriptions > 2500 chars), split by paragraphs
+        const paragraphs = clean.split(/\n\s*\n/).filter(p => p.trim());
+        const translatedParagraphs = [];
+
+        for (const p of paragraphs) {
+            if (p.length > 2500) {
+                // If single paragraph is still huge, split by sentences
+                const sentences = p.match(/[^.!?]+[.!?]+|\s*$/g) || [p];
+                let currentChunk = '';
+                const chunkResults = [];
+                for (const s of sentences) {
+                    if ((currentChunk + s).length > 2000) {
+                        chunkResults.push(await requestTranslation(currentChunk));
+                        currentChunk = s;
+                    } else {
+                        currentChunk += s;
+                    }
+                }
+                if (currentChunk.trim()) {
+                    chunkResults.push(await requestTranslation(currentChunk));
+                }
+                translatedParagraphs.push(chunkResults.join(' '));
+            } else {
+                translatedParagraphs.push(await requestTranslation(p));
+            }
+        }
+
+        const fullTranslated = translatedParagraphs.join('\n\n');
+        if (fullTranslated && fullTranslated !== clean) {
+            translationCache.set(clean, fullTranslated);
+            saveTranslationCache();
+            return fullTranslated;
+        }
+        return fullTranslated || clean;
     }
 
     async function batchTranslateBooks(books) {
@@ -676,15 +777,17 @@
             }
 
             if (rawDesc && rawDesc.trim()) {
-                modalOriginalDescription.textContent = rawDesc.trim();
+                const cleanedDesc = cleanDescriptionText(rawDesc);
+                const descToUse = cleanedDesc || rawDesc.trim();
+                modalOriginalDescription.textContent = descToUse;
                 modalDescription.textContent = 'Đang dịch mô tả sang tiếng Việt...';
 
                 // Automatically translate description to Vietnamese
-                const translatedVi = await translateText(rawDesc);
-                modalDescription.textContent = translatedVi || rawDesc;
+                const translatedVi = await translateText(descToUse);
+                modalDescription.textContent = translatedVi || descToUse;
 
                 // Show button to view original English description
-                if (translatedVi && translatedVi.trim().toLowerCase() !== rawDesc.trim().toLowerCase()) {
+                if (translatedVi && translatedVi.trim().toLowerCase() !== descToUse.toLowerCase()) {
                     btnToggleOrigDesc.style.display = 'inline-block';
                     btnToggleOrigDesc.textContent = 'Xem bản gốc (English)';
                 } else {
