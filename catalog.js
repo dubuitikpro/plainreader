@@ -65,6 +65,23 @@
     const wishlistEmpty = document.getElementById('wishlistEmpty');
     const favoritesEmpty = document.getElementById('favoritesEmpty');
 
+    // Category Detail View Elements
+    const categoryDetailSection = document.getElementById('categoryDetailSection');
+    const btnBackFromCategory = document.getElementById('btnBackFromCategory');
+    const categoryBannerIcon = document.getElementById('categoryBannerIcon');
+    const categoryBannerTitle = document.getElementById('categoryBannerTitle');
+    const categoryBannerDesc = document.getElementById('categoryBannerDesc');
+    const categoryTotalCount = document.getElementById('categoryTotalCount');
+    const categoryBooksGrid = document.getElementById('categoryBooksGrid');
+    const categoryLoadMoreContainer = document.getElementById('categoryLoadMoreContainer');
+    const btnCategoryLoadMore = document.getElementById('btnCategoryLoadMore');
+
+    let currentActiveCategory = null;
+    let currentCategoryPage = 1;
+    let currentCategoryOffset = 0;
+    let currentCategoryTotalCount = 0;
+    let isCategoryLoading = false;
+
     // Modal
     const bookModal = document.getElementById('bookModal');
     const btnCloseModal = document.getElementById('btnCloseModal');
@@ -218,28 +235,32 @@
         };
     }
 
-    async function fetchTrending(period = 'daily', page = 1) {
+    function normalizeTrendingWork(w) {
+        return {
+            key: w.key || '',
+            title: w.title || 'Không có tiêu đề',
+            author: w.author_name ? w.author_name.join(', ') : (w.author_key ? w.author_key.join(', ') : 'Không rõ tác giả'),
+            coverId: w.cover_i || null,
+            coverEditionKey: w.cover_edition_key || null,
+            year: w.first_publish_year || null,
+            subjects: (w.subject || []).slice(0, 5),
+            language: null,
+            editionCount: w.edition_count || 0,
+            pages: null,
+        };
+    }
+
+    async function fetchTrending(period = 'daily', page = 1, limit = 12) {
         const url = period === 'weekly'
-            ? `https://openlibrary.org/trending/weekly.json?limit=12&page=${page}`
-            : `${OL_TRENDING}?limit=12&page=${page}`;
+            ? `https://openlibrary.org/trending/weekly.json?limit=${limit}&page=${page}`
+            : `${OL_TRENDING}?limit=${limit}&page=${page}`;
         try {
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('Trending failed');
             const data = await resp.json();
-            return (data.works || []).map(w => ({
-                key: w.key || '',
-                title: w.title || 'Không có tiêu đề',
-                author: w.author_name ? w.author_name.join(', ') : (w.author_key ? w.author_key.join(', ') : 'Không rõ tác giả'),
-                coverId: w.cover_i || null,
-                coverEditionKey: w.cover_edition_key || null,
-                year: w.first_publish_year || null,
-                subjects: (w.subject || []).slice(0, 5),
-                language: null,
-                editionCount: w.edition_count || 0,
-                pages: null,
-            }));
+            return (data.works || []).map(normalizeTrendingWork);
         } catch {
-            return fetchSubjectBooks(period === 'weekly' ? 'classics' : 'fiction', 12, (page - 1) * 12);
+            return fetchSubjectBooks(period === 'weekly' ? 'classics' : 'fiction', limit, (page - 1) * limit);
         }
     }
 
@@ -467,6 +488,7 @@
             searchResultsGrid.innerHTML = '';
             searchResultsSection.style.display = 'block';
             catalogSectionsContainer.style.display = 'none';
+            if (categoryDetailSection) categoryDetailSection.style.display = 'none';
             recommendationsSection.style.display = 'none';
             loadMoreContainer.style.display = 'none';
         }
@@ -513,25 +535,14 @@
         performSearch(currentQuery, currentPage + 1);
     });
 
-    // Quick tags jump & filter to category section
+    // Quick tags: open the full category page directly
     quickTags.addEventListener('click', (e) => {
         const tag = e.target.closest('.quick-tag');
         if (!tag) return;
         const catId = tag.dataset.cat;
         if (!catId) return;
 
-        switchTab('explore');
-        showExploreDefault();
-
-        const sec = document.getElementById(`section-${catId}`);
-        if (sec) {
-            const cat = CATALOG_CATEGORIES.find(c => c.id === catId);
-            if (cat) loadSectionBooks(cat);
-            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            sec.classList.remove('section-highlight');
-            void sec.offsetWidth;
-            sec.classList.add('section-highlight');
-        }
+        openCategoryPage(catId);
     });
 
     btnBackToExplore.addEventListener('click', () => {
@@ -540,70 +551,154 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    catalogSectionsContainer.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.btn-load-more-section');
-        if (!btn || btn.disabled) return;
-        const catId = btn.dataset.cat;
+    // =========================================
+    // Category Detail View (Full Page Browser)
+    // =========================================
+    async function openCategoryPage(catId) {
         const cat = CATALOG_CATEGORIES.find(c => c.id === catId);
-        if (!cat || cat.isLoadingMore) return;
+        if (!cat) return;
 
-        cat.isLoadingMore = true;
-        btn.disabled = true;
-        const originalContent = btn.innerHTML;
-        btn.classList.add('loading');
-        btn.innerHTML = `
-            <span class="mini-spinner"></span>
-            <span>Đang tải thêm...</span>
-        `;
+        currentActiveCategory = cat;
+        currentCategoryPage = 1;
+        currentCategoryOffset = 0;
+        currentCategoryTotalCount = 0;
 
-        const grid = document.getElementById(`grid-${cat.id}`);
-        const tempSkeletons = [];
-        if (grid) {
-            for (let i = 0; i < 4; i++) {
-                const skel = createSkeletonCard();
-                skel.style.minWidth = '160px';
-                skel.style.maxWidth = '160px';
-                grid.appendChild(skel);
-                tempSkeletons.push(skel);
+        switchTab('explore');
+        catalogSectionsContainer.style.display = 'none';
+        recommendationsSection.style.display = 'none';
+        searchResultsSection.style.display = 'none';
+        categoryDetailSection.style.display = 'block';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        categoryBannerIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${cat.icon}</svg>`;
+        categoryBannerTitle.textContent = cat.title;
+        categoryBannerDesc.textContent = cat.subtitle;
+        categoryTotalCount.textContent = 'Đang tải...';
+
+        showSkeletons(categoryBooksGrid, 18, false);
+        categoryLoadMoreContainer.style.display = 'none';
+
+        isCategoryLoading = true;
+        try {
+            let books = [];
+            if (cat.type === 'trending' || cat.type === 'trending-weekly') {
+                const period = cat.period || (cat.type === 'trending-weekly' ? 'weekly' : 'daily');
+                const url = `https://openlibrary.org/trending/${period}.json?limit=24&page=1`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    books = (data.works || []).map(normalizeTrendingWork);
+                }
+                categoryTotalCount.textContent = `${books.length}+ sách thịnh hành`;
+            } else if (cat.type === 'subject') {
+                const url = `${OL_SUBJECTS}${encodeURIComponent(cat.subject.toLowerCase())}.json?limit=24&offset=0`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    books = (data.works || []).map(normalizeSubjectBook);
+                    currentCategoryTotalCount = data.work_count || 0;
+                    categoryTotalCount.textContent = currentCategoryTotalCount > 0 
+                        ? `${currentCategoryTotalCount.toLocaleString()} sách` 
+                        : `${books.length} sách`;
+                }
             }
-            grid.scrollBy({ left: 320, behavior: 'smooth' });
+
+            categoryBooksGrid.innerHTML = '';
+            if (!books || books.length === 0) {
+                categoryBooksGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><p>Chưa tìm thấy sách trong danh mục này.</p></div>';
+                categoryLoadMoreContainer.style.display = 'none';
+            } else {
+                books.forEach(b => categoryBooksGrid.appendChild(createBookCard(b)));
+                categoryLoadMoreContainer.style.display = 'flex';
+                btnCategoryLoadMore.disabled = false;
+                btnCategoryLoadMore.innerHTML = '<span class="btn-text">Tải thêm sách</span>';
+            }
+        } catch (err) {
+            console.error('Error opening category page:', err);
+            categoryBooksGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><p>Lỗi tải sách danh mục. Vui lòng thử lại sau.</p></div>';
+            categoryLoadMoreContainer.style.display = 'none';
+        } finally {
+            isCategoryLoading = false;
         }
+    }
+
+    async function loadMoreCategoryBooks() {
+        if (!currentActiveCategory || isCategoryLoading) return;
+
+        isCategoryLoading = true;
+        btnCategoryLoadMore.disabled = true;
+        btnCategoryLoadMore.innerHTML = '<span class="mini-spinner"></span> <span>Đang tải thêm...</span>';
 
         try {
             let newBooks = [];
-            if (cat.type === 'trending' || cat.type === 'trending-weekly') {
-                cat.page = (cat.page || 1) + 1;
-                newBooks = await fetchTrending(cat.period, cat.page);
-            } else if (cat.type === 'subject') {
-                cat.offset = (cat.offset || 0) + 12;
-                newBooks = await fetchSubjectBooks(cat.subject, 12, cat.offset);
+            if (currentActiveCategory.type === 'trending' || currentActiveCategory.type === 'trending-weekly') {
+                currentCategoryPage++;
+                const period = currentActiveCategory.period || (currentActiveCategory.type === 'trending-weekly' ? 'weekly' : 'daily');
+                const url = `https://openlibrary.org/trending/${period}.json?limit=24&page=${currentCategoryPage}`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    newBooks = (data.works || []).map(normalizeTrendingWork);
+                }
+            } else if (currentActiveCategory.type === 'subject') {
+                currentCategoryOffset += 24;
+                const url = `${OL_SUBJECTS}${encodeURIComponent(currentActiveCategory.subject.toLowerCase())}.json?limit=24&offset=${currentCategoryOffset}`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    newBooks = (data.works || []).map(normalizeSubjectBook);
+                }
             }
 
-            tempSkeletons.forEach(s => s.remove());
-
-            const cached = categoryCache.get(cat.id) || [];
-            const existingKeys = new Set(cached.map(b => b.key));
-            const uniqueNew = (newBooks || []).filter(b => b.key && !existingKeys.has(b.key));
-
-            if (uniqueNew.length > 0 && grid) {
-                uniqueNew.forEach(b => grid.appendChild(createBookCard(b)));
-                categoryCache.set(cat.id, [...cached, ...uniqueNew]);
-                btn.innerHTML = `<span>Xem thêm +</span>`;
-                btn.disabled = false;
+            if (newBooks && newBooks.length > 0) {
+                newBooks.forEach(b => categoryBooksGrid.appendChild(createBookCard(b)));
+                btnCategoryLoadMore.disabled = false;
+                btnCategoryLoadMore.innerHTML = '<span class="btn-text">Tải thêm sách</span>';
+                
+                const totalRendered = categoryBooksGrid.querySelectorAll('.book-card').length;
+                if (currentCategoryTotalCount > 0) {
+                    categoryTotalCount.textContent = `Đã hiển thị ${totalRendered} / ${currentCategoryTotalCount.toLocaleString()} sách`;
+                } else {
+                    categoryTotalCount.textContent = `Đã hiển thị ${totalRendered} sách`;
+                }
             } else {
-                btn.innerHTML = `<span>Đã tải hết</span>`;
-                btn.style.opacity = '0.5';
-                btn.disabled = true;
+                btnCategoryLoadMore.disabled = true;
+                btnCategoryLoadMore.innerHTML = '<span class="btn-text">Đã hiển thị tất cả sách</span>';
             }
         } catch (err) {
-            console.error('Error loading more books:', err);
-            tempSkeletons.forEach(s => s.remove());
-            btn.innerHTML = originalContent;
-            btn.disabled = false;
+            console.error('Error loading more category books:', err);
             showToast('Không thể tải thêm sách, vui lòng thử lại.');
+            btnCategoryLoadMore.disabled = false;
+            btnCategoryLoadMore.innerHTML = '<span class="btn-text">Thử tải lại</span>';
         } finally {
-            cat.isLoadingMore = false;
-            btn.classList.remove('loading');
+            isCategoryLoading = false;
+        }
+    }
+
+    btnBackFromCategory.addEventListener('click', () => {
+        categoryDetailSection.style.display = 'none';
+        catalogSectionsContainer.style.display = 'block';
+        if (favorites.length > 0) recommendationsSection.style.display = 'block';
+
+        if (currentActiveCategory) {
+            const sec = document.getElementById(`section-${currentActiveCategory.id}`);
+            if (sec) {
+                sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    });
+
+    btnCategoryLoadMore.addEventListener('click', loadMoreCategoryBooks);
+
+    catalogSectionsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-open-category');
+        const title = e.target.closest('.section-title[data-cat]');
+        const target = btn || title;
+        if (!target) return;
+        const catId = target.dataset.cat;
+        if (catId) {
+            openCategoryPage(catId);
         }
     });
 
@@ -883,7 +978,7 @@
             section.innerHTML = `
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title">
+                        <h3 class="section-title" style="cursor:pointer;" data-cat="${cat.id}" title="Khám phá toàn bộ sách trong mục ${cat.title}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                                 ${cat.icon}
                             </svg>
@@ -891,8 +986,8 @@
                         </h3>
                         <p class="section-subtitle">${cat.subtitle}</p>
                     </div>
-                    <button class="btn-load-more-section" data-cat="${cat.id}" title="Tải thêm sách từ Open Library">
-                        <span>Xem thêm +</span>
+                    <button class="btn-open-category" data-cat="${cat.id}" title="Khám phá toàn bộ sách trong mục ${cat.title}">
+                        <span>Xem tất cả ↗</span>
                     </button>
                 </div>
                 <div class="books-scroll" id="grid-${cat.id}">
@@ -1011,6 +1106,7 @@
     // =========================================
     function showExploreDefault() {
         searchResultsSection.style.display = 'none';
+        if (categoryDetailSection) categoryDetailSection.style.display = 'none';
         catalogSectionsContainer.style.display = 'block';
         if (favorites.length > 0) recommendationsSection.style.display = 'block';
     }

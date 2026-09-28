@@ -142,6 +142,44 @@
                 <!-- 18 Catalog sections dynamically injected here -->
             </div>
 
+            <!-- Dedicated Category Detail View (Full Page Category Browser) -->
+            <section class="section category-detail-view" id="categoryDetailSection" style="display:none;">
+                <button class="btn-back-explore" id="btnBackFromCategory">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Quay lại trang khám phá</span>
+                </button>
+
+                <div class="category-banner">
+                    <div class="category-banner-info">
+                        <div class="category-badge-chip" id="categoryBadgeChip">
+                            <span class="category-badge-icon" id="categoryBannerIcon"></span>
+                            <span class="category-badge-text" id="categoryBadgeText">Chuyên mục</span>
+                        </div>
+                        <h2 class="category-banner-title" id="categoryBannerTitle">Tên chuyên mục</h2>
+                        <p class="category-banner-desc" id="categoryBannerDesc">Mô tả chuyên mục</p>
+                    </div>
+                    <div class="category-banner-stats">
+                        <div class="cat-stat-card">
+                            <span class="cat-stat-num" id="categoryTotalCount">—</span>
+                            <span class="cat-stat-label">Sách trên thư viện</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="books-grid" id="categoryBooksGrid">
+                    <!-- Category book cards dynamically loaded here in full multi-column grid -->
+                </div>
+
+                <div class="load-more-container" id="categoryLoadMoreContainer" style="display:none;">
+                    <button id="btnCategoryLoadMore" class="btn-load-more">
+                        <span class="btn-text">Tải thêm sách</span>
+                    </button>
+                </div>
+            </section>
+
             <!-- Search Results -->
             <section class="section" id="searchResultsSection" style="display:none;">
                 <button class="btn-back-explore" id="btnBackToExplore">
@@ -265,6 +303,6 @@
         <p>PlainReader — Dữ liệu sách từ <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a></p>
     </footer>
 
-    <script src="catalog.js?v=3.1"></script>
+    <script src="catalog.js?v=3.2"></script>
 </body>
 </html>
