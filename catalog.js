@@ -218,10 +218,10 @@
         };
     }
 
-    async function fetchTrending(period = 'daily') {
+    async function fetchTrending(period = 'daily', page = 1) {
         const url = period === 'weekly'
-            ? 'https://openlibrary.org/trending/weekly.json?limit=14'
-            : `${OL_TRENDING}?limit=14`;
+            ? `https://openlibrary.org/trending/weekly.json?limit=12&page=${page}`
+            : `${OL_TRENDING}?limit=12&page=${page}`;
         try {
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('Trending failed');
@@ -239,12 +239,12 @@
                 pages: null,
             }));
         } catch {
-            return fetchSubjectBooks(period === 'weekly' ? 'classics' : 'fiction', 12);
+            return fetchSubjectBooks(period === 'weekly' ? 'classics' : 'fiction', 12, (page - 1) * 12);
         }
     }
 
-    async function fetchSubjectBooks(subject, limit = 12) {
-        const url = `${OL_SUBJECTS}${encodeURIComponent(subject.toLowerCase())}.json?limit=${limit}`;
+    async function fetchSubjectBooks(subject, limit = 12, offset = 0) {
+        const url = `${OL_SUBJECTS}${encodeURIComponent(subject.toLowerCase())}.json?limit=${limit}&offset=${offset}`;
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Subject fetch failed');
         const data = await resp.json();
@@ -540,16 +540,71 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    catalogSectionsContainer.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-view-all');
-        if (!btn) return;
+    catalogSectionsContainer.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-load-more-section');
+        if (!btn || btn.disabled) return;
         const catId = btn.dataset.cat;
         const cat = CATALOG_CATEGORIES.find(c => c.id === catId);
-        if (!cat) return;
+        if (!cat || cat.isLoadingMore) return;
 
-        const query = cat.subject || cat.title;
-        searchInput.value = query;
-        performSearch(query);
+        cat.isLoadingMore = true;
+        btn.disabled = true;
+        const originalContent = btn.innerHTML;
+        btn.classList.add('loading');
+        btn.innerHTML = `
+            <span class="mini-spinner"></span>
+            <span>Đang tải thêm...</span>
+        `;
+
+        const grid = document.getElementById(`grid-${cat.id}`);
+        const tempSkeletons = [];
+        if (grid) {
+            for (let i = 0; i < 4; i++) {
+                const skel = createSkeletonCard();
+                skel.style.minWidth = '160px';
+                skel.style.maxWidth = '160px';
+                grid.appendChild(skel);
+                tempSkeletons.push(skel);
+            }
+            grid.scrollBy({ left: 320, behavior: 'smooth' });
+        }
+
+        try {
+            let newBooks = [];
+            if (cat.type === 'trending' || cat.type === 'trending-weekly') {
+                cat.page = (cat.page || 1) + 1;
+                newBooks = await fetchTrending(cat.period, cat.page);
+            } else if (cat.type === 'subject') {
+                cat.offset = (cat.offset || 0) + 12;
+                newBooks = await fetchSubjectBooks(cat.subject, 12, cat.offset);
+            }
+
+            tempSkeletons.forEach(s => s.remove());
+
+            const cached = categoryCache.get(cat.id) || [];
+            const existingKeys = new Set(cached.map(b => b.key));
+            const uniqueNew = (newBooks || []).filter(b => b.key && !existingKeys.has(b.key));
+
+            if (uniqueNew.length > 0 && grid) {
+                uniqueNew.forEach(b => grid.appendChild(createBookCard(b)));
+                categoryCache.set(cat.id, [...cached, ...uniqueNew]);
+                btn.innerHTML = `<span>Xem thêm +</span>`;
+                btn.disabled = false;
+            } else {
+                btn.innerHTML = `<span>Đã tải hết</span>`;
+                btn.style.opacity = '0.5';
+                btn.disabled = true;
+            }
+        } catch (err) {
+            console.error('Error loading more books:', err);
+            tempSkeletons.forEach(s => s.remove());
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            showToast('Không thể tải thêm sách, vui lòng thử lại.');
+        } finally {
+            cat.isLoadingMore = false;
+            btn.classList.remove('loading');
+        }
     });
 
     // =========================================
@@ -836,11 +891,8 @@
                         </h3>
                         <p class="section-subtitle">${cat.subtitle}</p>
                     </div>
-                    <button class="btn-view-all" data-cat="${cat.id}" title="Xem tất cả sách thuộc chủ đề này">
-                        <span>Xem tất cả</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                    <button class="btn-load-more-section" data-cat="${cat.id}" title="Tải thêm sách từ Open Library">
+                        <span>Xem thêm +</span>
                     </button>
                 </div>
                 <div class="books-scroll" id="grid-${cat.id}">
