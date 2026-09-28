@@ -1,16 +1,38 @@
 /**
  * PlainReader — Book Catalog & Recommendations
- * Chỉ lưu trữ & hiển thị: Thumbnail, Tên sách, Tác giả, Mô tả, Năm phát hành (nếu có)
+ * Nguồn dữ liệu:
+ * 1. Kho sách tiếng Việt tuyển chọn (tải tức thì 0ms)
+ * 2. Tự động kết nối Open Library API theo thời gian thực (tìm kiếm mọi cuốn sách)
+ * 
+ * Thông tin hiển thị tuân thủ nghiêm ngặt 5 mục:
+ * 1. Thumbnail (ảnh bìa)
+ * 2. Tên cuốn sách (title)
+ * 3. Tác giả (author)
+ * 4. Năm phát hành nếu có (year)
+ * 5. Mô tả cuốn sách (description)
  */
 (function () {
     'use strict';
 
     // =========================================
-    // Storage Keys
+    // Storage Keys & API URLs
     // =========================================
     const STORAGE_WISHLIST = 'plainreader-wishlist';
     const STORAGE_FAVORITES = 'plainreader-favorites';
     const STORAGE_THEME = 'plainreader-theme';
+
+    const OL_SEARCH_URL = 'https://openlibrary.org/search.json';
+    const OL_WORKS_URL = 'https://openlibrary.org';
+
+    const GRADIENTS = [
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        'linear-gradient(135deg, #2b5876 0%, #4e4376 100%)',
+        'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+        'linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%)',
+        'linear-gradient(135deg, #f857a6 0%, #ff5858 100%)',
+        'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
+        'linear-gradient(135deg, #3a6073 0%, #3a7bd5 100%)'
+    ];
 
     // =========================================
     // State
@@ -20,6 +42,7 @@
     let currentQuery = '';
     let currentModalBook = null;
     let localBooks = [];
+    let searchAbortController = null;
 
     // =========================================
     // DOM Elements
@@ -90,6 +113,15 @@
             .trim();
     }
 
+    function getRandomGradient(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % GRADIENTS.length;
+        return GRADIENTS[index];
+    }
+
     function loadFromStorage(key) {
         try { return JSON.parse(localStorage.getItem(key)) || []; }
         catch { return []; }
@@ -117,7 +149,6 @@
 
     // =========================================
     // Book Normalizer
-    // Chỉ giữ: thumbnail (coverUrl), title, author, year (nếu có), description
     // =========================================
     function normalizeBook(raw) {
         const key = raw.id || 'book-' + Math.random().toString(36).slice(2);
@@ -129,7 +160,7 @@
             year: raw.year ? String(raw.year) : '',
             description: raw.description || '',
             coverUrl: raw.cover || null,
-            gradient: raw.gradient || 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+            gradient: raw.gradient || getRandomGradient(raw.title || 'book'),
             category: raw.category || '',
             isTrending: !!raw.isTrending,
         };
@@ -144,8 +175,44 @@
     }
 
     // =========================================
+    // Open Library Live Search
+    // =========================================
+    async function searchOpenLibrary(query, signal) {
+        try {
+            const url = `${OL_SEARCH_URL}?q=${encodeURIComponent(query)}&limit=15`;
+            const resp = await fetch(url, { signal });
+            if (!resp.ok) return [];
+            const data = await resp.json();
+            return (data.docs || []).map(doc => {
+                const title = doc.title || 'Chưa đặt tên';
+                const author = doc.author_name ? doc.author_name.join(', ') : 'Tác giả';
+                const year = doc.first_publish_year ? String(doc.first_publish_year) : '';
+                const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null;
+                const workKey = doc.key || '';
+
+                return {
+                    id: 'ol-' + (workKey.replace(/\//g, '-') || Math.random().toString(36).slice(2)),
+                    key: 'ol-' + (workKey.replace(/\//g, '-') || Math.random().toString(36).slice(2)),
+                    workKey: workKey,
+                    title: title,
+                    author: author,
+                    year: year,
+                    description: '', // Loaded on demand in modal
+                    coverUrl: coverUrl,
+                    gradient: getRandomGradient(title),
+                    isFromOpenLibrary: true,
+                };
+            });
+        } catch (err) {
+            if (err.name === 'AbortError') return [];
+            console.warn('Open Library search error:', err);
+            return [];
+        }
+    }
+
+    // =========================================
     // Rendering: Book Card
-    // Hiển thị: Thumbnail, Tên sách, Tác giả, Năm phát hành (nếu có)
+    // Hiển thị đúng 5 mục: Thumbnail, Tên sách, Tác giả, Năm phát hành (nếu có)
     // =========================================
     function createBookCard(book) {
         const card = document.createElement('div');
@@ -241,7 +308,6 @@
 
     // =========================================
     // Book Detail Modal
-    // Hiển thị: Thumbnail, Tên sách, Tác giả, Năm phát hành (nếu có), Mô tả
     // =========================================
     function openBookModal(book) {
         currentModalBook = book;
@@ -260,7 +326,37 @@
         modalYear.textContent = book.year ? `Năm phát hành: ${book.year}` : '';
 
         // Mô tả cuốn sách
-        modalDescription.textContent = book.description || 'Không có mô tả chi tiết.';
+        if (book.description) {
+            modalDescription.textContent = book.description;
+        } else if (book.workKey) {
+            modalDescription.textContent = 'Đang tải tóm tắt từ Open Library...';
+            fetch(`${OL_WORKS_URL}${book.workKey}.json`)
+                .then(r => r.json())
+                .then(data => {
+                    let desc = '';
+                    if (typeof data.description === 'string') {
+                        desc = data.description.trim();
+                    } else if (data.description && data.description.value) {
+                        desc = data.description.value.trim();
+                    }
+                    if (!desc) {
+                        desc = `Tác phẩm của tác giả ${book.author}${book.year ? ', xuất bản năm ' + book.year : ''}. Hiện chưa có bản tóm tắt nội dung chi tiết trên Open Library.`;
+                    }
+                    book.description = desc;
+                    if (currentModalBook && currentModalBook.key === book.key) {
+                        modalDescription.textContent = desc;
+                    }
+                })
+                .catch(() => {
+                    const fallback = `Tác phẩm của tác giả ${book.author}${book.year ? ', xuất bản năm ' + book.year : ''}.`;
+                    book.description = fallback;
+                    if (currentModalBook && currentModalBook.key === book.key) {
+                        modalDescription.textContent = fallback;
+                    }
+                });
+        } else {
+            modalDescription.textContent = 'Không có mô tả chi tiết.';
+        }
 
         updateModalActions();
         bookModal.style.display = 'flex';
@@ -363,13 +459,13 @@
         }
 
         recommendationsSection.style.display = 'block';
-        recBooks.slice(0, 12).forEach(b => recommendationsGrid.appendChild(createBookCard(b)));
+        recBooks.slice(0, 12).forEach(b => recommendationsGrid.appendChild(createBookCard(book)));
     }
 
     // =========================================
-    // Search
+    // Search: Kết hợp kho tiếng Việt + Live Open Library API
     // =========================================
-    function performSearch(query) {
+    async function performSearch(query) {
         const cleanQuery = query.trim();
         if (!cleanQuery) return;
 
@@ -377,20 +473,16 @@
         const normalizedQuery = removeVietnameseAccents(cleanQuery);
         const queryTerms = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
 
+        // Hủy yêu cầu Open Library cũ nếu người dùng gõ từ khóa mới
+        if (searchAbortController) {
+            searchAbortController.abort();
+        }
+        searchAbortController = new AbortController();
+
         searchResultsGrid.innerHTML = '';
         searchResultsSection.style.display = 'block';
         trendingSection.style.display = 'none';
         recommendationsSection.style.display = 'none';
-
-        const matched = localBooks.filter(book => {
-            if (cleanQuery.toLowerCase() === 'bestseller') return book.isTrending;
-
-            const searchString = removeVietnameseAccents(
-                `${book.title} ${book.author} ${book.category} ${book.year} ${book.description}`
-            );
-
-            return queryTerms.every(term => searchString.includes(term));
-        });
 
         searchResultsTitle.innerHTML = `
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
@@ -399,19 +491,51 @@
             </svg>
             Kết quả cho "${escapeHtml(cleanQuery)}"
         `;
-        resultCount.textContent = `${matched.length} sách`;
 
-        if (matched.length === 0) {
-            searchResultsGrid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                    <p style="font-size: 1rem;">Không tìm thấy cuốn sách nào phù hợp.</p>
-                </div>
-            `;
-        } else {
-            matched.forEach(book => searchResultsGrid.appendChild(createBookCard(book)));
-        }
+        // 1. Tìm kiếm tức thì trong kho tuyển chọn (0ms)
+        const matched = localBooks.filter(book => {
+            if (cleanQuery.toLowerCase() === 'bestseller') return book.isTrending;
+            const searchString = removeVietnameseAccents(
+                `${book.title} ${book.author} ${book.category} ${book.year} ${book.description}`
+            );
+            return queryTerms.every(term => searchString.includes(term));
+        });
+
+        matched.forEach(book => searchResultsGrid.appendChild(createBookCard(book)));
+        resultCount.textContent = `${matched.length} sách (đang kết nối Open Library...)`;
 
         searchResultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // 2. Tự động gọi Open Library API trực tiếp để lấy thêm sách theo thời gian thực
+        try {
+            const olBooks = await searchOpenLibrary(cleanQuery, searchAbortController.signal);
+
+            // Lọc trùng lặp tiêu đề với sách đã hiển thị
+            const seenTitles = new Set(matched.map(b => removeVietnameseAccents(b.title)));
+            let addedCount = 0;
+
+            olBooks.forEach(b => {
+                const normTitle = removeVietnameseAccents(b.title);
+                if (!seenTitles.has(normTitle)) {
+                    seenTitles.add(normTitle);
+                    searchResultsGrid.appendChild(createBookCard(b));
+                    addedCount++;
+                }
+            });
+
+            const totalCount = matched.length + addedCount;
+            resultCount.textContent = `${totalCount} sách`;
+
+            if (totalCount === 0) {
+                searchResultsGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                        <p style="font-size: 1rem;">Không tìm thấy cuốn sách nào phù hợp trên hệ thống và Open Library.</p>
+                    </div>
+                `;
+            }
+        } catch {
+            resultCount.textContent = `${matched.length} sách`;
+        }
     }
 
     // =========================================
