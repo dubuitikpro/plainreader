@@ -303,6 +303,41 @@ a { color: inherit; text-decoration: none; }
     box-shadow: 0 0 20px var(--accent-glow);
 }
 
+/* Search Filters */
+.search-filters {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    margin-bottom: 4px;
+}
+
+.lang-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.lang-toggle:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.lang-toggle.active {
+    background: linear-gradient(135deg, rgba(218, 55, 46, 0.12), rgba(255, 205, 0, 0.12));
+    border-color: rgba(218, 55, 46, 0.3);
+    color: var(--text-primary);
+}
+
 /* Quick Tags */
 .quick-tags {
     display: flex;

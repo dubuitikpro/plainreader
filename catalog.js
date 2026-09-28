@@ -1,7 +1,7 @@
 /**
  * PlainReader — Book Catalog
- * Uses Open Library API (free, no API key required)
- * https://openlibrary.org/developers/api
+ * Primary: Google Books API (free, no key required, supports Vietnamese)
+ * Fallback: Open Library API
  */
 (function () {
     'use strict';
@@ -9,18 +9,27 @@
     // =========================================
     // Constants
     // =========================================
-    const OL_SEARCH = 'https://openlibrary.org/search.json';
-    const OL_WORKS = 'https://openlibrary.org/works/';
+    const GB_SEARCH = 'https://www.googleapis.com/books/v1/volumes';
     const OL_SUBJECTS = 'https://openlibrary.org/subjects/';
-    const OL_TRENDING = 'https://openlibrary.org/trending/daily.json';
-    const OL_COVER = 'https://covers.openlibrary.org/b/id/';
-    const OL_COVER_OLID = 'https://covers.openlibrary.org/b/olid/';
     const OL_BASE = 'https://openlibrary.org';
 
     const STORAGE_WISHLIST = 'plainreader-wishlist';
     const STORAGE_FAVORITES = 'plainreader-favorites';
     const STORAGE_THEME = 'plainreader-theme';
+    const STORAGE_LANG = 'plainreader-lang';
     const PAGE_SIZE = 20;
+
+    // Vietnamese popular search seeds for "trending"
+    const VI_TRENDING_QUERIES = [
+        'tiểu thuyết việt nam',
+        'sách văn học việt nam',
+        'truyện ngắn việt nam',
+        'sách lịch sử việt nam',
+        'sách tâm lý học',
+        'sách kỹ năng sống',
+        'truyện cổ tích việt nam',
+        'sách triết học',
+    ];
 
     // =========================================
     // State
@@ -28,10 +37,11 @@
     let wishlist = loadFromStorage(STORAGE_WISHLIST);
     let favorites = loadFromStorage(STORAGE_FAVORITES);
     let currentQuery = '';
-    let currentPage = 1;
+    let currentPage = 0; // Google Books uses startIndex
     let totalResults = 0;
     let currentModalBook = null;
     let isLoading = false;
+    let currentLang = localStorage.getItem(STORAGE_LANG) || 'vi'; // default Vietnamese
 
     // =========================================
     // DOM Elements
@@ -39,10 +49,9 @@
     const searchInput = document.getElementById('searchInput');
     const btnSearch = document.getElementById('btnSearch');
     const quickTags = document.getElementById('quickTags');
+    const langToggle = document.getElementById('langToggle');
+    const langLabel = document.getElementById('langLabel');
     const tabs = document.getElementById('tabs');
-    const tabExplore = document.getElementById('tabExplore');
-    const tabWishlist = document.getElementById('tabWishlist');
-    const tabFavorites = document.getElementById('tabFavorites');
     const contentExplore = document.getElementById('contentExplore');
     const contentWishlist = document.getElementById('contentWishlist');
     const contentFavorites = document.getElementById('contentFavorites');
@@ -94,6 +103,35 @@
     })();
 
     // =========================================
+    // Language Toggle
+    // =========================================
+    function updateLangUI() {
+        if (currentLang === 'vi') {
+            langToggle.classList.add('active');
+            langLabel.textContent = '🇻🇳 Tiếng Việt';
+        } else {
+            langToggle.classList.remove('active');
+            langLabel.textContent = '🌐 Tất cả ngôn ngữ';
+        }
+    }
+
+    langToggle.addEventListener('click', () => {
+        currentLang = currentLang === 'vi' ? 'all' : 'vi';
+        localStorage.setItem(STORAGE_LANG, currentLang);
+        updateLangUI();
+        // Reload trending with new language
+        loadTrending();
+        // Re-search if there's a current query
+        if (currentQuery) {
+            currentPage = 0;
+            searchResultsGrid.innerHTML = '';
+            performSearch(currentQuery, 0);
+        }
+    });
+
+    updateLangUI();
+
+    // =========================================
     // Storage Helpers
     // =========================================
     function loadFromStorage(key) {
@@ -119,10 +157,10 @@
     function toggleWishlist(book) {
         if (isInWishlist(book.key)) {
             wishlist = wishlist.filter(b => b.key !== book.key);
-            showToast('Đã xóa khỏi danh sách muốn đọc');
+            showToast('Đã xóa khỏi danh sách Muốn đọc');
         } else {
             wishlist.push(book);
-            showToast('Đã thêm vào danh sách muốn đọc');
+            showToast('Đã thêm vào danh sách Muốn đọc');
         }
         saveToStorage(STORAGE_WISHLIST, wishlist);
         updateCounts();
@@ -132,14 +170,13 @@
         const wasInFavorites = isInFavorites(book.key);
         if (wasInFavorites) {
             favorites = favorites.filter(b => b.key !== book.key);
-            showToast('Đã xóa khỏi ưa thích');
+            showToast('Đã xóa khỏi Ưa thích');
         } else {
             favorites.push(book);
-            showToast('Đã thêm vào ưa thích');
+            showToast('Đã thêm vào Ưa thích');
         }
         saveToStorage(STORAGE_FAVORITES, favorites);
         updateCounts();
-        // Refresh recommendations when favorites change
         if (!wasInFavorites) loadRecommendations();
     }
 
@@ -160,100 +197,66 @@
     }
 
     // =========================================
-    // Book Data Normalization
+    // Google Books API
     // =========================================
-    function normalizeSearchBook(doc) {
+    function normalizeGoogleBook(item) {
+        const v = item.volumeInfo || {};
+        const covUrl = v.imageLinks
+            ? (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail || '')
+            : '';
+        // Upgrade to higher quality cover
+        const coverUrl = covUrl
+            .replace('http://', 'https://')
+            .replace('&edge=curl', '')
+            .replace('zoom=1', 'zoom=2');
+
         return {
-            key: doc.key || '',
-            title: doc.title || 'Không có tiêu đề',
-            author: doc.author_name ? doc.author_name.join(', ') : 'Không rõ tác giả',
-            coverId: doc.cover_i || null,
-            coverEditionKey: doc.cover_edition_key || null,
-            year: doc.first_publish_year || null,
-            subjects: (doc.subject || []).slice(0, 5),
-            language: doc.language ? doc.language[0] : null,
-            editionCount: doc.edition_count || 0,
-            pages: doc.number_of_pages_median || null,
+            key: item.id || '',
+            title: v.title || 'Không có tiêu đề',
+            author: v.authors ? v.authors.join(', ') : 'Không rõ tác giả',
+            coverUrl: coverUrl || null,
+            year: v.publishedDate ? v.publishedDate.substring(0, 4) : null,
+            subjects: v.categories || [],
+            language: v.language || null,
+            pages: v.pageCount || null,
+            description: v.description || '',
+            infoLink: v.infoLink || '',
+            previewLink: v.previewLink || '',
+            publisher: v.publisher || '',
+            source: 'google',
         };
     }
 
-    function normalizeSubjectBook(work) {
-        return {
-            key: work.key || '',
-            title: work.title || 'Không có tiêu đề',
-            author: work.authors ? work.authors.map(a => a.name).join(', ') : 'Không rõ tác giả',
-            coverId: work.cover_id || null,
-            coverEditionKey: work.cover_edition_key || null,
-            year: work.first_publish_year || null,
-            subjects: (work.subject || []).slice(0, 5),
-            language: null,
-            editionCount: work.edition_count || 0,
-            pages: null,
-        };
-    }
-
-    function getCoverUrl(book, size = 'M') {
-        if (book.coverId) {
-            return `${OL_COVER}${book.coverId}-${size}.jpg`;
+    async function searchGoogleBooks(query, startIndex = 0) {
+        let url = `${GB_SEARCH}?q=${encodeURIComponent(query)}&maxResults=${PAGE_SIZE}&startIndex=${startIndex}&orderBy=relevance&printType=books`;
+        if (currentLang === 'vi') {
+            url += '&langRestrict=vi';
         }
-        if (book.coverEditionKey) {
-            return `${OL_COVER_OLID}${book.coverEditionKey}-${size}.jpg`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('Google Books search failed');
+        const data = await resp.json();
+        return {
+            total: data.totalItems || 0,
+            books: (data.items || []).map(normalizeGoogleBook),
+        };
+    }
+
+    async function fetchGoogleBookDetails(volumeId) {
+        const resp = await fetch(`${GB_SEARCH}/${volumeId}`);
+        if (!resp.ok) throw new Error('Details fetch failed');
+        const data = await resp.json();
+        return normalizeGoogleBook(data);
+    }
+
+    // =========================================
+    // Book Cover URL helper
+    // =========================================
+    function getCoverUrl(book) {
+        if (book.coverUrl) return book.coverUrl;
+        if (book.coverId) {
+            return `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`;
         }
         return null;
-    }
-
-    // =========================================
-    // API Calls
-    // =========================================
-    async function searchBooks(query, page = 1) {
-        const offset = (page - 1) * PAGE_SIZE;
-        const url = `${OL_SEARCH}?q=${encodeURIComponent(query)}&limit=${PAGE_SIZE}&offset=${offset}&fields=key,title,author_name,cover_i,cover_edition_key,first_publish_year,subject,language,edition_count,number_of_pages_median`;
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('Search failed');
-        const data = await resp.json();
-        return {
-            total: data.numFound || 0,
-            books: (data.docs || []).map(normalizeSearchBook),
-        };
-    }
-
-    async function fetchTrending() {
-        try {
-            const resp = await fetch(`${OL_TRENDING}?limit=20`);
-            if (!resp.ok) throw new Error('Trending failed');
-            const data = await resp.json();
-            return (data.works || []).map(w => ({
-                key: w.key || '',
-                title: w.title || 'Không có tiêu đề',
-                author: w.author_name ? w.author_name.join(', ') : (w.author_key ? w.author_key.join(', ') : 'Không rõ tác giả'),
-                coverId: w.cover_i || null,
-                coverEditionKey: w.cover_edition_key || null,
-                year: w.first_publish_year || null,
-                subjects: (w.subject || []).slice(0, 5),
-                language: null,
-                editionCount: w.edition_count || 0,
-                pages: null,
-            }));
-        } catch {
-            // Fallback to a subject search if trending endpoint is unavailable
-            return fetchSubjectBooks('fiction', 20);
-        }
-    }
-
-    async function fetchSubjectBooks(subject, limit = 12) {
-        const url = `${OL_SUBJECTS}${encodeURIComponent(subject.toLowerCase())}.json?limit=${limit}`;
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('Subject fetch failed');
-        const data = await resp.json();
-        return (data.works || []).map(normalizeSubjectBook);
-    }
-
-    async function fetchBookDetails(workKey) {
-        // workKey looks like "/works/OL12345W"
-        const key = workKey.startsWith('/works/') ? workKey : `/works/${workKey}`;
-        const resp = await fetch(`${OL_BASE}${key}.json`);
-        if (!resp.ok) throw new Error('Details fetch failed');
-        return resp.json();
     }
 
     // =========================================
@@ -354,12 +357,19 @@
     async function openBookModal(book) {
         currentModalBook = book;
 
-        // Set initial data
-        const coverUrl = getCoverUrl(book, 'L') || getCoverUrl(book, 'M');
+        const coverUrl = getCoverUrl(book);
         if (coverUrl) {
-            modalCover.src = coverUrl;
+            // Try to get higher quality cover for modal
+            let modalCoverUrl = coverUrl;
+            if (book.source === 'google' && book.coverUrl) {
+                modalCoverUrl = book.coverUrl.replace('zoom=1', 'zoom=3').replace('zoom=2', 'zoom=3');
+            }
+            modalCover.src = modalCoverUrl;
             modalCover.onerror = () => {
-                modalCover.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect fill="%2312121a" width="200" height="300"/><text fill="%235a5a6e" x="100" y="150" text-anchor="middle" font-size="14">No Cover</text></svg>';
+                modalCover.src = coverUrl; // fallback to regular
+                modalCover.onerror = () => {
+                    modalCover.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect fill="%2312121a" width="200" height="300"/><text fill="%235a5a6e" x="100" y="150" text-anchor="middle" font-size="14">No Cover</text></svg>';
+                };
             };
         } else {
             modalCover.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect fill="%2312121a" width="200" height="300"/><text fill="%235a5a6e" x="100" y="150" text-anchor="middle" font-size="14">No Cover</text></svg>';
@@ -369,45 +379,64 @@
         modalAuthor.textContent = book.author;
         modalYear.textContent = book.year ? `📅 ${book.year}` : '';
         modalPages.textContent = book.pages ? `📄 ${book.pages} trang` : '';
-        modalLanguage.textContent = book.language ? `🌐 ${book.language.toUpperCase()}` : '';
-        modalDescription.textContent = 'Đang tải mô tả...';
+
+        const langMap = { vi: 'Tiếng Việt', en: 'English', fr: 'Français', zh: '中文', ja: '日本語', ko: '한국어' };
+        modalLanguage.textContent = book.language ? `🌐 ${langMap[book.language] || book.language.toUpperCase()}` : '';
+
+        // Subjects
         modalSubjects.innerHTML = '';
+        if (book.subjects && book.subjects.length > 0) {
+            modalSubjects.innerHTML = book.subjects.slice(0, 8).map(s =>
+                `<span class="subject-tag">${escapeHtml(s)}</span>`
+            ).join('');
+        }
+
+        // Description
+        if (book.description) {
+            // Strip HTML tags from Google Books descriptions
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = book.description;
+            modalDescription.textContent = tempDiv.textContent || tempDiv.innerText || '';
+        } else {
+            modalDescription.textContent = 'Không có mô tả.';
+        }
+
+        // Publisher info
+        if (book.publisher) {
+            modalDescription.textContent = `📚 NXB: ${book.publisher}\n\n${modalDescription.textContent}`;
+        }
 
         // Actions
         updateModalActions();
 
-        // Open Library link
-        const olUrl = `${OL_BASE}${book.key}`;
-        modalBtnOpenLibrary.href = olUrl;
+        // Link
+        const linkUrl = book.infoLink || book.previewLink || `https://www.google.com/search?tbm=bks&q=${encodeURIComponent(book.title)}`;
+        modalBtnOpenLibrary.href = linkUrl;
+        modalBtnOpenLibrary.querySelector('span').textContent = book.source === 'google' ? 'Google Books' : 'Open Library';
 
         // Show modal
         bookModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
 
-        // Fetch detailed info
-        try {
-            const details = await fetchBookDetails(book.key);
-            if (details.description) {
-                const desc = typeof details.description === 'string'
-                    ? details.description
-                    : details.description.value || '';
-                modalDescription.textContent = desc || 'Không có mô tả.';
-            } else {
-                modalDescription.textContent = 'Không có mô tả.';
-            }
-
-            if (details.subjects && details.subjects.length > 0) {
-                modalSubjects.innerHTML = details.subjects.slice(0, 8).map(s =>
-                    `<span class="subject-tag">${escapeHtml(s)}</span>`
-                ).join('');
-            }
-        } catch {
-            modalDescription.textContent = 'Không thể tải mô tả.';
-            if (book.subjects && book.subjects.length > 0) {
-                modalSubjects.innerHTML = book.subjects.map(s =>
-                    `<span class="subject-tag">${escapeHtml(s)}</span>`
-                ).join('');
-            }
+        // Fetch more details for Google Books if description is short
+        if (book.source === 'google' && !book.description && book.key) {
+            try {
+                const details = await fetchGoogleBookDetails(book.key);
+                if (details.description) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = details.description;
+                    let desc = tempDiv.textContent || tempDiv.innerText || '';
+                    if (details.publisher) {
+                        desc = `📚 NXB: ${details.publisher}\n\n${desc}`;
+                    }
+                    modalDescription.textContent = desc;
+                }
+                if (details.subjects && details.subjects.length > 0) {
+                    modalSubjects.innerHTML = details.subjects.slice(0, 8).map(s =>
+                        `<span class="subject-tag">${escapeHtml(s)}</span>`
+                    ).join('');
+                }
+            } catch { /* ignore */ }
         }
     }
 
@@ -454,13 +483,13 @@
     // =========================================
     // Search
     // =========================================
-    async function performSearch(query, page = 1) {
+    async function performSearch(query, startIndex = 0) {
         if (!query.trim() || isLoading) return;
 
         currentQuery = query.trim();
-        currentPage = page;
+        currentPage = startIndex;
 
-        if (page === 1) {
+        if (startIndex === 0) {
             searchResultsGrid.innerHTML = '';
             searchResultsSection.style.display = 'block';
             trendingSection.style.display = 'none';
@@ -472,7 +501,7 @@
         catalogLoading.style.display = 'flex';
 
         try {
-            const result = await searchBooks(currentQuery, currentPage);
+            const result = await searchGoogleBooks(currentQuery, startIndex);
             totalResults = result.total;
 
             searchResultsTitle.innerHTML = `
@@ -488,9 +517,9 @@
                 searchResultsGrid.appendChild(createBookCard(book));
             });
 
-            // Show load more if there are more results
-            const shown = currentPage * PAGE_SIZE;
-            loadMoreContainer.style.display = shown < totalResults ? 'flex' : 'none';
+            // Show load more
+            const shown = startIndex + PAGE_SIZE;
+            loadMoreContainer.style.display = shown < totalResults && result.books.length > 0 ? 'flex' : 'none';
 
         } catch (err) {
             console.error('Search error:', err);
@@ -507,7 +536,7 @@
     });
 
     btnLoadMore.addEventListener('click', () => {
-        performSearch(currentQuery, currentPage + 1);
+        performSearch(currentQuery, currentPage + PAGE_SIZE);
     });
 
     // Quick tags
@@ -515,7 +544,7 @@
         const tag = e.target.closest('.quick-tag');
         if (!tag) return;
         const query = tag.dataset.query;
-        searchInput.value = query;
+        searchInput.value = tag.textContent.trim();
         switchTab('explore');
         performSearch(query);
     });
@@ -524,11 +553,9 @@
     // Tabs
     // =========================================
     function switchTab(tabName) {
-        // Update tab buttons
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
 
-        // Update tab content
         [contentExplore, contentWishlist, contentFavorites].forEach(c => c.classList.remove('active'));
 
         if (tabName === 'explore') {
@@ -577,20 +604,14 @@
 
     function refreshAllViews() {
         updateCounts();
-        // Refresh current search results card states
         document.querySelectorAll('.book-card').forEach(card => {
             const key = card.getAttribute('data-key');
             const wBtn = card.querySelector('.btn-wishlist');
             const fBtn = card.querySelector('.btn-favorite');
-            if (wBtn) {
-                wBtn.classList.toggle('is-wishlisted', isInWishlist(key));
-            }
-            if (fBtn) {
-                fBtn.classList.toggle('is-favorited', isInFavorites(key));
-            }
+            if (wBtn) wBtn.classList.toggle('is-wishlisted', isInWishlist(key));
+            if (fBtn) fBtn.classList.toggle('is-favorited', isInFavorites(key));
         });
 
-        // Re-render if on wishlist or favorites tab
         const activeTab = document.querySelector('.tab.active');
         if (activeTab) {
             if (activeTab.dataset.tab === 'wishlist') renderWishlist();
@@ -599,14 +620,40 @@
     }
 
     // =========================================
-    // Trending
+    // Trending (Vietnamese books)
     // =========================================
     async function loadTrending() {
         showSkeletons(trendingGrid, 8, true);
+
         try {
-            const books = await fetchTrending();
+            // Pick 2-3 random Vietnamese queries for variety
+            const shuffled = [...VI_TRENDING_QUERIES].sort(() => 0.5 - Math.random());
+            const picks = shuffled.slice(0, 3);
+
+            const allBooks = [];
+            const seenKeys = new Set();
+
+            for (const query of picks) {
+                try {
+                    const result = await searchGoogleBooks(query, 0);
+                    result.books.forEach(b => {
+                        if (!seenKeys.has(b.key)) {
+                            seenKeys.add(b.key);
+                            allBooks.push(b);
+                        }
+                    });
+                } catch { /* skip */ }
+            }
+
             trendingGrid.innerHTML = '';
-            books.forEach(book => {
+            if (allBooks.length === 0) {
+                trendingGrid.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Không thể tải sách phổ biến.</p>';
+                return;
+            }
+
+            // Shuffle and show
+            const display = allBooks.sort(() => 0.5 - Math.random()).slice(0, 20);
+            display.forEach(book => {
                 trendingGrid.appendChild(createBookCard(book));
             });
         } catch (err) {
@@ -628,26 +675,44 @@
         showSkeletons(recommendationsGrid, 8, true);
 
         try {
-            // Gather subjects from favorites
-            const allSubjects = [];
+            const searchQueries = [];
+
+            // Build search queries from favorite books' subjects, authors, and titles
             favorites.forEach(b => {
                 if (b.subjects) {
                     b.subjects.forEach(s => {
                         const clean = s.toLowerCase().trim();
-                        if (clean.length > 2 && clean.length < 40 && !allSubjects.includes(clean)) {
-                            allSubjects.push(clean);
+                        if (clean.length > 2 && !searchQueries.includes(clean)) {
+                            searchQueries.push(clean);
                         }
                     });
                 }
+                // Also use author names for recommendations
+                if (b.author && b.author !== 'Không rõ tác giả') {
+                    const authorQuery = `inauthor:${b.author.split(',')[0].trim()}`;
+                    if (!searchQueries.includes(authorQuery)) {
+                        searchQueries.push(authorQuery);
+                    }
+                }
             });
 
-            if (allSubjects.length === 0) {
+            if (searchQueries.length === 0) {
+                // Fallback: use title keywords
+                favorites.forEach(b => {
+                    const words = b.title.split(/\s+/).filter(w => w.length > 3);
+                    if (words.length > 0) {
+                        searchQueries.push(words.slice(0, 2).join(' '));
+                    }
+                });
+            }
+
+            if (searchQueries.length === 0) {
                 recommendationsSection.style.display = 'none';
                 return;
             }
 
-            // Pick up to 3 random subjects
-            const shuffled = allSubjects.sort(() => 0.5 - Math.random());
+            // Pick up to 3 random queries
+            const shuffled = searchQueries.sort(() => 0.5 - Math.random());
             const chosen = shuffled.slice(0, 3);
 
             const allBooks = [];
@@ -656,16 +721,16 @@
                 ...wishlist.map(b => b.key),
             ]);
 
-            for (const subject of chosen) {
+            for (const query of chosen) {
                 try {
-                    const books = await fetchSubjectBooks(subject, 8);
-                    books.forEach(b => {
+                    const result = await searchGoogleBooks(query, 0);
+                    result.books.forEach(b => {
                         if (!existingKeys.has(b.key) && !allBooks.some(ab => ab.key === b.key)) {
                             allBooks.push(b);
                             existingKeys.add(b.key);
                         }
                     });
-                } catch { /* skip failed subject */ }
+                } catch { /* skip */ }
             }
 
             recommendationsGrid.innerHTML = '';
@@ -674,7 +739,6 @@
                 return;
             }
 
-            // Shuffle and limit
             const recs = allBooks.sort(() => 0.5 - Math.random()).slice(0, 15);
             recs.forEach(book => {
                 recommendationsGrid.appendChild(createBookCard(book));
@@ -687,7 +751,7 @@
     }
 
     // =========================================
-    // Clear search / show explore
+    // Show explore default
     // =========================================
     function showExploreDefault() {
         searchResultsSection.style.display = 'none';
@@ -695,7 +759,6 @@
         if (favorites.length > 0) recommendationsSection.style.display = 'block';
     }
 
-    // When clearing search input
     searchInput.addEventListener('input', () => {
         if (searchInput.value.trim() === '' && searchResultsSection.style.display !== 'none') {
             showExploreDefault();
