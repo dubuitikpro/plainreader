@@ -716,6 +716,7 @@
         if (!resp.ok) throw new Error('Search failed');
         const data = await resp.json();
         const books = (data.docs || []).map(normalizeSearchBook);
+        books.forEach(b => { b.searchQuery = currentQuery; });
         await batchTranslateBooks(books);
         return {
             total: data.numFound || 0,
@@ -1775,6 +1776,17 @@
             aliases: ['rich dad poor dad', 'rich dad, poor dad', 'day con lam giau', 'cha giau cha ngheo', 'dạy con làm giàu', 'cha giàu cha nghèo', 'rich dad']
         },
         {
+            identifier: 'tam-ly-hoc-ve-tien',
+            title: 'Tâm Lý Học Về Tiền',
+            originalTitle: 'The Psychology of Money',
+            author: 'Morgan Housel',
+            genre: 'self-help',
+            chapters: 16,
+            cover: 'https://archive.org/services/img/tam-ly-hoc-ve-tien',
+            description: 'Cuốn sách bán chạy toàn cầu của Morgan Housel, phân tích sâu sắc mối quan hệ giữa tâm lý, cảm xúc và các quyết định tài chính của con người. Làm giàu không chỉ là kiến thức toán học, mà là hành vi và sự tự chủ.',
+            aliases: ['the psychology of money', 'psychology of money', 'tam ly hoc ve tien', 'tâm lý học về tiền', 'tam ly tien bac', 'tâm lý tiền bạc', 'morgan housel']
+        },
+        {
             identifier: 'mat-day-tam-den.sna',
             title: 'Mặt Dày Tâm Đen',
             originalTitle: 'Thick Face, Black Heart',
@@ -2179,10 +2191,16 @@
         'tuesdays with morrie': 'Những Thứ Ba Với Thầy Morrie',
         'quang ganh lo di va vui song': 'Quẳng Gánh Lo Đi Và Vui Sống',
         'how to stop worrying and start living': 'Quẳng Gánh Lo Đi Và Vui Sống',
-        'the psychology of money': 'Tâm Lý Tiền Bạc',
-        'psychology of money': 'Tâm Lý Tiền Bạc',
-        'tam ly tien bac': 'Tâm Lý Tiền Bạc',
-        'tâm lý tiền bạc': 'Tâm Lý Tiền Bạc'
+        'the psychology of money': 'Tâm Lý Học Về Tiền',
+        'psychology of money': 'Tâm Lý Học Về Tiền',
+        'tam ly hoc ve tien': 'Tâm Lý Học Về Tiền',
+        'tâm lý học về tiền': 'Tâm Lý Học Về Tiền',
+        'tam ly tien bac': 'Tâm Lý Học Về Tiền',
+        'tâm lý tiền bạc': 'Tâm Lý Học Về Tiền',
+        'the 48 laws of power': '48 Nguyên Tắc Chủ Chốt Của Quyền Lực',
+        '48 laws of power': '48 Nguyên Tắc Chủ Chốt Của Quyền Lực',
+        '48 nguyen tac chu chot cua quyen luc': '48 Nguyên Tắc Chủ Chốt Của Quyền Lực',
+        '48 nguyên tắc chủ chốt của quyền lực': '48 Nguyên Tắc Chủ Chốt Của Quyền Lực'
     };
 
     function isVietnamese(str) {
@@ -2190,37 +2208,68 @@
         return /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/i.test(str);
     }
 
+    function removeVietnameseTones(str) {
+        if (!str) return '';
+        return str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D');
+    }
+
+    function cleanTitleForAudioSearch(str) {
+        if (!str) return '';
+        return str
+            .replace(/\([^)]*\)/g, '')
+            .replace(/\[[^\]]*\]/g, '')
+            .replace(/[:\-–—].*$/, '')
+            .replace(/["\\/()[\]{}~*?^:!]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
     async function resolveVietnameseAudioTitle(book) {
         if (!book) return '';
         const rawTitle = (book.title || '').trim();
         const origTitle = (book.originalTitle || '').trim();
+        const searchQuery = (book.searchQuery || '').trim();
         const lowerRaw = rawTitle.toLowerCase();
         const lowerOrig = origTitle.toLowerCase();
+        const lowerSearch = searchQuery.toLowerCase();
 
-        // 1. Check known aliases map first (e.g. "rich dad poor dad" -> "Cha Giàu Cha Nghèo")
+        // 1. If user searched with a Vietnamese term, check if it matches an alias or use it directly
+        if (searchQuery && isVietnamese(searchQuery)) {
+            for (const [key, viName] of Object.entries(VI_TITLE_ALIASES)) {
+                if (lowerSearch.includes(key) || key.includes(lowerSearch)) {
+                    return viName;
+                }
+            }
+            return searchQuery;
+        }
+
+        // 2. Check known aliases map first (e.g. "rich dad poor dad" -> "Cha Giàu Cha Nghèo")
         for (const [key, viName] of Object.entries(VI_TITLE_ALIASES)) {
             if (lowerRaw.includes(key) || (lowerOrig && lowerOrig.includes(key))) {
                 return viName;
             }
         }
 
-        // 2. Check if book.titleVi has Vietnamese diacritics
+        // 3. Check if book.titleVi has Vietnamese diacritics
         if (book.titleVi && isVietnamese(book.titleVi)) {
             const vi = book.titleVi.trim();
-            // Check if titleVi matches alias
             const lVi = vi.toLowerCase();
             for (const [k, v] of Object.entries(VI_TITLE_ALIASES)) {
-                if (lVi.includes(k)) return v;
+                if (lVi.includes(k) || k.includes(lVi)) return v;
             }
             return vi;
         }
 
-        // 3. If raw title already contains Vietnamese diacritics
+        // 4. If raw title already contains Vietnamese diacritics
         if (isVietnamese(rawTitle)) {
             return rawTitle;
         }
 
-        // 4. Translate rawTitle or origTitle to Vietnamese via Google Translate API
+        // 5. Translate rawTitle or origTitle to Vietnamese via Google Translate API
         const toTranslate = origTitle || rawTitle;
         if (toTranslate) {
             try {
@@ -2228,7 +2277,7 @@
                 if (vi) {
                     const lVi = vi.toLowerCase();
                     for (const [k, v] of Object.entries(VI_TITLE_ALIASES)) {
-                        if (lVi.includes(k)) return v;
+                        if (lVi.includes(k) || k.includes(lVi)) return v;
                     }
                     return vi;
                 }
@@ -2315,34 +2364,61 @@
         }
     }
 
-    function initAudioSourceSwitcher() {
+    function setAudioSource(source, autoSearch = true) {
         const btnArchive = document.getElementById('btnSourceArchive');
         const btnYoutube = document.getElementById('btnSourceYoutube');
         const searchInput = document.getElementById('audioSearchInput');
         const searchBtn = document.getElementById('btnAudioSearch');
         const titleEl = document.getElementById('audiobooksSectionTitle');
 
+        if (source === 'archive') {
+            currentAudioSource = 'archive';
+            if (btnArchive) btnArchive.classList.add('active');
+            if (btnYoutube) btnYoutube.classList.remove('active');
+            if (searchInput) {
+                searchInput.placeholder = 'Tìm theo tên tác phẩm, tác giả trên Web Archive (Mặt dày tâm đen, Đắc nhân tâm, Tam quốc...)';
+            }
+            if (searchBtn) {
+                const span = searchBtn.querySelector('span');
+                if (span) span.textContent = 'Tìm sách Archive';
+            }
+            const currentQuery = searchInput ? searchInput.value.trim() : '';
+            if (autoSearch && currentQuery) {
+                searchAudiobooks(currentQuery);
+            } else if (!currentQuery) {
+                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
+                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+            }
+        } else if (source === 'youtube') {
+            currentAudioSource = 'youtube';
+            if (btnYoutube) btnYoutube.classList.add('active');
+            if (btnArchive) btnArchive.classList.remove('active');
+            if (searchInput) {
+                searchInput.placeholder = 'Tìm sách nói, podcast trên YouTube Music hoặc dán link/ID video...';
+            }
+            if (searchBtn) {
+                const span = searchBtn.querySelector('span');
+                if (span) span.textContent = 'Tìm YouTube';
+            }
+            const currentQuery = searchInput ? searchInput.value.trim() : '';
+            if (autoSearch && currentQuery) {
+                searchYoutubeAudiobooks(currentQuery);
+            } else if (!currentQuery) {
+                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)';
+                renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+            }
+        }
+    }
+
+    function initAudioSourceSwitcher() {
+        const btnArchive = document.getElementById('btnSourceArchive');
+        const btnYoutube = document.getElementById('btnSourceYoutube');
+
         if (btnArchive && !btnArchive._inited) {
             btnArchive._inited = true;
             btnArchive.addEventListener('click', () => {
                 if (currentAudioSource === 'archive') return;
-                currentAudioSource = 'archive';
-                btnArchive.classList.add('active');
-                if (btnYoutube) btnYoutube.classList.remove('active');
-                if (searchInput) {
-                    searchInput.placeholder = 'Tìm theo tên tác phẩm, tác giả trên Web Archive (Mặt dày tâm đen, Đắc nhân tâm, Tam quốc...)';
-                }
-                if (searchBtn) {
-                    const span = searchBtn.querySelector('span');
-                    if (span) span.textContent = 'Tìm sách Archive';
-                }
-                const currentQuery = searchInput ? searchInput.value.trim() : '';
-                if (currentQuery) {
-                    searchAudiobooks(currentQuery);
-                } else {
-                    if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
-                    renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
-                }
+                setAudioSource('archive', true);
             });
         }
 
@@ -2350,23 +2426,7 @@
             btnYoutube._inited = true;
             btnYoutube.addEventListener('click', () => {
                 if (currentAudioSource === 'youtube') return;
-                currentAudioSource = 'youtube';
-                btnYoutube.classList.add('active');
-                if (btnArchive) btnArchive.classList.remove('active');
-                if (searchInput) {
-                    searchInput.placeholder = 'Tìm sách nói, podcast trên YouTube Music hoặc dán link/ID video...';
-                }
-                if (searchBtn) {
-                    const span = searchBtn.querySelector('span');
-                    if (span) span.textContent = 'Tìm YouTube';
-                }
-                const currentQuery = searchInput ? searchInput.value.trim() : '';
-                if (currentQuery) {
-                    searchYoutubeAudiobooks(currentQuery);
-                } else {
-                    if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)';
-                    renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
-                }
+                setAudioSource('youtube', true);
             });
         }
     }
@@ -2686,12 +2746,30 @@
             });
 
             // Remote search on Internet Archive
-            const archiveSearchPhrase = viQuery.replace(/["\\]/g, '').trim();
-            const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(title:("${encodeURIComponent(archiveSearchPhrase)}") OR "${encodeURIComponent(archiveSearchPhrase)}")&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
+            let cleanPhrase = cleanTitleForAudioSearch(viQuery);
+            if (!cleanPhrase) cleanPhrase = viQuery.replace(/["\\]/g, '').trim();
 
-            const resp = await fetch(archiveUrl);
-            const data = await resp.json();
-            const docs = (data.response && data.response.docs) || [];
+            const fetchIaDocs = async (phrase) => {
+                try {
+                    const enc = encodeURIComponent(phrase);
+                    const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(title:("${enc}")+OR+"${enc}")&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
+                    const resp = await fetch(archiveUrl);
+                    const data = await resp.json();
+                    return (data.response && data.response.docs) || [];
+                } catch {
+                    return [];
+                }
+            };
+
+            let docs = await fetchIaDocs(cleanPhrase);
+
+            // If 0 results and term has Vietnamese tones, try unaccented version
+            if (docs.length === 0 && isVietnamese(cleanPhrase)) {
+                const noTones = removeVietnameseTones(cleanPhrase);
+                if (noTones && noTones.toLowerCase() !== cleanPhrase.toLowerCase()) {
+                    docs = await fetchIaDocs(noTones);
+                }
+            }
 
             const remoteBooks = docs.map(d => ({
                 identifier: d.identifier,
@@ -4312,16 +4390,13 @@
 
         showToast('Đang tìm sách nói trên Web Archive...');
 
-        // 1. Resolve Vietnamese title
+        // 1. Switch to Web Archive view (cleanly, without auto-searching stale text)
+        setAudioSource('archive', false);
+
+        // 2. Resolve Vietnamese title
         const viTitle = await resolveVietnameseAudioTitle(book);
         const lowerVi = (viTitle || '').toLowerCase().trim();
         const lowerOrig = (book.originalTitle || book.title || '').toLowerCase().trim();
-
-        // 2. Ensure Audio source is switched to Web Archive
-        if (currentAudioSource !== 'archive') {
-            const btnArchive = document.getElementById('btnSourceArchive');
-            if (btnArchive) btnArchive.click();
-        }
 
         // 3. PRIORITY 1: Check match in Curated Web Archive
         const archiveMatch = CURATED_AUDIOBOOKS.find(b => {
@@ -4334,27 +4409,48 @@
         });
 
         if (archiveMatch) {
+            if (audioSearchInput) audioSearchInput.value = archiveMatch.title;
             showToast(`Tìm thấy sách nói trên Web Archive: ${archiveMatch.title}`);
             loadAndPlayAudiobook(archiveMatch.identifier, null, true, null);
             return;
         }
 
-        // 4. PRIORITY 2: Search on Web Archive remote API
-        const searchTerm = viTitle || book.titleVi || book.title;
-        if (audioSearchInput) audioSearchInput.value = searchTerm;
+        // 4. PRIORITY 2: Search on Web Archive remote API across candidate terms
+        const candidateTerms = [];
+        const pushCandidate = (term) => {
+            const cleaned = cleanTitleForAudioSearch(term);
+            if (cleaned && !candidateTerms.includes(cleaned)) {
+                candidateTerms.push(cleaned);
+            }
+        };
 
-        const archiveResults = await searchAudiobooks(searchTerm, true);
-        if (archiveResults && archiveResults.length > 0) {
-            showToast(`Tìm thấy ${archiveResults.length} sách nói trên Web Archive`);
-            return;
+        if (viTitle) pushCandidate(viTitle);
+        if (book.titleVi) pushCandidate(book.titleVi);
+        if (book.searchQuery) pushCandidate(book.searchQuery);
+        if (candidateTerms[0] && isVietnamese(candidateTerms[0])) {
+            const noTones = removeVietnameseTones(candidateTerms[0]);
+            if (noTones && !candidateTerms.includes(noTones)) {
+                candidateTerms.push(noTones);
+            }
+        }
+        if (book.originalTitle || book.title) pushCandidate(book.originalTitle || book.title);
+
+        const primarySearchTerm = candidateTerms[0] || book.title;
+        if (audioSearchInput) audioSearchInput.value = primarySearchTerm;
+
+        let archiveResults = [];
+        for (const term of candidateTerms) {
+            archiveResults = await searchAudiobooks(term, true);
+            if (archiveResults && archiveResults.length > 0) {
+                showToast(`Tìm thấy ${archiveResults.length} sách nói trên Web Archive`);
+                return;
+            }
         }
 
-        // 5. PRIORITY 3: Fallback to YouTube Music if Web Archive has no results
-        showToast(`Không có audio trên Web Archive, đang tìm trên YouTube: "${searchTerm}"`);
-
-        const btnYt = document.getElementById('btnSourceYoutube');
-        if (btnYt) btnYt.click();
-        if (audioSearchInput) audioSearchInput.value = searchTerm;
+        // 5. PRIORITY 3: Fallback to YouTube Music ONLY if Web Archive truly has 0 results across all candidates
+        showToast(`Không có audio trên Web Archive, đang tìm trên YouTube: "${primarySearchTerm}"`);
+        setAudioSource('youtube', false);
+        if (audioSearchInput) audioSearchInput.value = primarySearchTerm;
 
         const ytMatch = CURATED_YOUTUBE_AUDIOBOOKS.find(b => {
             const bt = b.title.toLowerCase();
@@ -4371,7 +4467,7 @@
             return;
         }
 
-        await searchYoutubeAudiobooks(searchTerm);
+        await searchYoutubeAudiobooks(primarySearchTerm);
     }
 
     // =========================================
