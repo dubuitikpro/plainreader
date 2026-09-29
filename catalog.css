@@ -1602,6 +1602,20 @@ a { color: inherit; text-decoration: none; }
     transform: translateY(-2px);
 }
 
+.modal-action-btn.anna-btn {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(162, 155, 254, 0.2));
+    border-color: rgba(162, 155, 254, 0.45);
+    color: #a29bfe;
+}
+
+.modal-action-btn.anna-btn:hover {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(108, 92, 231, 0.45);
+    transform: translateY(-2px);
+}
+
 /* Audio Hero Card */
 .audio-hero-card {
     background: linear-gradient(135deg, rgba(108, 92, 231, 0.12), rgba(9, 132, 227, 0.08) 60%, rgba(0, 206, 201, 0.12));
