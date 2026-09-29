@@ -101,6 +101,7 @@
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
     const modalBtnFavorite = document.getElementById('modalBtnFavorite');
     const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
+    const modalBtnAnnaArchive = document.getElementById('modalBtnAnnaArchive');
     const modalOriginalTitle = document.getElementById('modalOriginalTitle');
     const modalOriginalTitleText = document.getElementById('modalOriginalTitleText');
     const btnToggleOrigDesc = document.getElementById('btnToggleOrigDesc');
@@ -935,6 +936,14 @@
         // Open Library link
         const olUrl = `${OL_BASE}${book.key}`;
         modalBtnOpenLibrary.href = olUrl;
+
+        // Anna's Archive search link (searches original title & author for EPUB/PDF files)
+        const searchTitle = book.originalTitle || book.title || '';
+        const searchAuthor = (book.author && book.author !== 'Tác giả chưa rõ') ? book.author : '';
+        const annaQuery = `${searchTitle} ${searchAuthor}`.trim();
+        if (modalBtnAnnaArchive) {
+            modalBtnAnnaArchive.href = `https://annas-archive.org/search?q=${encodeURIComponent(annaQuery)}`;
+        }
 
         // Show modal
         bookModal.style.display = 'flex';
