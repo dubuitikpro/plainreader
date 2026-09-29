@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790691033137,
+  "lastUpdated": 1790691036561,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -89,10 +89,10 @@
       "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 3843,
+      "currentTime": 3846,
       "duration": 4644,
       "percent": 83,
-      "updatedAt": 1790691031129
+      "updatedAt": 1790691034137
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
@@ -143,15 +143,15 @@
     "identifier": "yt_IBh60rV9ue0",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 3843,
+    "time": 3846,
     "volume": 1,
     "speedIndex": 0
   },
   "searchHistory": [
+    "đắc nhân tâm",
     "bản chất con người",
     "tâm lý học về tiền",
     "48 nguyên tắc của quyền lực",
-    "đắc nhân tâm",
     "mặt dày tâm đen"
   ]
 }
