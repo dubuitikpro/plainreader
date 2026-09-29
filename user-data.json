@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790693369064,
+  "lastUpdated": 1790693377692,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -156,12 +156,12 @@
       "title": "48 nguyên tắc chủ chốt của quyền lực",
       "author": "Internet Archive",
       "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
-      "trackIndex": 0,
-      "trackTitle": "1",
-      "currentTime": 1228,
-      "duration": 1233,
-      "percent": 100,
-      "updatedAt": 1790693368365
+      "trackIndex": 1,
+      "trackTitle": "2",
+      "currentTime": 2,
+      "duration": 1410,
+      "percent": 0,
+      "updatedAt": 1790693377453
     },
     "di-tim-le-song.sna": {
       "identifier": "di-tim-le-song.sna",
@@ -196,8 +196,8 @@
   "audioState": {
     "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
     "type": "archive",
-    "trackIndex": 0,
-    "time": 1228,
+    "trackIndex": 1,
+    "time": 2,
     "volume": 1,
     "speedIndex": 0
   },
