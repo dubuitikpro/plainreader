@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790656354675,
+  "lastUpdated": 1790656368116,
   "wishlist": [],
   "favorites": [
     {
@@ -31,18 +31,30 @@
       "videoId": "QCzY-rJJhGE",
       "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg",
       "updatedAt": 1727581000000
+    },
+    "nha-gia-kim-sachnoi.cc-2": {
+      "identifier": "nha-gia-kim-sachnoi.cc-2",
+      "type": "archive",
+      "title": "Nha Gia Kim - sachnoi.cc",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/nha-gia-kim-sachnoi.cc-2",
+      "trackIndex": 0,
+      "trackTitle": "Nha Gia Kim sachnoi.cc Phan 1",
+      "currentTime": 0,
+      "duration": 2078,
+      "percent": 0,
+      "updatedAt": 1790656366115
     }
   },
   "audioBookmarks": [],
-  "lastPlayedId": "yt_48_nguyen_tac",
+  "lastPlayedId": "nha-gia-kim-sachnoi.cc-2",
   "audioState": {
-    "identifier": "yt_48_nguyen_tac",
-    "title": "[Sách Nói] 48 Nguyên Tắc Chủ Chốt Của Quyền Lực - Chương 1 | Robert Greene",
+    "identifier": "nha-gia-kim-sachnoi.cc-2",
+    "type": "archive",
     "trackIndex": 0,
-    "currentTime": 138,
-    "duration": 3832,
-    "type": "youtube",
-    "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg"
+    "time": 0,
+    "volume": 1,
+    "speedIndex": 0
   },
   "searchHistory": [
     "bản chất con người",
