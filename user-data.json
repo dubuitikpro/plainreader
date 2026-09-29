@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790692236168,
+  "lastUpdated": 1790692539459,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -158,10 +158,10 @@
       "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
       "trackIndex": 0,
       "trackTitle": "1",
-      "currentTime": 304,
+      "currentTime": 622,
       "duration": 1233,
-      "percent": 25,
-      "updatedAt": 1790692220494
+      "percent": 50,
+      "updatedAt": 1790692539202
     }
   },
   "audioBookmarks": [
@@ -184,15 +184,16 @@
     "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
     "type": "archive",
     "trackIndex": 0,
-    "time": 304,
+    "time": 622,
     "volume": 1,
     "speedIndex": 0
   },
   "searchHistory": [
-    "Tâm Lý Học Về Tiền",
+    "lolita",
     "48 Nguyên Tắc Chủ Chốt Của Quyền Lực",
     "đắc nhân tâm",
     "bản chất con người",
+    "tâm lý học về tiền",
     "48 nguyên tắc của quyền lực",
     "mặt dày tâm đen"
   ]
