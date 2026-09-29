@@ -988,14 +988,16 @@
     });
 
     // Quick tags: open the full category page directly
-    quickTags.addEventListener('click', (e) => {
-        const tag = e.target.closest('.quick-tag');
-        if (!tag) return;
-        const catId = tag.dataset.cat;
-        if (!catId) return;
+    if (quickTags) {
+        quickTags.addEventListener('click', (e) => {
+            const tag = e.target.closest('.quick-tag');
+            if (!tag) return;
+            const catId = tag.dataset.cat;
+            if (!catId) return;
 
-        openCategoryPage(catId);
-    });
+            openCategoryPage(catId);
+        });
+    }
 
     btnBackToExplore.addEventListener('click', () => {
         showExploreDefault();
