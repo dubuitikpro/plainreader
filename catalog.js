@@ -2331,14 +2331,18 @@
                 if (btnYoutube) btnYoutube.classList.remove('active');
                 if (searchInput) {
                     searchInput.placeholder = 'Tìm theo tên tác phẩm, tác giả trên Web Archive (Mặt dày tâm đen, Đắc nhân tâm, Tam quốc...)';
-                    searchInput.value = '';
                 }
                 if (searchBtn) {
                     const span = searchBtn.querySelector('span');
                     if (span) span.textContent = 'Tìm sách Archive';
                 }
-                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
-                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+                const currentQuery = searchInput ? searchInput.value.trim() : '';
+                if (currentQuery) {
+                    searchAudiobooks(currentQuery);
+                } else {
+                    if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
+                    renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+                }
             });
         }
 
@@ -2351,14 +2355,18 @@
                 if (btnArchive) btnArchive.classList.remove('active');
                 if (searchInput) {
                     searchInput.placeholder = 'Tìm sách nói, podcast trên YouTube Music hoặc dán link/ID video...';
-                    searchInput.value = '';
                 }
                 if (searchBtn) {
                     const span = searchBtn.querySelector('span');
                     if (span) span.textContent = 'Tìm YouTube';
                 }
-                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)';
-                renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+                const currentQuery = searchInput ? searchInput.value.trim() : '';
+                if (currentQuery) {
+                    searchYoutubeAudiobooks(currentQuery);
+                } else {
+                    if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)';
+                    renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
+                }
             });
         }
     }
