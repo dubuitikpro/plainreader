@@ -4406,7 +4406,7 @@
         }
     }
 
-    // Connect Open Library Book to Audiobook (Prioritize Web Archive first, then YouTube Music fallback)
+    // Connect Open Library Book to Audiobook (Search only, without auto-playing)
     async function findAndPlayAudiobook(book) {
         if (!book) return;
 
@@ -4433,7 +4433,7 @@
         if (archiveMatch) {
             if (audioSearchInput) audioSearchInput.value = archiveMatch.title;
             showToast(`Tìm thấy sách nói trên Web Archive: ${archiveMatch.title}`);
-            loadAndPlayAudiobook(archiveMatch.identifier, null, true, null);
+            await searchAudiobooks(archiveMatch.title, false);
             return;
         }
 
@@ -4462,7 +4462,7 @@
 
         let archiveResults = [];
         for (const term of candidateTerms) {
-            archiveResults = await searchAudiobooks(term, true);
+            archiveResults = await searchAudiobooks(term, false);
             if (archiveResults && archiveResults.length > 0) {
                 showToast(`Tìm thấy ${archiveResults.length} sách nói trên Web Archive`);
                 return;
@@ -4484,8 +4484,9 @@
         });
 
         if (ytMatch) {
+            if (audioSearchInput) audioSearchInput.value = ytMatch.title;
             showToast(`Tìm thấy sách nói trên YouTube: ${ytMatch.title}`);
-            loadAndPlayYoutube(ytMatch, 0, true);
+            await searchYoutubeAudiobooks(ytMatch.title);
             return;
         }
 
