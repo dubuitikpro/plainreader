@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790692719073,
+  "lastUpdated": 1790692790062,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -158,10 +158,23 @@
       "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
       "trackIndex": 0,
       "trackTitle": "1",
-      "currentTime": 802,
+      "currentTime": 838,
       "duration": 1233,
-      "percent": 65,
-      "updatedAt": 1790692718949
+      "percent": 68,
+      "updatedAt": 1790692755085
+    },
+    "di-tim-le-song.sna": {
+      "identifier": "di-tim-le-song.sna",
+      "type": "archive",
+      "title": "Đi Tìm Lẽ Sống - sachnoi.app",
+      "author": "Viktor Emil Frankl",
+      "cover": "https://archive.org/services/img/di-tim-le-song.sna",
+      "trackIndex": 0,
+      "trackTitle": "GioiThieu DiTimLeSong",
+      "currentTime": 30,
+      "duration": 833,
+      "percent": 4,
+      "updatedAt": 1790692789863
     }
   },
   "audioBookmarks": [
@@ -179,16 +192,17 @@
       "createdAt": 1790665644124
     }
   ],
-  "lastPlayedId": "48-nguyen-tac-chu-chot-cua-quyen-luc",
+  "lastPlayedId": "di-tim-le-song.sna",
   "audioState": {
-    "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
+    "identifier": "di-tim-le-song.sna",
     "type": "archive",
     "trackIndex": 0,
-    "time": 802,
+    "time": 30,
     "volume": 1,
     "speedIndex": 0
   },
   "searchHistory": [
+    "đi tìm lẽ sống",
     "lolita",
     "48 Nguyên Tắc Chủ Chốt Của Quyền Lực",
     "đắc nhân tâm",
