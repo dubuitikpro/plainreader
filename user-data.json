@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790695001872,
+  "lastUpdated": 1790695040905,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -158,10 +158,10 @@
       "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
       "trackIndex": 1,
       "trackTitle": "2",
-      "currentTime": 496,
+      "currentTime": 536,
       "duration": 1410,
-      "percent": 35,
-      "updatedAt": 1790695000844
+      "percent": 38,
+      "updatedAt": 1790695040743
     },
     "di-tim-le-song.sna": {
       "identifier": "di-tim-le-song.sna",
@@ -197,7 +197,7 @@
     "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
     "type": "archive",
     "trackIndex": 1,
-    "time": 496,
+    "time": 536,
     "volume": 1,
     "speedIndex": 0
   },
