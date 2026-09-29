@@ -3819,54 +3819,68 @@ a { color: inherit; text-decoration: none; }
     box-shadow: 0 6px 18px rgba(108, 92, 231, 0.5);
 }
 
-.sync-tabs {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 8px !important;
-    overflow-x: auto !important;
-    padding-bottom: 10px !important;
-    margin-bottom: 18px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    width: 100% !important;
-    flex-shrink: 0 !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
+.sync-sub-msg {
+    margin: 10px 0 14px 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    font-size: 0.84rem;
+    line-height: 1.5;
 }
 
-.sync-tabs::-webkit-scrollbar {
-    height: 4px;
+.sync-sub-msg strong {
+    color: #fff;
 }
 
-.sync-tabs::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
+.sync-info-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
 }
 
-.sync-tab-btn {
-    padding: 8px 14px !important;
-    border-radius: 8px !important;
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
-    color: var(--text-secondary, #9ca3af) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    transition: all 0.2s ease !important;
-    flex-shrink: 0 !important;
+.sync-info-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.86rem;
 }
 
-.sync-tab-btn:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+.sync-info-label {
+    color: var(--text-secondary, #9ca3af);
+    font-weight: 500;
 }
 
-.sync-tab-btn.active {
-    color: #fff !important;
-    background: rgba(108, 92, 231, 0.35) !important;
-    border-color: rgba(108, 92, 231, 0.6) !important;
-    font-weight: 600 !important;
+.sync-info-value {
+    background: rgba(108, 92, 231, 0.15);
+    color: #a29bfe;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.84rem;
+    font-family: monospace;
+    border: 1px solid rgba(108, 92, 231, 0.3);
+}
+
+.sync-info-tag {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sync-backup-box {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 14px;
 }
 
 .sync-field-label {
@@ -3874,72 +3888,7 @@ a { color: inherit; text-decoration: none; }
     font-size: 0.83rem;
     font-weight: 600;
     color: var(--text-secondary, #9ca3af);
-    margin: 14px 0 6px 0;
-}
-
-.sync-input {
-    width: 100%;
-    padding: 11px 14px;
-    border-radius: 9px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #fff;
-    font-size: 0.88rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
-}
-
-.sync-input:focus {
-    border-color: #6c5ce7;
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
-}
-
-.sync-help-text {
-    font-size: 0.82rem;
-    color: var(--text-muted, #94a3b8);
-    line-height: 1.55;
-    margin: 10px 0 18px 0;
-}
-
-.sync-help-text a {
-    color: #a29bfe;
-    text-decoration: underline;
-    font-weight: 500;
-}
-
-.sync-help-text code {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.82em;
-    color: #00cec9;
-}
-
-.sync-save-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, #00b894, #00cec9);
-    border: none;
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 14px rgba(0, 184, 148, 0.3);
-}
-
-.sync-save-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(0, 184, 148, 0.45);
-}
-
-.backup-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 14px;
+    margin-bottom: 8px;
 }
 
 .upload-btn {
