@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790656393091,
+  "lastUpdated": 1790656396093,
   "wishlist": [],
   "favorites": [
     {
@@ -54,10 +54,10 @@
       "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 9,
+      "currentTime": 12,
       "duration": 4645,
       "percent": 0,
-      "updatedAt": 1790656391087
+      "updatedAt": 1790656394091
     }
   },
   "audioBookmarks": [
@@ -80,7 +80,7 @@
     "identifier": "yt_IBh60rV9ue0",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 9,
+    "time": 12,
     "volume": 1,
     "speedIndex": 0
   },
