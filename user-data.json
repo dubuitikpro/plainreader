@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790692790062,
+  "lastUpdated": 1790692996702,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -158,10 +158,10 @@
       "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
       "trackIndex": 0,
       "trackTitle": "1",
-      "currentTime": 838,
+      "currentTime": 856,
       "duration": 1233,
-      "percent": 68,
-      "updatedAt": 1790692755085
+      "percent": 69,
+      "updatedAt": 1790692996189
     },
     "di-tim-le-song.sna": {
       "identifier": "di-tim-le-song.sna",
@@ -171,10 +171,10 @@
       "cover": "https://archive.org/services/img/di-tim-le-song.sna",
       "trackIndex": 0,
       "trackTitle": "GioiThieu DiTimLeSong",
-      "currentTime": 30,
+      "currentTime": 216,
       "duration": 833,
-      "percent": 4,
-      "updatedAt": 1790692789863
+      "percent": 26,
+      "updatedAt": 1790692976002
     }
   },
   "audioBookmarks": [
@@ -192,19 +192,19 @@
       "createdAt": 1790665644124
     }
   ],
-  "lastPlayedId": "di-tim-le-song.sna",
+  "lastPlayedId": "48-nguyen-tac-chu-chot-cua-quyen-luc",
   "audioState": {
-    "identifier": "di-tim-le-song.sna",
+    "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
     "type": "archive",
     "trackIndex": 0,
-    "time": 30,
+    "time": 856,
     "volume": 1,
     "speedIndex": 0
   },
   "searchHistory": [
+    "48 Nguyên Tắc Chủ Chốt Của Quyền Lực",
     "đi tìm lẽ sống",
     "lolita",
-    "48 Nguyên Tắc Chủ Chốt Của Quyền Lực",
     "đắc nhân tâm",
     "bản chất con người",
     "tâm lý học về tiền",
