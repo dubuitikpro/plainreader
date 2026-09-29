@@ -133,13 +133,58 @@
                 const gistId = (config.githubGistId || '').trim();
                 if (!token) throw new Error('Chưa nhập GitHub Token');
 
-                const files = {
-                    'plainreader-sync.json': {
-                        content: JSON.stringify(payload, null, 2)
-                    }
-                };
+                const isRepoMode = token.startsWith('github_pat_') || !gistId;
 
-                if (gistId) {
+                if (isRepoMode) {
+                    const repo = config.githubRepo || 'dubuitikpro/plainreader';
+                    const fileUrl = `https://api.github.com/repos/${repo}/contents/user-data.json`;
+                    let sha = '';
+                    try {
+                        const getRes = await fetch(fileUrl, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/vnd.github+json',
+                                'User-Agent': 'PlainReader'
+                            }
+                        });
+                        if (getRes.ok) {
+                            const cur = await getRes.json();
+                            sha = cur.sha;
+                        }
+                    } catch { /* ignore */ }
+
+                    const jsonStr = JSON.stringify(payload, null, 2);
+                    const contentBase64 = btoa(unescape(encodeURIComponent(jsonStr)));
+
+                    const putRes = await fetch(fileUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/vnd.github+json',
+                            'Content-Type': 'application/json',
+                            'User-Agent': 'PlainReader'
+                        },
+                        body: JSON.stringify({
+                            message: 'sync: update user-data.json (PlainReader)',
+                            content: contentBase64,
+                            ...(sha ? { sha } : {})
+                        })
+                    });
+
+                    if (!putRes.ok) {
+                        const err = await putRes.json().catch(() => ({}));
+                        if (putRes.status === 403) {
+                            throw new Error('Token chưa được cấp quyền "Contents: Read and write". Vui lòng vào GitHub bật quyền Read and Write cho Contents.');
+                        }
+                        throw new Error(err.message || ('GitHub Repo HTTP ' + putRes.status));
+                    }
+                } else {
+                    const files = {
+                        'plainreader-sync.json': {
+                            content: JSON.stringify(payload, null, 2)
+                        }
+                    };
+
                     const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
                         method: 'PATCH',
                         headers: {
@@ -150,26 +195,6 @@
                         body: JSON.stringify({ files })
                     });
                     if (!resp.ok) throw new Error('GitHub Gist update error ' + resp.status);
-                } else {
-                    const resp = await fetch('https://api.github.com/gists', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/vnd.github+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            description: 'PlainReader Cloud Sync Data',
-                            public: false,
-                            files
-                        })
-                    });
-                    if (!resp.ok) throw new Error('GitHub Gist create error ' + resp.status);
-                    const newGist = await resp.json();
-                    if (newGist.id) {
-                        config.githubGistId = newGist.id;
-                        saveConfig();
-                    }
                 }
 
             } else if (config.provider === 'jsonbin') {
@@ -235,17 +260,39 @@
             } else if (config.provider === 'github') {
                 const token = (config.githubToken || '').trim();
                 const gistId = (config.githubGistId || '').trim();
-                if (!gistId) return;
+                const isRepoMode = token.startsWith('github_pat_') || !gistId;
 
-                const headers = { 'Accept': 'application/vnd.github+json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+                if (isRepoMode) {
+                    const repo = config.githubRepo || 'dubuitikpro/plainreader';
+                    const headers = {
+                        'Accept': 'application/vnd.github+json',
+                        'User-Agent': 'PlainReader'
+                    };
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                const resp = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
-                if (!resp.ok) throw new Error('GitHub Gist fetch error ' + resp.status);
-                const gist = await resp.json();
-                const file = gist.files && gist.files['plainreader-sync.json'];
-                if (file && file.content) {
-                    remoteData = JSON.parse(file.content);
+                    const resp = await fetch(`https://api.github.com/repos/${repo}/contents/user-data.json?t=` + Date.now(), { headers });
+                    if (resp.ok) {
+                        const fileData = await resp.json();
+                        if (fileData.content) {
+                            const decoded = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
+                            remoteData = JSON.parse(decoded);
+                        }
+                    } else {
+                        // Fallback to static site file
+                        const rawResp = await fetch('user-data.json?v=' + Date.now());
+                        if (rawResp.ok) remoteData = await rawResp.json();
+                    }
+                } else {
+                    const headers = { 'Accept': 'application/vnd.github+json' };
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                    const resp = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+                    if (!resp.ok) throw new Error('GitHub Gist fetch error ' + resp.status);
+                    const gist = await resp.json();
+                    const file = gist.files && gist.files['plainreader-sync.json'];
+                    if (file && file.content) {
+                        remoteData = JSON.parse(file.content);
+                    }
                 }
 
             } else if (config.provider === 'jsonbin') {
