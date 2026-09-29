@@ -1,17 +1,8 @@
 {
   "version": 1,
-  "lastUpdated": 1790656396093,
+  "lastUpdated": 1790656407046,
   "wishlist": [],
-  "favorites": [
-    {
-      "key": "/works/OL21640039W",
-      "title": "The Psychology of Money",
-      "titleVi": "Tâm Lý Học Về Tiền",
-      "author": "Morgan Housel",
-      "cover": "https://covers.openlibrary.org/b/id/10523455-M.jpg",
-      "year": 2020
-    }
-  ],
+  "favorites": [],
   "audioProgress": {
     "tam-ly-hoc-ve-tien": {
       "trackIndex": 0,
@@ -54,10 +45,10 @@
       "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 12,
+      "currentTime": 16,
       "duration": 4645,
       "percent": 0,
-      "updatedAt": 1790656394091
+      "updatedAt": 1790656397539
     }
   },
   "audioBookmarks": [
@@ -80,7 +71,7 @@
     "identifier": "yt_IBh60rV9ue0",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 12,
+    "time": 16,
     "volume": 1,
     "speedIndex": 0
   },
