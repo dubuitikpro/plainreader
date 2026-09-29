@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790691945599,
+  "lastUpdated": 1790692220675,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -158,10 +158,10 @@
       "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
       "trackIndex": 0,
       "trackTitle": "1",
-      "currentTime": 30,
+      "currentTime": 304,
       "duration": 1233,
-      "percent": 2,
-      "updatedAt": 1790691945443
+      "percent": 25,
+      "updatedAt": 1790692220494
     }
   },
   "audioBookmarks": [
@@ -184,7 +184,7 @@
     "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
     "type": "archive",
     "trackIndex": 0,
-    "time": 30,
+    "time": 304,
     "volume": 1,
     "speedIndex": 0
   },
