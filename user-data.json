@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790665564450,
+  "lastUpdated": 1790665567474,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -103,10 +103,10 @@
       "cover": "https://i.ytimg.com/vi/6wbQme0JZkQ/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Sách Nói: Những Quy Luật Của Bản Chất Con Người - Robert Greene",
-      "currentTime": 18,
+      "currentTime": 21,
       "duration": 5073,
       "percent": 0,
-      "updatedAt": 1790665562445
+      "updatedAt": 1790665565469
     }
   },
   "audioBookmarks": [
@@ -129,7 +129,7 @@
     "identifier": "yt_6wbQme0JZkQ",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 18,
+    "time": 21,
     "volume": 1,
     "speedIndex": 0
   },
