@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790691328549,
+  "lastUpdated": 1790691331560,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -117,10 +117,10 @@
       "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 4125,
+      "currentTime": 4128,
       "duration": 4644,
       "percent": 89,
-      "updatedAt": 1790691326546
+      "updatedAt": 1790691329546
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
@@ -184,7 +184,7 @@
     "identifier": "yt_IBh60rV9ue0",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 4125,
+    "time": 4128,
     "volume": 1,
     "speedIndex": 0
   },
