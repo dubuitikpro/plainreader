@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790656368116,
+  "lastUpdated": 1790656387093,
   "wishlist": [],
   "favorites": [
     {
@@ -40,19 +40,47 @@
       "cover": "https://archive.org/services/img/nha-gia-kim-sachnoi.cc-2",
       "trackIndex": 0,
       "trackTitle": "Nha Gia Kim sachnoi.cc Phan 1",
-      "currentTime": 0,
+      "currentTime": 10,
       "duration": 2078,
       "percent": 0,
-      "updatedAt": 1790656366115
+      "updatedAt": 1790656379370
+    },
+    "yt_IBh60rV9ue0": {
+      "identifier": "yt_IBh60rV9ue0",
+      "type": "youtube",
+      "videoId": "IBh60rV9ue0",
+      "title": "Book Summary | The Laws of Human Nature",
+      "author": "Mỗi ngày tiến một chút",
+      "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
+      "trackIndex": 0,
+      "trackTitle": "Book Summary | The Laws of Human Nature",
+      "currentTime": 3,
+      "duration": 4645,
+      "percent": 0,
+      "updatedAt": 1790656385088
     }
   },
-  "audioBookmarks": [],
-  "lastPlayedId": "nha-gia-kim-sachnoi.cc-2",
+  "audioBookmarks": [
+    {
+      "id": "bm_1790656382694_365",
+      "identifier": "yt_IBh60rV9ue0",
+      "type": "youtube",
+      "videoId": "IBh60rV9ue0",
+      "bookTitle": "Book Summary | The Laws of Human Nature",
+      "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
+      "trackIndex": 0,
+      "trackTitle": "Book Summary | The Laws of Human Nature",
+      "time": 1,
+      "timeFormatted": "00:01",
+      "createdAt": 1790656382694
+    }
+  ],
+  "lastPlayedId": "yt_IBh60rV9ue0",
   "audioState": {
-    "identifier": "nha-gia-kim-sachnoi.cc-2",
-    "type": "archive",
+    "identifier": "yt_IBh60rV9ue0",
+    "type": "youtube",
     "trackIndex": 0,
-    "time": 0,
+    "time": 3,
     "volume": 1,
     "speedIndex": 0
   },
