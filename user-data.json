@@ -1,8 +1,52 @@
 {
   "version": 1,
-  "lastUpdated": 1790656417087,
-  "wishlist": [],
-  "favorites": [],
+  "lastUpdated": 1790656420305,
+  "wishlist": [
+    {
+      "key": "/works/OL19761410W",
+      "title": "The Laws of Human Nature",
+      "originalTitle": "The Laws of Human Nature",
+      "titleVi": "Quy luật của bản chất con người",
+      "author": "Robert Greene",
+      "coverId": 10170095,
+      "coverEditionKey": "OL28238975M",
+      "year": 2018,
+      "subjects": [
+        "Self-actualization (Psychology)",
+        "Motivation (Psychology)",
+        "Self-control",
+        "Success",
+        "nyt:advice-how-to-and-miscellaneous=2018-11-11"
+      ],
+      "language": "eng",
+      "editionCount": 7,
+      "pages": 617,
+      "searchQuery": "bản chất con người"
+    }
+  ],
+  "favorites": [
+    {
+      "key": "/works/OL19761410W",
+      "title": "The Laws of Human Nature",
+      "originalTitle": "The Laws of Human Nature",
+      "titleVi": "Quy luật của bản chất con người",
+      "author": "Robert Greene",
+      "coverId": 10170095,
+      "coverEditionKey": "OL28238975M",
+      "year": 2018,
+      "subjects": [
+        "Self-actualization (Psychology)",
+        "Motivation (Psychology)",
+        "Self-control",
+        "Success",
+        "nyt:advice-how-to-and-miscellaneous=2018-11-11"
+      ],
+      "language": "eng",
+      "editionCount": 7,
+      "pages": 617,
+      "searchQuery": "bản chất con người"
+    }
+  ],
   "audioProgress": {
     "tam-ly-hoc-ve-tien": {
       "trackIndex": 0,
