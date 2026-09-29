@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=5.2">
+    <link rel="stylesheet" href="catalog.css?v=5.3">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -119,6 +119,16 @@
                         <span class="tab-badge-audio">Audio</span>
                     </div>
                     <span class="tab-label">Sách nói</span>
+                </button>
+                <button class="tab" data-tab="history" id="tabHistory" role="tab" aria-selected="false" title="Tiến trình & Lịch sử nghe">
+                    <div class="tab-icon-wrap">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span class="tab-count" id="audioHistoryCount">0</span>
+                    </div>
+                    <span class="tab-label">Đang nghe</span>
                 </button>
             </div>
         </div>
@@ -320,6 +330,52 @@
             <div class="audiobooks-loading" id="audiobooksLoading" style="display:none;">
                 <div class="catalog-spinner"></div>
                 <p>Đang tải danh sách sách nói từ Internet Archive...</p>
+            </div>
+        </div>
+
+        <!-- Audio History / In-Progress Tab Content -->
+        <div class="tab-content" id="contentHistory">
+            <div class="history-page-header">
+                <div class="history-header-left">
+                    <div class="history-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>Tự Động Đồng Bộ GitHub</span>
+                    </div>
+                    <h2 class="history-page-title">Tiến Trình & Lịch Sử Nghe Sách Nói</h2>
+                    <p class="history-page-subtitle">
+                        Toàn bộ các cuốn sách bạn đang nghe dở, tiến độ %, vị trí phút giây và các điểm đánh dấu bookmark đều được lưu lại và tự động nạp trên mọi thiết bị.
+                    </p>
+                </div>
+                <div class="history-header-actions" id="historyHeaderActions" style="display: none;">
+                    <button id="btnClearAllHistory" class="btn-clear-history" title="Xóa toàn bộ tiến trình nghe">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Xóa tất cả tiến trình
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="historyEmpty" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <h3>Chưa có sách nào đang nghe dở</h3>
+                <p>Khi bạn nghe bất kỳ cuốn sách nói nào từ Web Archive hoặc YouTube, vị trí dừng và tiến trình sẽ tự động xuất hiện tại đây.</p>
+                <button class="btn-explore-audio-jump" id="btnExploreAudiobooks" type="button">
+                    🎧 Khám phá sách nói ngay
+                </button>
+            </div>
+
+            <!-- In-Progress Audiobooks Grid -->
+            <div class="history-cards-grid" id="historyGrid">
+                <!-- In-progress cards rendered dynamically -->
             </div>
         </div>
 
@@ -784,6 +840,6 @@
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="sync.js?v=5.1"></script>
-    <script src="catalog.js?v=5.2"></script>
+    <script src="catalog.js?v=5.3"></script>
 </body>
 </html>
