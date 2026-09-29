@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790665643690,
+  "lastUpdated": 1790665646712,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -89,10 +89,10 @@
       "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 2010,
+      "currentTime": 2013,
       "duration": 4644,
       "percent": 43,
-      "updatedAt": 1790665641687
+      "updatedAt": 1790665644709
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
@@ -123,13 +123,27 @@
       "updatedAt": 1790665588866
     }
   },
-  "audioBookmarks": [],
+  "audioBookmarks": [
+    {
+      "id": "bm_1790665644124_242",
+      "identifier": "yt_IBh60rV9ue0",
+      "type": "youtube",
+      "videoId": "IBh60rV9ue0",
+      "bookTitle": "Book Summary | The Laws of Human Nature",
+      "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
+      "trackIndex": 0,
+      "trackTitle": "Book Summary | The Laws of Human Nature",
+      "time": 2013,
+      "timeFormatted": "33:33",
+      "createdAt": 1790665644124
+    }
+  ],
   "lastPlayedId": "yt_IBh60rV9ue0",
   "audioState": {
     "identifier": "yt_IBh60rV9ue0",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 2010,
+    "time": 2013,
     "volume": 1,
     "speedIndex": 0
   },
