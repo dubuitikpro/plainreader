@@ -102,6 +102,7 @@
     const modalBtnFavorite = document.getElementById('modalBtnFavorite');
     const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
     const modalBtnAnnaArchive = document.getElementById('modalBtnAnnaArchive');
+    const modalBtnAnnaArchiveEn = document.getElementById('modalBtnAnnaArchiveEn');
     const modalOriginalTitle = document.getElementById('modalOriginalTitle');
     const modalOriginalTitleText = document.getElementById('modalOriginalTitleText');
     const btnToggleOrigDesc = document.getElementById('btnToggleOrigDesc');
@@ -954,12 +955,24 @@
         const olUrl = `${OL_BASE}${book.key}`;
         modalBtnOpenLibrary.href = olUrl;
 
-        // Anna's Archive search link (searches original title & author for EPUB/PDF files)
-        const searchTitle = book.originalTitle || book.title || '';
-        const searchAuthor = (book.author && book.author !== 'Tác giả chưa rõ') ? book.author : '';
-        const annaQuery = `${searchTitle} ${searchAuthor}`.trim();
+        // Anna's Archive search link (using working .gl mirror and ?q=...&check=1 syntax)
+        const primarySearchTitle = (displayTitle || book.title || '').trim();
+        const cleanAnnaTitle = primarySearchTitle.replace(/[\(\[\{].*?[\)\]\}]/g, '').trim() || primarySearchTitle;
+        const annaQuery = encodeURIComponent(cleanAnnaTitle).replace(/%20/g, '+');
         if (modalBtnAnnaArchive) {
-            modalBtnAnnaArchive.href = `https://annas-archive.org/search?q=${encodeURIComponent(annaQuery)}`;
+            modalBtnAnnaArchive.href = `https://annas-archive.gl/search?q=${annaQuery}&check=1`;
+        }
+
+        // Optional link for original English title if different
+        if (modalBtnAnnaArchiveEn) {
+            if (originalTitle && originalTitle.toLowerCase() !== cleanAnnaTitle.toLowerCase()) {
+                const cleanOrigTitle = originalTitle.replace(/[\(\[\{].*?[\)\]\}]/g, '').trim() || originalTitle;
+                const origQuery = encodeURIComponent(cleanOrigTitle).replace(/%20/g, '+');
+                modalBtnAnnaArchiveEn.href = `https://annas-archive.gl/search?q=${origQuery}&check=1`;
+                modalBtnAnnaArchiveEn.style.display = 'inline-flex';
+            } else {
+                modalBtnAnnaArchiveEn.style.display = 'none';
+            }
         }
 
         // Show modal

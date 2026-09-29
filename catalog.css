@@ -1616,6 +1616,22 @@ a { color: inherit; text-decoration: none; }
     transform: translateY(-2px);
 }
 
+.modal-action-btn.anna-btn-en {
+    background: rgba(162, 155, 254, 0.08);
+    border: 1px dashed rgba(162, 155, 254, 0.45);
+    color: #a29bfe;
+    font-size: 0.8rem;
+    padding: 7px 12px;
+}
+
+.modal-action-btn.anna-btn-en:hover {
+    background: rgba(162, 155, 254, 0.22);
+    border-style: solid;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(162, 155, 254, 0.3);
+}
+
 /* Audio Hero Card */
 .audio-hero-card {
     background: linear-gradient(135deg, rgba(108, 92, 231, 0.12), rgba(9, 132, 227, 0.08) 60%, rgba(0, 206, 201, 0.12));
