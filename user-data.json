@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790665587504,
+  "lastUpdated": 1790665590867,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -117,10 +117,10 @@
       "cover": "https://i.ytimg.com/vi/5rThdkWrCVM/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "SUMMARY OF THE BOOK THE LAWS OF HUMAN NATURE | GOOD TALKING BOOK",
-      "currentTime": 0,
+      "currentTime": 4,
       "duration": 1418,
       "percent": 0,
-      "updatedAt": 1790665585500
+      "updatedAt": 1790665588866
     }
   },
   "audioBookmarks": [
@@ -143,7 +143,7 @@
     "identifier": "yt_5rThdkWrCVM",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 0,
+    "time": 4,
     "volume": 1,
     "speedIndex": 0
   },
