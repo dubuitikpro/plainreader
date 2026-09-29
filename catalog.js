@@ -206,9 +206,28 @@
     function saveToStorage(key, data) {
         try {
             localStorage.setItem(key, JSON.stringify(data));
+            if (window.PlainSync && typeof window.PlainSync.schedulePush === 'function') {
+                window.PlainSync.schedulePush();
+            }
         } catch (e) {
             console.warn('Storage save failed:', e);
         }
+    }
+
+    function saveSearchKeyword(q) {
+        if (!q || !q.trim()) return;
+        const trimmed = q.trim();
+        let history = loadFromStorage('plainreader-search-history', []);
+        history = [trimmed, ...history.filter(item => item.toLowerCase() !== trimmed.toLowerCase())].slice(0, 25);
+        saveToStorage('plainreader-search-history', history);
+        renderSearchHistoryDatalist(history);
+    }
+
+    function renderSearchHistoryDatalist(historyList) {
+        const datalist = document.getElementById('searchHistoryList');
+        if (!datalist) return;
+        const list = historyList || loadFromStorage('plainreader-search-history', []);
+        datalist.innerHTML = list.map(q => `<option value="${escapeHtml(q)}"></option>`).join('');
     }
 
     function formatRelativeDate(ts) {
@@ -1061,6 +1080,7 @@
 
         currentQuery = trimmed;
         currentPage = page;
+        saveSearchKeyword(trimmed);
 
         // CRITICAL FIX FOR SAFARI / TABS: Ensure Explore tab is active to display search results
         switchTab('explore');
@@ -2693,6 +2713,7 @@
     // Search Audiobooks on Internet Archive
     async function searchAudiobooks(query, autoPlayFirst = false) {
         const q = (query || '').trim();
+        if (q) saveSearchKeyword(q);
         if (!q) {
             renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
             return CURATED_AUDIOBOOKS;
@@ -2820,6 +2841,7 @@
     // Search Audiobooks on YouTube Music (Invidious CORS API & Direct Link)
     async function searchYoutubeAudiobooks(query) {
         const q = (query || '').trim();
+        if (q) saveSearchKeyword(q);
         if (!q) {
             renderAudiobooksGrid(CURATED_YOUTUBE_AUDIOBOOKS, 'youtube');
             return CURATED_YOUTUBE_AUDIOBOOKS;
@@ -4479,6 +4501,22 @@
     loadRecommendations();
     initSavedAudioState();
     renderAudioContinueSection();
+
+    // Sync Engine initialization
+    if (window.PlainSync && typeof window.PlainSync.init === 'function') {
+        window.PlainSync.init((newData) => {
+            wishlist = loadFromStorage(STORAGE_WISHLIST, []);
+            favorites = loadFromStorage(STORAGE_FAVORITES, []);
+            updateCounts();
+            refreshAllViews();
+            renderAudioContinueSection();
+            if (typeof updateBookmarkList === 'function') {
+                updateBookmarkList();
+            }
+            renderSearchHistoryDatalist();
+        });
+    }
+    renderSearchHistoryDatalist();
 
 })();
 

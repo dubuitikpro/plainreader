@@ -3618,3 +3618,312 @@ a { color: inherit; text-decoration: none; }
         min-width: 36px;
     }
 }
+
+/* ========================================
+   Cloud Sync (Header Button & Modal)
+   ======================================== */
+.nav-sync-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-secondary, #a0a0b0);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-sync-btn:hover {
+    background: rgba(108, 92, 231, 0.2);
+    border-color: rgba(108, 92, 231, 0.45);
+    color: var(--text-primary, #fff);
+    transform: translateY(-1px);
+}
+
+.nav-sync-btn svg.sync-icon {
+    transition: transform 0.4s ease;
+}
+
+.nav-sync-btn:hover svg.sync-icon {
+    transform: rotate(45deg);
+}
+
+.sync-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6b7280;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.sync-status-dot.synced {
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+}
+
+.sync-status-dot.syncing {
+    background: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+    animation: syncPulse 1s infinite;
+}
+
+.sync-status-dot.error {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+}
+
+@keyframes syncPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.sync-modal-card {
+    max-width: 600px !important;
+    padding: 0 !important;
+    border-radius: 20px !important;
+    background: #13141f !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(108, 92, 231, 0.15) !important;
+}
+
+.sync-modal-body {
+    padding: 26px !important;
+}
+
+.sync-modal-header {
+    margin-bottom: 20px;
+}
+
+.sync-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-primary, #fff);
+}
+
+.sync-modal-title svg {
+    color: #a29bfe;
+}
+
+.sync-modal-title h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.sync-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary, #9ca3af);
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.sync-status-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.sync-status-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: var(--text-primary, #fff);
+}
+
+.sync-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #6b7280;
+    flex-shrink: 0;
+}
+
+.sync-indicator.synced {
+    background: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+}
+
+.sync-indicator.syncing {
+    background: #f59e0b;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+    animation: syncPulse 1s infinite;
+}
+
+.sync-indicator.error {
+    background: #ef4444;
+}
+
+.sync-status-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted, #71717a);
+    margin: 6px 0 14px 20px;
+}
+
+.sync-actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.sync-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 15px;
+    border-radius: 9px;
+    font-size: 0.86rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-primary, #fff);
+    transition: all 0.2s ease;
+}
+
+.sync-action-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sync-action-btn.primary {
+    background: linear-gradient(135deg, #6c5ce7, #8c7ae6);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.35);
+}
+
+.sync-action-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(108, 92, 231, 0.5);
+}
+
+.sync-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-overflow-scrolling: touch;
+}
+
+.sync-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.sync-tabs::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.sync-tab-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-secondary, #9ca3af);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.sync-tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sync-tab-btn.active {
+    color: #fff;
+    background: rgba(108, 92, 231, 0.3);
+    font-weight: 600;
+}
+
+.sync-field-label {
+    display: block;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-secondary, #9ca3af);
+    margin: 14px 0 6px 0;
+}
+
+.sync-input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.sync-input:focus {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+}
+
+.sync-help-text {
+    font-size: 0.82rem;
+    color: var(--text-muted, #94a3b8);
+    line-height: 1.55;
+    margin: 10px 0 18px 0;
+}
+
+.sync-help-text a {
+    color: #a29bfe;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.sync-help-text code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.82em;
+    color: #00cec9;
+}
+
+.sync-save-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    border: none;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(0, 184, 148, 0.3);
+}
+
+.sync-save-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 184, 148, 0.45);
+}
+
+.backup-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.upload-btn {
+    text-align: center;
+}
