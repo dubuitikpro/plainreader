@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790691144146,
+  "lastUpdated": 1790691151142,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -22,6 +22,20 @@
       "editionCount": 7,
       "pages": 617,
       "searchQuery": "bản chất con người"
+    },
+    {
+      "key": "/works/OL1968368W",
+      "title": "The 48 Laws of Power",
+      "originalTitle": "The 48 Laws of Power",
+      "titleVi": "48 định luật quyền lực",
+      "author": "Robert Greene",
+      "coverId": 6424160,
+      "coverEditionKey": "OL24274306M",
+      "year": 1998,
+      "subjects": [],
+      "language": null,
+      "editionCount": 51,
+      "pages": null
     }
   ],
   "favorites": [
@@ -45,6 +59,20 @@
       "editionCount": 7,
       "pages": 617,
       "searchQuery": "bản chất con người"
+    },
+    {
+      "key": "/works/OL1968368W",
+      "title": "The 48 Laws of Power",
+      "originalTitle": "The 48 Laws of Power",
+      "titleVi": "48 định luật quyền lực",
+      "author": "Robert Greene",
+      "coverId": 6424160,
+      "coverEditionKey": "OL24274306M",
+      "year": 1998,
+      "subjects": [],
+      "language": null,
+      "editionCount": 51,
+      "pages": null
     }
   ],
   "audioProgress": {
@@ -89,10 +117,10 @@
       "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 3954,
+      "currentTime": 3960,
       "duration": 4644,
       "percent": 85,
-      "updatedAt": 1790691142139
+      "updatedAt": 1790691148142
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
@@ -121,6 +149,19 @@
       "duration": 1418,
       "percent": 0,
       "updatedAt": 1790665588866
+    },
+    "48-nguyen-tac-chu-chot-cua-quyen-luc": {
+      "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
+      "type": "archive",
+      "title": "48 nguyên tắc chủ chốt của quyền lực",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
+      "trackIndex": 0,
+      "trackTitle": "1",
+      "currentTime": 0,
+      "duration": 1233,
+      "percent": 0,
+      "updatedAt": 1790691149142
     }
   },
   "audioBookmarks": [
@@ -138,16 +179,17 @@
       "createdAt": 1790665644124
     }
   ],
-  "lastPlayedId": "yt_IBh60rV9ue0",
+  "lastPlayedId": "48-nguyen-tac-chu-chot-cua-quyen-luc",
   "audioState": {
-    "identifier": "yt_IBh60rV9ue0",
-    "type": "youtube",
+    "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
+    "type": "archive",
     "trackIndex": 0,
-    "time": 3954,
+    "time": 0,
     "volume": 1,
     "speedIndex": 0
   },
   "searchHistory": [
+    "48 Nguyên Tắc Chủ Chốt Của Quyền Lực",
     "đắc nhân tâm",
     "bản chất con người",
     "tâm lý học về tiền",
