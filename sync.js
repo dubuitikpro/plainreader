@@ -225,12 +225,27 @@
         }
     }
 
-    function schedulePush(delay = 2000) {
+    let lastPushTime = 0;
+    const MIN_PUSH_INTERVAL = 20000; // 20s minimum between automatic background progress pushes
+
+    function schedulePush(delay = 3000, immediate = false) {
         markLocalDataUpdated();
         if (pushTimer) clearTimeout(pushTimer);
-        pushTimer = setTimeout(() => {
+
+        if (immediate) {
+            lastPushTime = Date.now();
             pushToGitHub(false);
-        }, delay);
+            return;
+        }
+
+        const now = Date.now();
+        const timeSince = now - lastPushTime;
+        const waitTime = timeSince < MIN_PUSH_INTERVAL ? Math.max(delay, MIN_PUSH_INTERVAL - timeSince) : delay;
+
+        pushTimer = setTimeout(() => {
+            lastPushTime = Date.now();
+            pushToGitHub(false);
+        }, waitTime);
     }
 
     // =========================================
@@ -327,6 +342,16 @@
 
         // Pull latest from GitHub on page open
         await pullFromGitHub(true);
+
+        // Auto-save on page hide / tab close / screen lock
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                pushToGitHub(false);
+            }
+        });
+        window.addEventListener('beforeunload', () => {
+            pushToGitHub(false);
+        });
 
         initModalEvents();
     }
