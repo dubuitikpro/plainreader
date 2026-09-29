@@ -1988,7 +1988,11 @@
         'man\'s search for meaning': 'Đi Tìm Lẽ Sống',
         'tuesdays with morrie': 'Những Thứ Ba Với Thầy Morrie',
         'quang ganh lo di va vui song': 'Quẳng Gánh Lo Đi Và Vui Sống',
-        'how to stop worrying and start living': 'Quẳng Gánh Lo Đi Và Vui Sống'
+        'how to stop worrying and start living': 'Quẳng Gánh Lo Đi Và Vui Sống',
+        'the psychology of money': 'Tâm Lý Tiền Bạc',
+        'psychology of money': 'Tâm Lý Tiền Bạc',
+        'tam ly tien bac': 'Tâm Lý Tiền Bạc',
+        'tâm lý tiền bạc': 'Tâm Lý Tiền Bạc'
     };
 
     function isVietnamese(str) {
@@ -4104,19 +4108,25 @@
         }
     }
 
-    // Connect Open Library Book to Internet Archive Audiobook (Always in Vietnamese!)
+    // Connect Open Library Book to Audiobook (Prioritize Web Archive first, then YouTube Music fallback)
     async function findAndPlayAudiobook(book) {
         if (!book) return;
 
-        showToast('Đang tìm sách nói tiếng Việt...');
+        showToast('Đang tìm sách nói trên Web Archive...');
 
         // 1. Resolve Vietnamese title
         const viTitle = await resolveVietnameseAudioTitle(book);
         const lowerVi = (viTitle || '').toLowerCase().trim();
         const lowerOrig = (book.originalTitle || book.title || '').toLowerCase().trim();
 
-        // 2. Look for match in Curated YouTube or Archive
-        const ytMatch = CURATED_YOUTUBE_AUDIOBOOKS.find(b => {
+        // 2. Ensure Audio source is switched to Web Archive
+        if (currentAudioSource !== 'archive') {
+            const btnArchive = document.getElementById('btnSourceArchive');
+            if (btnArchive) btnArchive.click();
+        }
+
+        // 3. PRIORITY 1: Check match in Curated Web Archive
+        const archiveMatch = CURATED_AUDIOBOOKS.find(b => {
             const bt = b.title.toLowerCase();
             const bo = (b.originalTitle || '').toLowerCase();
             const aliases = (b.aliases || []).map(a => a.toLowerCase());
@@ -4125,7 +4135,30 @@
                    aliases.some(a => (lowerVi && a.includes(lowerVi)) || (lowerOrig && a.includes(lowerOrig)));
         });
 
-        const archiveMatch = CURATED_AUDIOBOOKS.find(b => {
+        if (archiveMatch) {
+            showToast(`Tìm thấy sách nói trên Web Archive: ${archiveMatch.title}`);
+            loadAndPlayAudiobook(archiveMatch.identifier, null, true, null);
+            return;
+        }
+
+        // 4. PRIORITY 2: Search on Web Archive remote API
+        const searchTerm = viTitle || book.titleVi || book.title;
+        if (audioSearchInput) audioSearchInput.value = searchTerm;
+
+        const archiveResults = await searchAudiobooks(searchTerm, true);
+        if (archiveResults && archiveResults.length > 0) {
+            showToast(`Tìm thấy ${archiveResults.length} sách nói trên Web Archive`);
+            return;
+        }
+
+        // 5. PRIORITY 3: Fallback to YouTube Music if Web Archive has no results
+        showToast(`Không có audio trên Web Archive, đang tìm trên YouTube: "${searchTerm}"`);
+
+        const btnYt = document.getElementById('btnSourceYoutube');
+        if (btnYt) btnYt.click();
+        if (audioSearchInput) audioSearchInput.value = searchTerm;
+
+        const ytMatch = CURATED_YOUTUBE_AUDIOBOOKS.find(b => {
             const bt = b.title.toLowerCase();
             const bo = (b.originalTitle || '').toLowerCase();
             const aliases = (b.aliases || []).map(a => a.toLowerCase());
@@ -4140,28 +4173,7 @@
             return;
         }
 
-        if (archiveMatch) {
-            showToast(`Tìm thấy sách nói tiếng Việt: ${archiveMatch.title}`);
-            loadAndPlayAudiobook(archiveMatch.identifier, null, true, null);
-            return;
-        }
-
-        // 3. Fallback: Search on current source
-        const searchTerm = viTitle || book.titleVi || book.title;
-        if (audioSearchInput) audioSearchInput.value = searchTerm;
-
-        if (currentAudioSource === 'youtube') {
-            searchYoutubeAudiobooks(searchTerm);
-        } else {
-            const results = await searchAudiobooks(searchTerm, true);
-            if (!results || results.length === 0) {
-                // Try searching YouTube as fallback!
-                showToast(`Chưa có audio trên Archive, đang tìm trên YouTube: "${searchTerm}"`);
-                const btnYt = document.getElementById('btnSourceYoutube');
-                if (btnYt) btnYt.click();
-                searchYoutubeAudiobooks(searchTerm);
-            }
-        }
+        await searchYoutubeAudiobooks(searchTerm);
     }
 
     // =========================================
