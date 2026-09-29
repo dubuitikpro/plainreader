@@ -32,6 +32,7 @@
     let wishlist = loadFromStorage(STORAGE_WISHLIST);
     let favorites = loadFromStorage(STORAGE_FAVORITES);
     let currentQuery = '';
+    let currentSearchEnglishQuery = '';
     let currentPage = 1;
     let totalResults = 0;
     let currentModalBook = null;
@@ -323,13 +324,13 @@
     }
 
     // Helper to translate a single text chunk via POST or GET with fallbacks
-    async function requestTranslation(chunk) {
+    async function requestTranslation(chunk, targetLang = 'vi', sourceLang = 'auto') {
         if (!chunk || !chunk.trim()) return chunk;
         const q = chunk.trim();
 
         // 1. Primary: Google Translate GTX via POST (bypasses URL length limits, reliable on iOS Safari WebKit)
         try {
-            const resp = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t', {
+            const resp = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
@@ -349,7 +350,7 @@
 
         // 2. Secondary: Google Translate GTX via GET (fallback for shorter chunks)
         try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(q.slice(0, 1500))}`;
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(q.slice(0, 1500))}`;
             const resp = await fetch(url);
             if (resp.ok) {
                 const data = await resp.json();
@@ -364,7 +365,8 @@
 
         // 3. Tertiary: MyMemory Translation API
         try {
-            const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q.slice(0, 500))}&langpair=en|vi`;
+            const langpair = targetLang === 'en' ? 'vi|en' : 'en|vi';
+            const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q.slice(0, 500))}&langpair=${langpair}`;
             const resp = await fetch(mmUrl);
             if (resp.ok) {
                 const data = await resp.json();
@@ -433,6 +435,158 @@
             return fullTranslated;
         }
         return fullTranslated || clean;
+    }
+
+    // Dictionary mapping Vietnamese book titles and common subjects to canonical English titles
+    const VI_TO_EN_MAP = {
+        // Self-help & Business
+        'đắc nhân tâm': 'How to Win Friends and Influence People',
+        'dac nhan tam': 'How to Win Friends and Influence People',
+        'tâm lý tiền bạc': 'The Psychology of Money',
+        'tam ly tien bac': 'The Psychology of Money',
+        'nhà giả kim': 'The Alchemist',
+        'nha gia kim': 'The Alchemist',
+        'nghĩ giàu làm giàu': 'Think and Grow Rich',
+        'nghi giau lam giau': 'Think and Grow Rich',
+        'cha giàu cha nghèo': 'Rich Dad Poor Dad',
+        'cha giau cha ngheo': 'Rich Dad Poor Dad',
+        'dạy con làm giàu': 'Rich Dad Poor Dad',
+        'day con lam giau': 'Rich Dad Poor Dad',
+        'mặt dày tâm đen': 'Thick Face Black Heart',
+        'mat day tam den': 'Thick Face Black Heart',
+        'sức mạnh tiềm thức': 'The Power of Your Subconscious Mind',
+        'suc manh tiem thuc': 'The Power of Your Subconscious Mind',
+        'thay đổi tí hon': 'Atomic Habits',
+        'thói quen nguyên tử': 'Atomic Habits',
+        '7 thói quen của người thành đạt': 'The 7 Habits of Highly Effective People',
+        'bảy thói quen của người thành đạt': 'The 7 Habits of Highly Effective People',
+        'quẳng gánh lo đi và vui sống': 'How to Stop Worrying and Start Living',
+        'quang ganh lo di va vui song': 'How to Stop Worrying and Start Living',
+        'đi tìm lẽ sống': "Man's Search for Meaning",
+        'di tim le song': "Man's Search for Meaning",
+        'sapiens lược sử loài người': 'Sapiens A Brief History of Humankind',
+        'lược sử loài người': 'Sapiens A Brief History of Humankind',
+        'lược sử thời gian': 'A Brief History of Time',
+        'người giàu có nhất thành babylon': 'The Richest Man in Babylon',
+        'nguoi giau co nhat thanh babylon': 'The Richest Man in Babylon',
+        'những thứ ba với thầy morrie': 'Tuesdays with Morrie',
+
+        // Literature & Classics
+        'bố già': 'The Godfather',
+        'bo gia': 'The Godfather',
+        'hoàng tử bé': 'The Little Prince',
+        'hoang tu be': 'The Little Prince',
+        'binh pháp tôn tử': 'The Art of War',
+        'binh phap ton tu': 'The Art of War',
+        'mật mã da vinci': 'The Da Vinci Code',
+        'mat ma da vinci': 'The Da Vinci Code',
+        'rừng na uy': 'Norwegian Wood',
+        'rung na uy': 'Norwegian Wood',
+        'tội ác và hình phạt': 'Crime and Punishment',
+        'toi ac va hinh phat': 'Crime and Punishment',
+        'gatsby vĩ đại': 'The Great Gatsby',
+        'hai số phận': 'Kane and Abel',
+        'hai so phan': 'Kane and Abel',
+        'không gia đình': "Nobody's Boy",
+        'khong gia dinh': "Nobody's Boy",
+        'những người khốn khổ': 'Les Misérables',
+        'nhung nguoi khon kho': 'Les Misérables',
+        'bá tước monte cristo': 'The Count of Monte Cristo',
+        'ba tuoc monte cristo': 'The Count of Monte Cristo',
+        'ông già và biển cả': 'The Old Man and the Sea',
+        'ong gia va bien ca': 'The Old Man and the Sea',
+        'kiêu hãnh và định kiến': 'Pride and Prejudice',
+        'kieu hanh va dinh kien': 'Pride and Prejudice',
+        'chiến tranh và hòa bình': 'War and Peace',
+        'chien tranh va hoa binh': 'War and Peace',
+        'giết con chim nhại': 'To Kill a Mockingbird',
+        'giet con chim nhai': 'To Kill a Mockingbird',
+        'trại súc vật': 'Animal Farm',
+        'trai suc vat': 'Animal Farm',
+        'một chín tám tư': '1984',
+        'tam quốc diễn nghĩa': 'Romance of the Three Kingdoms',
+        'tam quoc dien nghia': 'Romance of the Three Kingdoms',
+        'thủy hử': 'Water Margin',
+        'thuy hu': 'Water Margin',
+        'tây du ký': 'Journey to the West',
+        'tay du ky': 'Journey to the West',
+
+        // Subjects & Genres
+        'tiểu thuyết': 'Fiction',
+        'tieu thuyet': 'Fiction',
+        'khoa học': 'Science',
+        'khoa hoc': 'Science',
+        'lịch sử': 'History',
+        'lich su': 'History',
+        'triết học': 'Philosophy',
+        'triet hoc': 'Philosophy',
+        'kinh doanh': 'Business',
+        'kinh te': 'Economics',
+        'kinh tế': 'Economics',
+        'tâm lý học': 'Psychology',
+        'tam ly hoc': 'Psychology',
+        'lập trình': 'Programming',
+        'lap trinh': 'Programming',
+        'khoa học máy tính': 'Computer Science',
+        'khoa hoc may tinh': 'Computer Science',
+        'trinh thám': 'Mystery',
+        'trinh tham': 'Mystery',
+        'lãng mạn': 'Romance',
+        'lang man': 'Romance',
+        'giả tưởng': 'Fantasy',
+        'gia tuong': 'Fantasy',
+        'viễn tưởng': 'Science Fiction',
+        'vien tuong': 'Science Fiction',
+        'thiếu nhi': 'Children',
+        'thieu nhi': 'Children',
+        'kinh điển': 'Classics',
+        'kinh dien': 'Classics',
+        'tiểu sử': 'Biography',
+        'tieu su': 'Biography',
+        'nghệ thuật': 'Art',
+        'nghe thuat': 'Art'
+    };
+
+    function isKnownVietnameseTerm(text) {
+        if (!text) return false;
+        const lower = text.toLowerCase().trim();
+        return Object.keys(VI_TO_EN_MAP).some(k => lower === k || lower.includes(k) || k.includes(lower));
+    }
+
+    async function translateToEnglish(text) {
+        if (!text || typeof text !== 'string') return text;
+        const clean = text.trim();
+        if (!clean) return clean;
+
+        const lower = clean.toLowerCase();
+
+        // 1. Direct match in dictionary
+        if (VI_TO_EN_MAP[lower]) {
+            return VI_TO_EN_MAP[lower];
+        }
+
+        // 2. Substring match in dictionary for longer titles
+        for (const [vi, en] of Object.entries(VI_TO_EN_MAP)) {
+            if (lower === vi || (lower.length > 5 && lower.includes(vi))) {
+                return en;
+            }
+        }
+
+        // 3. Cache check
+        const cacheKey = `vi_en:${lower}`;
+        if (translationCache.has(cacheKey)) {
+            return translationCache.get(cacheKey);
+        }
+
+        // 4. Remote API translation to English
+        const translated = await requestTranslation(clean, 'en', 'auto');
+        if (translated && translated.toLowerCase() !== lower) {
+            translationCache.set(cacheKey, translated);
+            saveTranslationCache();
+            return translated;
+        }
+
+        return clean;
     }
 
     async function batchTranslateBooks(books) {
@@ -924,16 +1078,52 @@
         catalogLoading.style.display = 'flex';
 
         try {
-            const result = await searchBooks(currentQuery, currentPage);
+            // Determine English query for Open Library
+            if (page === 1) {
+                currentSearchEnglishQuery = trimmed;
+                if (isVietnamese(trimmed) || isKnownVietnameseTerm(trimmed)) {
+                    showToast('Đang dịch từ khóa sang tiếng Anh để tìm trên Open Library...');
+                    const translated = await translateToEnglish(trimmed);
+                    if (translated && translated.toLowerCase() !== trimmed.toLowerCase()) {
+                        currentSearchEnglishQuery = translated;
+                    }
+                }
+            }
+
+            const queryToSend = currentSearchEnglishQuery || currentQuery;
+            let result = await searchBooks(queryToSend, currentPage);
             totalResults = result.total;
 
-            searchResultsTitle.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                Kết quả cho "${escapeHtml(currentQuery)}"
-            `;
+            const isTranslated = currentSearchEnglishQuery && currentSearchEnglishQuery.toLowerCase() !== currentQuery.toLowerCase();
+
+            // If translated query yielded 0 results, fallback to searching original query
+            if (totalResults === 0 && isTranslated) {
+                try {
+                    const fallbackResult = await searchBooks(currentQuery, currentPage);
+                    if (fallbackResult.total > 0) {
+                        result = fallbackResult;
+                        totalResults = fallbackResult.total;
+                    }
+                } catch { /* ignore fallback error */ }
+            }
+
+            if (isTranslated) {
+                searchResultsTitle.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span>Kết quả cho "<b>${escapeHtml(currentQuery)}</b>" <span style="font-size:0.85em; opacity:0.8; font-weight:400;">(dịch: <i>${escapeHtml(currentSearchEnglishQuery)}</i>)</span></span>
+                `;
+            } else {
+                searchResultsTitle.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Kết quả cho "${escapeHtml(currentQuery)}"
+                `;
+            }
             resultCount.textContent = `${totalResults.toLocaleString()} sách`;
 
             result.books.forEach(book => {
