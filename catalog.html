@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=4.8">
+    <link rel="stylesheet" href="catalog.css?v=4.9">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -702,7 +702,7 @@
     <div id="cloudSyncModal" class="modal-overlay" style="display: none;">
         <div class="modal-card sync-modal-card">
             <button class="modal-close" id="btnCloseSyncModal" title="Đóng">&times;</button>
-            <div class="modal-body sync-modal-body">
+            <div class="sync-modal-body">
                 <div class="sync-modal-header">
                     <div class="sync-modal-title">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
@@ -739,33 +739,33 @@
 
                 <!-- Provider Tabs -->
                 <div class="sync-tabs">
-                    <button class="sync-tab-btn active" data-sync-tab="firebase">Firebase (Google)</button>
-                    <button class="sync-tab-btn" data-sync-tab="github">GitHub Gist</button>
-                    <button class="sync-tab-btn" data-sync-tab="jsonbin">JSONBin.io</button>
-                    <button class="sync-tab-btn" data-sync-tab="qr">Chuyển mã QR</button>
-                    <button class="sync-tab-btn" data-sync-tab="backup">Sao lưu file</button>
+                    <button class="sync-tab-btn active" data-sync-tab="github">🐙 GitHub (Token / Repo)</button>
+                    <button class="sync-tab-btn" data-sync-tab="firebase">🔥 Firebase (Google)</button>
+                    <button class="sync-tab-btn" data-sync-tab="jsonbin">📦 JSONBin.io</button>
+                    <button class="sync-tab-btn" data-sync-tab="qr">📱 Chuyển mã QR</button>
+                    <button class="sync-tab-btn" data-sync-tab="backup">💾 Sao lưu file</button>
+                </div>
+
+                <!-- Tab: GitHub -->
+                <div class="sync-tab-panel active" id="syncTabGithub">
+                    <label class="sync-field-label">GitHub Personal Access Token (PAT):</label>
+                    <input type="password" id="inputGithubToken" class="sync-input" placeholder="Dán mã github_pat_... hoặc ghp_... vào đây">
+                    <label class="sync-field-label" style="display: none;">Gist ID (Tùy chọn):</label>
+                    <input type="text" id="inputGithubGistId" class="sync-input" style="display: none;" placeholder="Tùy chọn: ID Gist đã có">
+                    <p class="sync-help-text">
+                        🐙 <strong>Đồng bộ trực tiếp qua GitHub:</strong> Dán mã token của bạn (ví dụ <code>github_pat_...</code>) vào ô trên rồi bấm <em>Lưu & Kết nối</em>. Hệ thống sẽ tự động đồng bộ dữ liệu vào file <code>user-data.json</code> trên kho GitHub của bạn. Mở web trên máy tính hay điện thoại đều tự động nhận diện!
+                    </p>
+                    <button id="btnSaveGithub" class="sync-save-btn">Lưu & Kết nối GitHub</button>
                 </div>
 
                 <!-- Tab: Firebase -->
-                <div class="sync-tab-panel active" id="syncTabFirebase">
+                <div class="sync-tab-panel" id="syncTabFirebase" style="display: none;">
                     <label class="sync-field-label">Firebase Realtime Database URL:</label>
                     <input type="url" id="inputFirebaseUrl" class="sync-input" placeholder="https://your-app-default-rtdb.firebaseio.com/plainreader.json">
                     <p class="sync-help-text">
                         💡 <strong>Cách tạo cực dễ (miễn phí 100%):</strong> Vào <a href="https://console.firebase.google.com" target="_blank" rel="noopener">Firebase Console</a> &rarr; Tạo dự án &rarr; Build &rarr; Realtime Database &rarr; Tạo cơ sở dữ liệu (chọn Test Mode). Dán URL cơ sở dữ liệu vào ô trên (thêm đuôi <code>/plainreader.json</code>). Bất kỳ thay đổi nào trên PC hay điện thoại sẽ cập nhật ngay tức thì!
                     </p>
                     <button id="btnSaveFirebase" class="sync-save-btn">Lưu & Kết nối Firebase</button>
-                </div>
-
-                <!-- Tab: GitHub Gist -->
-                <div class="sync-tab-panel" id="syncTabGithub" style="display: none;">
-                    <label class="sync-field-label">GitHub Personal Access Token (PAT):</label>
-                    <input type="password" id="inputGithubToken" class="sync-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                    <label class="sync-field-label">Gist ID (Để trống hệ thống sẽ tự động tạo Gist mới):</label>
-                    <input type="text" id="inputGithubGistId" class="sync-input" placeholder="Tùy chọn: ID Gist đã có">
-                    <p class="sync-help-text">
-                        💡 Dùng trực tiếp tài khoản GitHub của bạn: Vào GitHub Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Tokens (classic) &rarr; Tạo token tích chọn quyền <strong>gist</strong>.
-                    </p>
-                    <button id="btnSaveGithub" class="sync-save-btn">Lưu & Kết nối GitHub Gist</button>
                 </div>
 
                 <!-- Tab: JSONBin -->
@@ -810,7 +810,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=4.8"></script>
-    <script src="catalog.js?v=4.8"></script>
+    <script src="sync.js?v=4.9"></script>
+    <script src="catalog.js?v=4.9"></script>
 </body>
 </html>

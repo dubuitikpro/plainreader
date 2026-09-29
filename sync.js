@@ -740,6 +740,14 @@
         const inJbKey = document.getElementById('inputJsonbinKey');
         const autoLabel = document.getElementById('autoSyncLabel');
 
+        // Auto-fix: if user accidentally pasted github token into firebaseUrl
+        if (config.firebaseUrl && (config.firebaseUrl.startsWith('github_pat_') || config.firebaseUrl.startsWith('ghp_'))) {
+            config.githubToken = config.firebaseUrl;
+            config.firebaseUrl = '';
+            config.provider = 'github';
+            saveConfig();
+        }
+
         if (inFb) inFb.value = config.firebaseUrl || '';
         if (inGhTok) inGhTok.value = config.githubToken || '';
         if (inGhGist) inGhGist.value = config.githubGistId || '';
@@ -750,8 +758,8 @@
             autoLabel.style.color = config.autoSync ? '#10b981' : '#ef4444';
         }
 
-        // Active tab matching current provider
-        const prov = config.provider !== 'none' ? config.provider : 'firebase';
+        // Active tab matching current provider (default to github)
+        const prov = config.provider !== 'none' ? config.provider : 'github';
         const tabBtn = document.querySelector(`.sync-tab-btn[data-sync-tab="${prov}"]`);
         if (tabBtn) tabBtn.click();
 

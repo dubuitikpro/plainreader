@@ -3683,20 +3683,29 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sync-modal-card {
-    max-width: 600px !important;
+    max-width: 640px !important;
+    width: 95% !important;
     padding: 0 !important;
     border-radius: 20px !important;
     background: #13141f !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(108, 92, 231, 0.15) !important;
+    overflow: hidden !important;
 }
 
 .sync-modal-body {
-    padding: 26px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 28px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    align-items: stretch !important;
 }
 
 .sync-modal-header {
     margin-bottom: 20px;
+    width: 100%;
 }
 
 .sync-modal-title {
@@ -3730,6 +3739,8 @@ a { color: inherit; text-decoration: none; }
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .sync-status-header {
@@ -3809,13 +3820,17 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sync-tabs {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    -webkit-overflow-scrolling: touch;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 18px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    width: 100% !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
 }
 
 .sync-tabs::-webkit-scrollbar {
@@ -3823,32 +3838,35 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sync-tabs::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
 }
 
 .sync-tab-btn {
-    padding: 7px 14px;
-    border-radius: 8px;
-    font-size: 0.84rem;
-    font-weight: 500;
-    color: var(--text-secondary, #9ca3af);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
+    padding: 8px 14px !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary, #9ca3af) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
 }
 
 .sync-tab-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.06);
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .sync-tab-btn.active {
-    color: #fff;
-    background: rgba(108, 92, 231, 0.3);
-    font-weight: 600;
+    color: #fff !important;
+    background: rgba(108, 92, 231, 0.35) !important;
+    border-color: rgba(108, 92, 231, 0.6) !important;
+    font-weight: 600 !important;
 }
 
 .sync-field-label {
