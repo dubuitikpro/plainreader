@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790733676715,
+  "lastUpdated": 1790734368303,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -157,10 +157,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 1,
       "trackTitle": "track 2 a thich an mac trang suc",
-      "currentTime": 988,
+      "currentTime": 1852,
       "duration": 2027,
-      "percent": 49,
-      "updatedAt": 1790733676704
+      "percent": 91,
+      "updatedAt": 1790734367812
     }
   },
   "audioBookmarks": [
@@ -183,7 +183,7 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 1,
-    "time": 988,
+    "time": 1852,
     "volume": 1,
     "speedIndex": 1
   },
