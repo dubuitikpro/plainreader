@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790729578126,
+  "lastUpdated": 1790729585089,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -148,6 +148,19 @@
       "duration": 833,
       "percent": 26,
       "updatedAt": 1790692976002
+    },
+    "4a26f9254024abe6a7fb3dbda27709a3": {
+      "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
+      "type": "archive",
+      "title": "thuat-yeu-duong",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
+      "trackIndex": 0,
+      "trackTitle": "track 1 loi nha xuat ban",
+      "currentTime": 0,
+      "duration": 3636,
+      "percent": 0,
+      "updatedAt": 1790729584985
     }
   },
   "audioBookmarks": [
@@ -165,12 +178,12 @@
       "createdAt": 1790665644124
     }
   ],
-  "lastPlayedId": "yt_6wbQme0JZkQ",
+  "lastPlayedId": "4a26f9254024abe6a7fb3dbda27709a3",
   "audioState": {
-    "identifier": "yt_6wbQme0JZkQ",
-    "type": "youtube",
+    "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
+    "type": "archive",
     "trackIndex": 0,
-    "time": 48,
+    "time": 0,
     "volume": 1,
     "speedIndex": 0
   },
