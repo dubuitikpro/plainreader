@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790738089358,
+  "lastUpdated": 1790738405769,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -157,10 +157,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 2,
       "trackTitle": "track 3 chuong 3 ai tinh",
-      "currentTime": 1056,
+      "currentTime": 1449,
       "duration": 2867,
-      "percent": 37,
-      "updatedAt": 1790738088590
+      "percent": 51,
+      "updatedAt": 1790738402757
     }
   },
   "audioBookmarks": [
@@ -195,7 +195,7 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 2,
-    "time": 1056,
+    "time": 1449,
     "volume": 0.6,
     "speedIndex": 1
   },
