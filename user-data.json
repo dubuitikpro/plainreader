@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790731075938,
+  "lastUpdated": 1790731080793,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -157,10 +157,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 0,
       "trackTitle": "track 1 loi nha xuat ban",
-      "currentTime": 1382,
+      "currentTime": 1388,
       "duration": 3636,
       "percent": 38,
-      "updatedAt": 1790731075885
+      "updatedAt": 1790731080667
     }
   },
   "audioBookmarks": [
@@ -183,7 +183,7 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 0,
-    "time": 1382,
+    "time": 1388,
     "volume": 1,
     "speedIndex": 1
   },
