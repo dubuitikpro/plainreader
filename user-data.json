@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790729585089,
+  "lastUpdated": 1790729622461,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -157,10 +157,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 0,
       "trackTitle": "track 1 loi nha xuat ban",
-      "currentTime": 0,
+      "currentTime": 42,
       "duration": 3636,
-      "percent": 0,
-      "updatedAt": 1790729584985
+      "percent": 1,
+      "updatedAt": 1790729622206
     }
   },
   "audioBookmarks": [
@@ -183,9 +183,9 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 0,
-    "time": 0,
+    "time": 42,
     "volume": 1,
-    "speedIndex": 0
+    "speedIndex": 1
   },
   "searchHistory": [
     "Thuat Yeu Duong - Nguyen Duy Can",
