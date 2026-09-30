@@ -138,6 +138,14 @@
     // Dedicated Audio Player Modal Elements
     const audioPlayerModal = document.getElementById('audioPlayerModal');
     const playerBookCover = document.getElementById('playerBookCover');
+    const playerMediaWrap = document.getElementById('playerMediaWrap');
+    const playerCoverBox = document.getElementById('playerCoverBox');
+    const playerVisualizerBox = document.getElementById('playerVisualizerBox');
+    const playerWaveformCanvas = document.getElementById('playerWaveformCanvas');
+    const btnToggleVisualizer = document.getElementById('btnToggleVisualizer');
+    const toggleVisualizerText = document.getElementById('toggleVisualizerText');
+    const visualizerStatusPill = document.getElementById('visualizerStatusPill');
+    const visualizerModeLabel = document.getElementById('visualizerModeLabel');
     const playerBookTitle = document.getElementById('playerBookTitle');
     const playerBookAuthor = document.getElementById('playerBookAuthor');
     const playerTotalChaptersBadge = document.getElementById('playerTotalChaptersBadge');
@@ -2509,13 +2517,22 @@
             if (isVideoMode) {
                 if (ytScreen) ytScreen.style.display = 'block';
                 if (coverBox) coverBox.style.display = 'none';
+                if (playerVisualizerBox) playerVisualizerBox.style.display = 'none';
+                stopWaveformVisualizer();
                 if (toggleText) toggleText.textContent = '🎵 Chế độ Audio';
                 if (playerModal) playerModal.classList.add('video-mode-active');
             } else {
                 if (ytScreen) ytScreen.style.display = 'none';
-                if (coverBox) coverBox.style.display = 'block';
-                if (toggleText) toggleText.textContent = '📺 Xem Video';
                 if (playerModal) playerModal.classList.remove('video-mode-active');
+                if (toggleText) toggleText.textContent = '📺 Xem Video';
+                if (isWaveformVisualizerActive) {
+                    if (playerVisualizerBox) playerVisualizerBox.style.display = 'flex';
+                    if (coverBox) coverBox.style.display = 'none';
+                    startWaveformVisualizer();
+                } else {
+                    if (coverBox) coverBox.style.display = 'block';
+                    if (playerVisualizerBox) playerVisualizerBox.style.display = 'none';
+                }
             }
         });
     }
@@ -3432,6 +3449,14 @@
         if (state === 1) { // Playing
             updatePlayPauseIcons(true);
             startYtProgressLoop();
+            const savedPref = localStorage.getItem(STORAGE_AUDIO_VIZ_ENABLED);
+            if (savedPref !== 'false' && !isVideoMode) {
+                if (!isWaveformVisualizerActive) {
+                    setVisualizerState(true);
+                } else {
+                    startWaveformVisualizer();
+                }
+            }
         } else if (state === 2) { // Paused
             updatePlayPauseIcons(false);
             stopYtProgressLoop();
@@ -3840,9 +3865,380 @@
         updatePlaylistActiveState();
     }
 
+    // =========================================
+    // Waveform Graphic Visualizer Engine
+    // =========================================
+    const STORAGE_AUDIO_VIZ_ENABLED = 'plainreader_audio_viz_mode';
+    let isWaveformVisualizerActive = false;
+    let vizAnimFrameId = null;
+    const VIZ_BAR_COUNT = 64;
+    let vizSmoothedAmplitudes = new Float32Array(VIZ_BAR_COUNT);
+    let vizPeakCaps = new Float32Array(VIZ_BAR_COUNT);
+    let vizParticles = [];
+    let vizLastTimestamp = 0;
+    let vizPhase = 0;
+    let vizCurrentActivity = 0;
+
+    function initVisualizerParticles() {
+        vizParticles = [];
+        for (let i = 0; i < 28; i++) {
+            vizParticles.push({
+                x: Math.random(),
+                y: Math.random(),
+                vx: (Math.random() - 0.5) * 0.04,
+                vy: (Math.random() - 0.5) * 0.04,
+                radius: Math.random() * 2 + 0.8,
+                alpha: Math.random() * 0.6 + 0.2,
+                pulse: Math.random() * Math.PI * 2
+            });
+        }
+    }
+
+    function isAudioCurrentlyPlaying() {
+        if (currentAudioType === 'youtube') {
+            return !!(ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 1);
+        }
+        return !audioElement.paused && !!audioElement.src;
+    }
+
+    function drawRoundRect(ctx, x, y, width, height, radius) {
+        if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath();
+            ctx.roundRect(x, y, width, height, radius);
+            return;
+        }
+        ctx.beginPath();
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    function renderWaveformVisualizer(timestamp) {
+        if (!isWaveformVisualizerActive || !playerWaveformCanvas) return;
+
+        // Skip rendering if audio player modal is closed
+        if (audioPlayerModal && audioPlayerModal.style.display === 'none') {
+            vizAnimFrameId = requestAnimationFrame(renderWaveformVisualizer);
+            return;
+        }
+
+        const canvas = playerWaveformCanvas;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            vizAnimFrameId = requestAnimationFrame(renderWaveformVisualizer);
+            return;
+        }
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const targetW = Math.floor(rect.width * dpr);
+        const targetH = Math.floor(rect.height * dpr);
+
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+            canvas.width = targetW;
+            canvas.height = targetH;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const isPlaying = isAudioCurrentlyPlaying();
+        const isYt = currentAudioType === 'youtube';
+        const playbackRate = isYt ? 1.0 : (audioElement.playbackRate || 1.0);
+
+        if (!vizLastTimestamp) vizLastTimestamp = timestamp;
+        const dt = Math.min(0.05, (timestamp - vizLastTimestamp) / 1000 || 0.016);
+        vizLastTimestamp = timestamp;
+
+        // Smooth activity level transition (0.15 = idle breathing, 1.0 = energetic speech response)
+        const targetActivity = isPlaying ? 1.0 : 0.15;
+        vizCurrentActivity += (targetActivity - vizCurrentActivity) * (isPlaying ? 0.12 : 0.05);
+
+        // Advance phase modulated by playback rate
+        vizPhase += dt * (isPlaying ? 2.8 * playbackRate : 0.7);
+
+        // Speech cadence simulation: voice bursts and natural conversational pacing
+        const syllableA = Math.sin(vizPhase * 3.3) * Math.cos(vizPhase * 1.9);
+        const syllableB = Math.sin(vizPhase * 6.1 + 0.8) * Math.sin(vizPhase * 2.7);
+        const voiceCadence = Math.max(0.18, Math.pow(Math.abs(syllableA * 0.55 + syllableB * 0.45), 1.15));
+
+        const w = rect.width;
+        const h = rect.height;
+        const cy = h / 2;
+        const maxBarH = (h / 2) * 0.80;
+
+        ctx.save();
+        ctx.scale(dpr, dpr);
+
+        // 1. Deep Cyber Dark Background
+        ctx.fillStyle = '#06060c';
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. Central Ambient Radial Glow
+        const glowRadius = Math.max(w, h) * 0.65;
+        const bgGlow = ctx.createRadialGradient(w / 2, cy, 10, w / 2, cy, glowRadius);
+        if (isYt) {
+            bgGlow.addColorStop(0, `rgba(255, 71, 87, ${0.28 * vizCurrentActivity})`);
+            bgGlow.addColorStop(0.45, `rgba(180, 20, 45, ${0.12 * vizCurrentActivity})`);
+            bgGlow.addColorStop(1, 'rgba(6, 6, 12, 0)');
+        } else {
+            bgGlow.addColorStop(0, `rgba(0, 206, 201, ${0.32 * vizCurrentActivity})`);
+            bgGlow.addColorStop(0.45, `rgba(108, 92, 231, ${0.15 * vizCurrentActivity})`);
+            bgGlow.addColorStop(1, 'rgba(6, 6, 12, 0)');
+        }
+        ctx.fillStyle = bgGlow;
+        ctx.fillRect(0, 0, w, h);
+
+        // 3. Floating Ambient Micro-particles
+        if (vizParticles.length === 0) initVisualizerParticles();
+        ctx.save();
+        for (let i = 0; i < vizParticles.length; i++) {
+            const p = vizParticles[i];
+            p.x += p.vx * dt * 60 * (isPlaying ? 1.5 : 0.6);
+            p.y += p.vy * dt * 60 * (isPlaying ? 1.5 : 0.6);
+            if (p.x < 0) p.x = 1;
+            if (p.x > 1) p.x = 0;
+            if (p.y < 0) p.y = 1;
+            if (p.y > 1) p.y = 0;
+            p.pulse += dt * (isPlaying ? 3.0 : 1.2);
+
+            const px = p.x * w;
+            const py = p.y * h;
+            const currentAlpha = p.alpha * (0.6 + 0.4 * Math.sin(p.pulse)) * (0.3 + 0.7 * vizCurrentActivity);
+
+            ctx.fillStyle = isYt ? `rgba(255, 107, 129, ${currentAlpha})` : `rgba(116, 185, 255, ${currentAlpha})`;
+            ctx.beginPath();
+            ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // 4. Calculate Bar Heights with Hann Tapering and Harmonic Voice Synthesis
+        for (let i = 0; i < VIZ_BAR_COUNT; i++) {
+            const nx = i / (VIZ_BAR_COUNT - 1);
+            // Symmetrical Hann window tapering (low at edges, dense powerful center)
+            const win = Math.sin(nx * Math.PI);
+            const taper = Math.pow(win, 0.68);
+
+            // Multi-frequency harmonic synthesis
+            const h1 = Math.sin(nx * 14.5 + vizPhase * 4.3);
+            const h2 = Math.cos(nx * 28.2 - vizPhase * 6.7);
+            const h3 = Math.sin(nx * 44.0 + vizPhase * 9.2);
+            const rawHarmonic = (h1 * 0.45 + h2 * 0.35 + h3 * 0.20 + 1) / 2;
+
+            let targetAmp = (rawHarmonic * 0.72 + 0.28) * voiceCadence * taper * vizCurrentActivity;
+            if (!isPlaying) {
+                // Gentle idle wave breathing
+                targetAmp = (Math.sin(nx * 10 + vizPhase * 1.6) * 0.12 + 0.08) * taper * 0.22;
+            }
+
+            // Attack & decay smoothing
+            const smoothFactor = targetAmp > vizSmoothedAmplitudes[i] ? 0.38 : 0.16;
+            vizSmoothedAmplitudes[i] += (targetAmp - vizSmoothedAmplitudes[i]) * smoothFactor;
+
+            // Peak caps
+            if (vizSmoothedAmplitudes[i] > vizPeakCaps[i]) {
+                vizPeakCaps[i] = vizSmoothedAmplitudes[i];
+            } else {
+                vizPeakCaps[i] = Math.max(0, vizPeakCaps[i] - dt * 0.42);
+            }
+        }
+
+        const barPadding = 14;
+        const availableW = w - barPadding * 2;
+        const barSlotW = availableW / VIZ_BAR_COUNT;
+        const actualBarW = Math.max(1.8, barSlotW * 0.76);
+
+        // 5. Connecting Glow Ribbon Behind Bars
+        ctx.beginPath();
+        for (let i = 0; i < VIZ_BAR_COUNT; i++) {
+            const bx = barPadding + i * barSlotW + actualBarW / 2;
+            const bH = vizSmoothedAmplitudes[i] * maxBarH;
+            const yTop = cy - bH;
+            if (i === 0) ctx.moveTo(bx, yTop);
+            else ctx.lineTo(bx, yTop);
+        }
+        for (let i = VIZ_BAR_COUNT - 1; i >= 0; i--) {
+            const bx = barPadding + i * barSlotW + actualBarW / 2;
+            const bH = vizSmoothedAmplitudes[i] * maxBarH;
+            const yBottom = cy + bH;
+            ctx.lineTo(bx, yBottom);
+        }
+        ctx.closePath();
+        ctx.fillStyle = isYt ? 'rgba(255, 71, 87, 0.14)' : 'rgba(0, 206, 201, 0.16)';
+        ctx.fill();
+
+        // 6. Symmetrical Equalizer Waveform Bars (Glowing White Core & Cyan/Ruby Shimmer)
+        for (let i = 0; i < VIZ_BAR_COUNT; i++) {
+            const bx = barPadding + i * barSlotW;
+            const bH = Math.max(2.5, vizSmoothedAmplitudes[i] * maxBarH);
+
+            const grad = ctx.createLinearGradient(0, cy - bH, 0, cy + bH);
+            if (isYt) {
+                grad.addColorStop(0, 'rgba(255, 107, 129, 0.45)');
+                grad.addColorStop(0.32, '#ff4757');
+                grad.addColorStop(0.5, '#ffffff'); // bright radiant white core
+                grad.addColorStop(0.68, '#ff4757');
+                grad.addColorStop(1, 'rgba(255, 107, 129, 0.45)');
+            } else {
+                grad.addColorStop(0, 'rgba(0, 206, 201, 0.45)');
+                grad.addColorStop(0.32, '#74b9ff');
+                grad.addColorStop(0.5, '#ffffff'); // bright radiant white core
+                grad.addColorStop(0.68, '#00cec9');
+                grad.addColorStop(1, 'rgba(108, 92, 231, 0.5)');
+            }
+
+            ctx.fillStyle = grad;
+            drawRoundRect(ctx, bx, cy - bH, actualBarW, bH * 2, actualBarW / 2);
+            ctx.fill();
+
+            // Peak caps
+            if (isPlaying && vizPeakCaps[i] > 0.08) {
+                const capH = vizPeakCaps[i] * maxBarH;
+                ctx.fillStyle = isYt ? '#ffa502' : '#00cec9';
+                ctx.fillRect(bx, cy - capH - 2, actualBarW, 1.5);
+                ctx.fillRect(bx, cy + capH + 0.5, actualBarW, 1.5);
+            }
+        }
+
+        // 7. Radiant Center Horizontal Axis Line
+        const axisGrad = ctx.createLinearGradient(0, 0, w, 0);
+        axisGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        axisGrad.addColorStop(0.18, 'rgba(255, 255, 255, 0.25)');
+        axisGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.95 * vizCurrentActivity})`);
+        axisGrad.addColorStop(0.82, 'rgba(255, 255, 255, 0.25)');
+        axisGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.strokeStyle = axisGrad;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(barPadding, cy);
+        ctx.lineTo(w - barPadding, cy);
+        ctx.stroke();
+
+        ctx.restore();
+
+        // Update status pill label
+        if (visualizerModeLabel) {
+            visualizerModeLabel.textContent = isPlaying ? 'Waveform Live' : 'Waveform Tạm dừng';
+        }
+
+        // Loop animation frame
+        vizAnimFrameId = requestAnimationFrame(renderWaveformVisualizer);
+    }
+
+    function startWaveformVisualizer() {
+        if (vizAnimFrameId) cancelAnimationFrame(vizAnimFrameId);
+        vizLastTimestamp = 0;
+        vizAnimFrameId = requestAnimationFrame(renderWaveformVisualizer);
+    }
+
+    function stopWaveformVisualizer() {
+        if (vizAnimFrameId) {
+            cancelAnimationFrame(vizAnimFrameId);
+            vizAnimFrameId = null;
+        }
+    }
+
+    function setVisualizerState(active, userToggled = false) {
+        isWaveformVisualizerActive = !!active;
+        if (userToggled) {
+            try {
+                localStorage.setItem(STORAGE_AUDIO_VIZ_ENABLED, isWaveformVisualizerActive ? 'true' : 'false');
+            } catch (e) {}
+        }
+
+        if (playerVisualizerBox && playerCoverBox) {
+            if (isWaveformVisualizerActive) {
+                // If in YouTube video mode, disable video screen to show visualizer
+                if (isVideoMode) {
+                    isVideoMode = false;
+                    const ytScreen = document.getElementById('playerYoutubeScreen');
+                    const toggleText = document.getElementById('toggleVideoModeText');
+                    if (ytScreen) ytScreen.style.display = 'none';
+                    if (toggleText) toggleText.textContent = '📺 Xem Video';
+                    if (audioPlayerModal) audioPlayerModal.classList.remove('video-mode-active');
+                }
+
+                playerVisualizerBox.style.display = 'flex';
+                playerCoverBox.style.display = 'none';
+
+                if (btnToggleVisualizer) {
+                    btnToggleVisualizer.classList.add('is-active');
+                    const iconViz = btnToggleVisualizer.querySelector('.icon-to-viz');
+                    const iconCover = btnToggleVisualizer.querySelector('.icon-to-cover');
+                    if (iconViz) iconViz.style.display = 'none';
+                    if (iconCover) iconCover.style.display = 'inline-block';
+                }
+                if (toggleVisualizerText) {
+                    toggleVisualizerText.textContent = 'Ảnh bìa';
+                }
+
+                startWaveformVisualizer();
+            } else {
+                playerVisualizerBox.style.display = 'none';
+                playerCoverBox.style.display = 'block';
+
+                if (btnToggleVisualizer) {
+                    btnToggleVisualizer.classList.remove('is-active');
+                    const iconViz = btnToggleVisualizer.querySelector('.icon-to-viz');
+                    const iconCover = btnToggleVisualizer.querySelector('.icon-to-cover');
+                    if (iconViz) iconViz.style.display = 'inline-block';
+                    if (iconCover) iconCover.style.display = 'none';
+                }
+                if (toggleVisualizerText) {
+                    toggleVisualizerText.textContent = 'Sóng nhạc';
+                }
+
+                stopWaveformVisualizer();
+            }
+        }
+    }
+
+    function initWaveformVisualizerControls() {
+        if (btnToggleVisualizer) {
+            btnToggleVisualizer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setVisualizerState(!isWaveformVisualizerActive, true);
+                showToast(isWaveformVisualizerActive ? '🌊 Đã bật hiển thị sóng nhạc Waveform' : '🖼️ Đã chuyển về xem ảnh bìa sách');
+            });
+        }
+
+        if (playerCoverBox) {
+            playerCoverBox.title = 'Nhấn để chuyển sang xem sóng nhạc Waveform';
+            playerCoverBox.addEventListener('click', () => {
+                setVisualizerState(true, true);
+                showToast('🌊 Đã bật hiển thị sóng nhạc Waveform');
+            });
+        }
+
+        if (playerVisualizerBox) {
+            playerVisualizerBox.title = 'Nhấn để chuyển về xem ảnh bìa sách';
+            playerVisualizerBox.addEventListener('click', (e) => {
+                if (e.target.closest('#btnToggleVisualizer')) return;
+                setVisualizerState(false, true);
+                showToast('🖼️ Đã chuyển về xem ảnh bìa sách');
+            });
+        }
+    }
+
     // Audio Element Event Listeners
     audioElement.addEventListener('play', () => {
         updatePlayPauseIcons(true);
+        const savedPref = localStorage.getItem(STORAGE_AUDIO_VIZ_ENABLED);
+        if (savedPref !== 'false') {
+            if (!isWaveformVisualizerActive) {
+                setVisualizerState(true);
+            } else {
+                startWaveformVisualizer();
+            }
+        }
     });
 
     audioElement.addEventListener('pause', () => {
@@ -4492,6 +4888,9 @@
             }
             audioPlayerModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            if (isWaveformVisualizerActive) {
+                startWaveformVisualizer();
+            }
         }
     }
 
@@ -4500,12 +4899,14 @@
             audioPlayerModal.style.display = 'none';
             document.body.style.overflow = '';
         }
+        stopWaveformVisualizer();
         if (miniAudioPlayer && (currentAudiobook || ytCurrentItem)) {
             miniAudioPlayer.style.display = 'block';
         }
     }
 
     function closeAudioPlayer(stopAudio = false) {
+        stopWaveformVisualizer();
         if (stopAudio) {
             audioElement.pause();
             audioElement.src = '';
@@ -4522,6 +4923,9 @@
             document.body.style.overflow = '';
         }
     }
+
+    // Initialize Waveform Visualizer controls
+    initWaveformVisualizerControls();
 
     if (btnPlayerMinimize) btnPlayerMinimize.addEventListener('click', minimizeAudioPlayerModal);
     if (btnPlayerClose) {
