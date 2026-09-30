@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790742040325,
+  "lastUpdated": 1790745524944,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -157,10 +157,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 3,
       "trackTitle": "track 4 chuong thu tu ai tinh la gi",
-      "currentTime": 2942,
+      "currentTime": 2978,
       "duration": 3289,
-      "percent": 89,
-      "updatedAt": 1790742037314
+      "percent": 91,
+      "updatedAt": 1790745524788
     }
   },
   "audioBookmarks": [
@@ -195,9 +195,9 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 3,
-    "time": 2942,
-    "volume": 0.6,
-    "speedIndex": 1
+    "time": 2978,
+    "volume": 1,
+    "speedIndex": 0
   },
   "searchHistory": [
     "Thuat Yeu Duong - Nguyen Duy Can",
