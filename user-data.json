@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790998586679,
+  "lastUpdated": 1790998969081,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -142,8 +142,8 @@
       "duration": 1975,
       "percent": 85,
       "updatedAt": 1790995968527,
-      "note": "Bản chất yêu đương",
-      "noteUpdatedAt": 1790996042637
+      "note": "Bản chất nam nữ khi yêu đương",
+      "noteUpdatedAt": 1790998956255
     },
     "oc-sang-suot.sna": {
       "identifier": "oc-sang-suot.sna",
@@ -153,10 +153,12 @@
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
       "trackIndex": 2,
       "trackTitle": "C01B ThuatQuanSat OcSangSuot",
-      "currentTime": 0,
+      "currentTime": 476,
       "duration": 1875,
-      "percent": 0,
-      "updatedAt": 1790998583676
+      "percent": 25,
+      "note": "Nghệ thuật quan sát",
+      "noteUpdatedAt": 1790998933002,
+      "updatedAt": 1790998969059
     }
   },
   "audioBookmarks": [
@@ -217,11 +219,19 @@
     },
     "4a26f9254024abe6a7fb3dbda27709a3": {
       "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
-      "text": "Bản chất yêu đương",
+      "text": "Bản chất nam nữ khi yêu đương",
       "title": "thuat-yeu-duong",
       "author": "Internet Archive",
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
-      "updatedAt": 1790996042637
+      "updatedAt": 1790998956255
+    },
+    "oc-sang-suot.sna": {
+      "identifier": "oc-sang-suot.sna",
+      "text": "Nghệ thuật quan sát",
+      "title": "Óc Sáng Suốt - sachnoi.app",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/oc-sang-suot.sna",
+      "updatedAt": 1790998933002
     }
   },
   "lastPlayedId": "oc-sang-suot.sna",
@@ -229,7 +239,7 @@
     "identifier": "oc-sang-suot.sna",
     "type": "archive",
     "trackIndex": 2,
-    "time": 0,
+    "time": 476,
     "volume": 0.5,
     "speedIndex": 1
   },
