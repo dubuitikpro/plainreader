@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790991199533,
+  "lastUpdated": 1790993800000,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -77,6 +77,7 @@
   ],
   "audioProgress": {
     "tam-ly-hoc-ve-tien": {
+      "identifier": "tam-ly-hoc-ve-tien",
       "trackIndex": 0,
       "currentTime": 0,
       "duration": 1800,
@@ -84,16 +85,6 @@
       "type": "archive",
       "cover": "https://archive.org/services/img/tam-ly-hoc-ve-tien",
       "updatedAt": 1727580900000
-    },
-    "yt_48_nguyen_tac": {
-      "trackIndex": 0,
-      "currentTime": 138,
-      "duration": 3832,
-      "title": "[Sách Nói] 48 Nguyên Tắc Chủ Chốt Của Quyền Lực - Chương 1 | Robert Greene",
-      "type": "youtube",
-      "videoId": "QCzY-rJJhGE",
-      "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg",
-      "updatedAt": 1727581000000
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",

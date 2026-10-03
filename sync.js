@@ -55,6 +55,14 @@
 
         try {
             if (saveLocal) {
+                // Guarantee .identifier on every audioProgress entry
+                if (data.audioProgress && typeof data.audioProgress === 'object') {
+                    Object.keys(data.audioProgress).forEach(k => {
+                        if (data.audioProgress[k] && typeof data.audioProgress[k] === 'object' && !data.audioProgress[k].identifier) {
+                            data.audioProgress[k].identifier = k;
+                        }
+                    });
+                }
                 if (data.wishlist) localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(data.wishlist));
                 if (data.favorites) localStorage.setItem(STORAGE_FAVORITES, JSON.stringify(data.favorites));
                 if (data.audioProgress) localStorage.setItem(STORAGE_AUDIO_PROGRESS, JSON.stringify(data.audioProgress));
@@ -429,6 +437,7 @@
         pushToGitHub,
         pullFromGitHub,
         schedulePush,
+        triggerAutoSync: (delay = 1000, immediate = false) => schedulePush(delay, immediate),
         exportJsonFile,
         importJsonFile
     };

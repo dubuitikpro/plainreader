@@ -2676,21 +2676,34 @@
         const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
         const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
 
-        // Filter valid items in progress or items that have notes
-        const list = Object.values(progressMap).filter(item => {
-            const note = (item && item.note) || (notesMap[item?.identifier]?.text || '');
-            return item && item.title && (item.currentTime > 2 || item.percent > 0 || (note && note.trim().length > 0));
-        });
+        // Build list from Object.entries to guarantee storage keys and identifiers
+        const list = [];
+        let hasFixedKeys = false;
+        for (const [key, rawItem] of Object.entries(progressMap)) {
+            if (!rawItem || typeof rawItem !== 'object') continue;
+            const item = { ...rawItem };
+            if (!item.identifier) {
+                item.identifier = key;
+                rawItem.identifier = key;
+                hasFixedKeys = true;
+            }
+            item._storageKey = key;
 
-        // Ensure notes are merged onto list items
-        list.forEach(item => {
-            if (!item.note && notesMap[item.identifier]?.text) {
-                item.note = notesMap[item.identifier].text;
+            const note = (item.note) || (notesMap[item.identifier]?.text || notesMap[key]?.text || '');
+            if (!item.note && note) {
+                item.note = note;
             }
-            if (!item.noteUpdatedAt && notesMap[item.identifier]?.updatedAt) {
-                item.noteUpdatedAt = notesMap[item.identifier].updatedAt;
+            if (!item.noteUpdatedAt && (notesMap[item.identifier]?.updatedAt || notesMap[key]?.updatedAt)) {
+                item.noteUpdatedAt = notesMap[item.identifier]?.updatedAt || notesMap[key]?.updatedAt;
             }
-        });
+
+            if (item.title && (item.currentTime > 2 || item.percent > 0 || (note && note.trim().length > 0))) {
+                list.push(item);
+            }
+        }
+        if (hasFixedKeys) {
+            saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+        }
 
         // Sort by most recently updated
         list.sort((a, b) => {
@@ -2879,7 +2892,7 @@
             const notePrev = card.querySelector('.history-note-preview');
             const onOpenNote = (e) => {
                 e.stopPropagation();
-                openAudioNoteModal(item.identifier, item.title, authorText, coverSrc, item.currentTime || 0);
+                openAudioNoteModal(item.identifier || item._storageKey, item.title, authorText, coverSrc, item.currentTime || 0);
             };
             if (noteBtn) noteBtn.addEventListener('click', onOpenNote);
             if (notePrev) notePrev.addEventListener('click', onOpenNote);
@@ -2889,7 +2902,7 @@
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    deleteAudioHistoryItem(item.identifier);
+                    deleteAudioHistoryItem(item.identifier || item._storageKey, item);
                 });
             }
 
@@ -2899,11 +2912,12 @@
 
     function resumeAudioHistoryItem(item) {
         if (!item) return;
-        const isYt = item.type === 'youtube' || (item.identifier && item.identifier.startsWith('yt_'));
+        const id = item.identifier || item._storageKey || (item.videoId ? `yt_${item.videoId}` : null);
+        const isYt = item.type === 'youtube' || (id && id.startsWith('yt_'));
         if (isYt) {
-            const videoId = item.videoId || item.identifier.replace(/^yt_/, '');
+            const videoId = item.videoId || (id ? id.replace(/^yt_/, '') : '');
             const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === videoId) || {
-                identifier: item.identifier,
+                identifier: id || `yt_${videoId}`,
                 videoId: videoId,
                 title: item.title,
                 author: item.author || 'YouTube',
@@ -2914,35 +2928,82 @@
             };
             loadAndPlayYoutube(found, item.currentTime, true);
         } else {
-            loadAndPlayAudiobook(item.identifier, item.trackIndex || 0, true, item.currentTime);
+            loadAndPlayAudiobook(id, item.trackIndex || 0, true, item.currentTime);
         }
         openAudioPlayerModal();
         showToast(`▶ Đang tiếp tục nghe "${item.title}" [${formatTime(item.currentTime)}]`);
     }
 
-    function deleteAudioHistoryItem(identifier) {
-        if (!identifier) return;
+    function deleteAudioHistoryItem(identifier, itemRef = null) {
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
-        if (progressMap[identifier]) {
-            const bookTitle = progressMap[identifier].title;
-            delete progressMap[identifier];
+        let keyToDelete = null;
+
+        // 1. Direct match by identifier
+        if (identifier && progressMap[identifier]) {
+            keyToDelete = identifier;
+        }
+
+        // 2. Direct match by itemRef._storageKey
+        if (!keyToDelete && itemRef && itemRef._storageKey && progressMap[itemRef._storageKey]) {
+            keyToDelete = itemRef._storageKey;
+        }
+
+        // 3. Fallback scan by identifier, videoId, or title
+        if (!keyToDelete) {
+            for (const [k, val] of Object.entries(progressMap)) {
+                if (!val) continue;
+                if (k === identifier || val.identifier === identifier) {
+                    keyToDelete = k;
+                    break;
+                }
+                if (itemRef) {
+                    if (itemRef._storageKey && k === itemRef._storageKey) {
+                        keyToDelete = k;
+                        break;
+                    }
+                    if (itemRef.videoId && val.videoId && itemRef.videoId === val.videoId) {
+                        keyToDelete = k;
+                        break;
+                    }
+                    if (itemRef.title && val.title && itemRef.title.trim().toLowerCase() === val.title.trim().toLowerCase()) {
+                        keyToDelete = k;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (keyToDelete && progressMap[keyToDelete]) {
+            const bookTitle = progressMap[keyToDelete].title || itemRef?.title || 'sách';
+            const targetId = progressMap[keyToDelete].identifier || keyToDelete;
+            delete progressMap[keyToDelete];
             saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
 
             const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
-            if (notesMap[identifier]) {
-                delete notesMap[identifier];
-                saveToStorage(STORAGE_AUDIO_NOTES, notesMap);
-            }
+            if (notesMap[targetId]) delete notesMap[targetId];
+            if (notesMap[keyToDelete]) delete notesMap[keyToDelete];
+            if (identifier && notesMap[identifier]) delete notesMap[identifier];
+            saveToStorage(STORAGE_AUDIO_NOTES, notesMap);
 
             const lastPlayedId = loadFromStorage(STORAGE_AUDIO_LAST_PLAYED, null);
-            if (lastPlayedId === identifier) {
+            if (lastPlayedId === targetId || lastPlayedId === keyToDelete || lastPlayedId === identifier) {
                 saveToStorage(STORAGE_AUDIO_LAST_PLAYED, null);
             }
 
             updateCounts();
             renderAudioHistoryTab();
             renderAudioContinueSection();
-            showToast(`Đã xóa "${bookTitle || 'sách'}" khỏi tiến trình nghe`);
+            showToast(`Đã xóa "${bookTitle}" khỏi tiến trình nghe`);
+
+            // Auto-sync deletion to GitHub cloud immediately
+            if (window.PlainSync && typeof window.PlainSync.triggerAutoSync === 'function') {
+                window.PlainSync.triggerAutoSync(1000, true);
+            }
+        } else {
+            console.warn('Could not find item to delete:', identifier, itemRef);
+            updateCounts();
+            renderAudioHistoryTab();
+            renderAudioContinueSection();
         }
     }
 
@@ -2962,7 +3023,7 @@
                 return;
             }
 
-            if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử tiến trình nghe của tất cả các cuốn sách không?')) {
+            if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử tiến trình nghe của tất cả các cuốn sách không? (Ghi chú cá nhân cũng sẽ được dọn dẹp)')) {
                 saveToStorage(STORAGE_AUDIO_PROGRESS, {});
                 saveToStorage(STORAGE_AUDIO_NOTES, {});
                 saveToStorage(STORAGE_AUDIO_LAST_PLAYED, null);
@@ -2970,6 +3031,10 @@
                 renderAudioHistoryTab();
                 renderAudioContinueSection();
                 showToast('Đã xóa toàn bộ lịch sử tiến trình nghe');
+
+                if (window.PlainSync && typeof window.PlainSync.triggerAutoSync === 'function') {
+                    window.PlainSync.triggerAutoSync(1000, true);
+                }
             }
         });
     }
