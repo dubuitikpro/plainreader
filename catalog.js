@@ -211,7 +211,6 @@
     const playerChaptersList = document.getElementById('playerChaptersList');
     const playerArchiveLink = document.getElementById('playerArchiveLink');
     const playerGoodreadsLink = document.getElementById('playerGoodreadsLink');
-    const playerIntroGoodreadsLink = document.getElementById('playerIntroGoodreadsLink');
     const playerBookDescription = document.getElementById('playerBookDescription');
 
     // Mini Audio Player Elements
@@ -2649,21 +2648,7 @@
     function updatePlayerGoodreadsLinks(grData) {
         if (!grData) return;
         const url = typeof grData === 'string' ? grData : (grData.url || 'https://www.goodreads.com');
-        const query = typeof grData === 'object' ? (grData.query || '') : '';
         if (playerGoodreadsLink) playerGoodreadsLink.href = url;
-        if (playerIntroGoodreadsLink) playerIntroGoodreadsLink.href = url;
-        const googleLink = document.getElementById('playerGoogleLink');
-        if (googleLink) {
-            let gQuery = query;
-            if (!gQuery && url && url.includes('?q=')) {
-                try {
-                    gQuery = decodeURIComponent(url.split('?q=')[1].replace(/\+/g, ' '));
-                } catch(e) {}
-            }
-            if (gQuery) {
-                googleLink.href = `https://www.google.com/search?q=${encodeURIComponent('goodreads ' + gQuery).replace(/%20/g, '+')}`;
-            }
-        }
     }
 
     // =========================================
@@ -5505,23 +5490,6 @@
 
     if (playerGoodreadsLink) {
         playerGoodreadsLink.addEventListener('click', handleGoodreadsClick);
-    }
-    if (playerIntroGoodreadsLink) {
-        playerIntroGoodreadsLink.addEventListener('click', handleGoodreadsClick);
-    }
-    const playerGoogleLink = document.getElementById('playerGoogleLink');
-    if (playerGoogleLink) {
-        playerGoogleLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            const title = (playerBookTitle ? playerBookTitle.textContent : '').trim();
-            const author = (playerBookAuthor ? playerBookAuthor.textContent : '').trim();
-            const headerTrack = (playerTrackTitle ? playerTrackTitle.textContent : '').trim();
-            const firstTrack = (currentAudiobook && currentAudiobook.tracks && currentAudiobook.tracks[0] && currentAudiobook.tracks[0].title) || '';
-            const grData = getGoodreadsSearchData(title, author, headerTrack || firstTrack);
-            const query = grData ? grData.query : (title || 'books');
-            const gUrl = `https://www.google.com/search?q=${encodeURIComponent('goodreads ' + query).replace(/%20/g, '+')}`;
-            window.open(gUrl, '_blank', 'noopener,noreferrer');
-        });
     }
 
     // Keyboard Shortcuts for Audio Player
