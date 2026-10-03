@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790997389193,
+  "lastUpdated": 1790997401878,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -145,20 +145,6 @@
       "note": "Bản chất yêu đương",
       "noteUpdatedAt": 1790996042637
     },
-    "yt_QCzY-rJJhGE": {
-      "identifier": "yt_QCzY-rJJhGE",
-      "type": "youtube",
-      "videoId": "QCzY-rJJhGE",
-      "title": "Cha Giàu Cha Nghèo (Dạy Con Làm Giàu Full 3.5 Giờ)",
-      "author": "Robert T. Kiyosaki",
-      "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg",
-      "trackIndex": 0,
-      "trackTitle": "Cha Giàu Cha Nghèo (Dạy Con Làm Giàu Full 3.5 Giờ)",
-      "currentTime": 144,
-      "duration": 12504,
-      "percent": 1,
-      "updatedAt": 1790989092072
-    },
     "yt_lYOLg3ZkSqk": {
       "identifier": "yt_lYOLg3ZkSqk",
       "type": "youtube",
@@ -181,10 +167,10 @@
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
       "trackIndex": 1,
       "trackTitle": "C01A ThuatQuanSat OcSangSuot",
-      "currentTime": 0,
+      "currentTime": 14,
       "duration": 1353,
-      "percent": 0,
-      "updatedAt": 1790997386191
+      "percent": 1,
+      "updatedAt": 1790997401301
     }
   },
   "audioBookmarks": [
@@ -257,7 +243,7 @@
     "identifier": "oc-sang-suot.sna",
     "type": "archive",
     "trackIndex": 1,
-    "time": 0,
+    "time": 14,
     "volume": 0.5,
     "speedIndex": 1
   },
