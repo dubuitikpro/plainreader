@@ -102,6 +102,7 @@
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
     const modalBtnFavorite = document.getElementById('modalBtnFavorite');
     const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
+    const modalBtnGoodreads = document.getElementById('modalBtnGoodreads');
     const modalBtnAnnaArchive = document.getElementById('modalBtnAnnaArchive');
     const modalBtnAnnaArchiveEn = document.getElementById('modalBtnAnnaArchiveEn');
     const modalOriginalTitle = document.getElementById('modalOriginalTitle');
@@ -209,6 +210,8 @@
     const playlistChapterHeader = document.getElementById('playlistChapterHeader');
     const playerChaptersList = document.getElementById('playerChaptersList');
     const playerArchiveLink = document.getElementById('playerArchiveLink');
+    const playerGoodreadsLink = document.getElementById('playerGoodreadsLink');
+    const playerIntroGoodreadsLink = document.getElementById('playerIntroGoodreadsLink');
     const playerBookDescription = document.getElementById('playerBookDescription');
 
     // Mini Audio Player Elements
@@ -1012,6 +1015,13 @@
             } else {
                 modalBtnAnnaArchiveEn.style.display = 'none';
             }
+        }
+
+        // Goodreads search link
+        if (modalBtnGoodreads) {
+            const grQuery = originalTitle || displayTitle || book.title || '';
+            const grAuthor = book.author || '';
+            modalBtnGoodreads.href = getGoodreadsSearchUrl(grQuery, grAuthor);
         }
 
         // Show modal
@@ -2450,6 +2460,54 @@
     }
 
     // =========================================
+    // Goodreads Smart Search Link Helper
+    // =========================================
+    function getGoodreadsSearchUrl(title, author, fallbackContext) {
+        let clean = (title || '').trim();
+        
+        // If title looks like an identifier/slug without spaces or very short, use fallback context
+        const isSlug = !clean || clean.length < 3 || (!clean.includes(' ') && clean.toLowerCase() === clean);
+        if (isSlug && fallbackContext) {
+            clean = fallbackContext.trim();
+        }
+
+        // Clean common prefixes
+        clean = clean.replace(/^(sách nói|audiobook|nghe sách|audio|full|mp3)\s*[:\-\—|]\s*/gi, '');
+        clean = clean.replace(/^\[(sách nói|audiobook|audio|mp3|full)\]\s*/gi, '');
+        clean = clean.replace(/^\((sách nói|audiobook|audio|mp3|full)\)\s*/gi, '');
+
+        // Clean inline bracket tags
+        clean = clean.replace(/\[(audiobook|sách nói|audio|mp3|full)\]/gi, ' ');
+        clean = clean.replace(/\((audiobook|sách nói|audio|mp3|full)\)/gi, ' ');
+
+        // Clean parts like (P1), [P1], - Phần 1, - Tập 1, Chương 1...
+        clean = clean.replace(/[\(\[\-]\s*(p\d+|phần\s*\d+|tập\s*\d+|chương\s*\d+|track\s*\d+)[^\)\]]*[\)\]]?/gi, ' ');
+        
+        // Clean trailing keywords
+        clean = clean.replace(/sách\s+(kỹ năng|phát triển bản thân|kinh doanh|nói|kinh điển).*/gi, ' ');
+        clean = clean.replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+        // Author
+        let authorClean = (author || '').trim();
+        const isGenericAuthor = !authorClean || /^(internet archive|youtube|youtube music|admin|archive\.org|sachnoi\.app)$/i.test(authorClean) || authorClean.toLowerCase() === (title || '').toLowerCase();
+        
+        let query = clean;
+        if (!isGenericAuthor && !clean.toLowerCase().includes(authorClean.toLowerCase())) {
+            query = `${clean} ${authorClean}`.trim();
+        }
+
+        if (!query) query = (title || fallbackContext || 'books').trim();
+
+        return `https://www.goodreads.com/search?q=${encodeURIComponent(query).replace(/%20/g, '+')}`;
+    }
+
+    function updatePlayerGoodreadsLinks(url) {
+        if (!url) return;
+        if (playerGoodreadsLink) playerGoodreadsLink.href = url;
+        if (playerIntroGoodreadsLink) playerIntroGoodreadsLink.href = url;
+    }
+
+    // =========================================
     // Audio Tab Initialization & Rendering
     // =========================================
     function initAudiobooksTab() {
@@ -3564,6 +3622,10 @@
         const extText = document.getElementById('playerExternalLinkText');
         if (extText) extText.textContent = 'Mở trên YouTube Music';
 
+        const ytFallback = (item.chapterList && item.chapterList[0] && item.chapterList[0].title) || '';
+        const grUrl = getGoodreadsSearchUrl(item.title, item.author, ytFallback);
+        updatePlayerGoodreadsLinks(grUrl);
+
         if (playerBookDescription) {
             playerBookDescription.textContent = item.description || item.title;
         }
@@ -3874,6 +3936,11 @@
             if (playerArchiveLink) playerArchiveLink.href = `https://archive.org/details/${identifier}`;
             const extText = document.getElementById('playerExternalLinkText');
             if (extText) extText.textContent = 'Mở trên Archive.org';
+
+            const firstTrackTitle = (tracks && tracks[0] && tracks[0].title) || '';
+            const grUrl = getGoodreadsSearchUrl(bookTitle, bookAuthor, firstTrackTitle);
+            updatePlayerGoodreadsLinks(grUrl);
+
             if (playerBookDescription) playerBookDescription.innerHTML = bookDesc;
 
             // Calculate approximate total duration
@@ -5054,6 +5121,27 @@
             closeAudioPlayer(true);
             showToast('Đã dừng phát sách nói');
         });
+    }
+
+    // Goodreads Action Handlers for Dynamic Search
+    function handleGoodreadsClick(e) {
+        const link = e.currentTarget;
+        const currentHref = link ? link.getAttribute('href') : '';
+        if (!currentHref || currentHref === '#' || currentHref.endsWith('goodreads.com') || currentHref.endsWith('goodreads.com/')) {
+            e.preventDefault();
+            const title = (playerBookTitle ? playerBookTitle.textContent : '').trim();
+            const author = (playerBookAuthor ? playerBookAuthor.textContent : '').trim();
+            const headerTrack = (playerTrackTitle ? playerTrackTitle.textContent : '').trim();
+            const url = getGoodreadsSearchUrl(title, author, headerTrack);
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    if (playerGoodreadsLink) {
+        playerGoodreadsLink.addEventListener('click', handleGoodreadsClick);
+    }
+    if (playerIntroGoodreadsLink) {
+        playerIntroGoodreadsLink.addEventListener('click', handleGoodreadsClick);
     }
 
     // Keyboard Shortcuts for Audio Player
