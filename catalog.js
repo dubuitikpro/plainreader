@@ -5075,6 +5075,11 @@
 
     function closeAudioPlayer(stopAudio = false) {
         if (stopAudio) {
+            try {
+                saveAudioProgress();
+            } catch (e) {
+                console.warn('Error saving audio progress on close:', e);
+            }
             audioElement.pause();
             audioElement.src = '';
             if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
@@ -5091,16 +5096,16 @@
         }
     }
 
-    if (btnPlayerMinimize) btnPlayerMinimize.addEventListener('click', minimizeAudioPlayerModal);
+    if (btnPlayerMinimize) {
+        btnPlayerMinimize.addEventListener('click', () => {
+            minimizeAudioPlayerModal();
+            showToast('Đã thu nhỏ. Sách nói vẫn đang tiếp tục phát.');
+        });
+    }
     if (btnPlayerClose) {
         btnPlayerClose.addEventListener('click', () => {
-            const isPlaying = (currentAudioType === 'youtube' && ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 1) || (!audioElement.paused);
-            if (isPlaying) {
-                minimizeAudioPlayerModal();
-                showToast('Audio đang phát trong thanh mini phía dưới màn hình');
-            } else {
-                closeAudioPlayer(true);
-            }
+            closeAudioPlayer(true);
+            showToast('Đã dừng phát và đóng sách nói.');
         });
     }
 
