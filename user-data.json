@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790993617836,
+  "lastUpdated": 1790993623568,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -83,17 +83,8 @@
       "title": "Tâm Lý Học Về Tiền",
       "type": "archive",
       "cover": "https://archive.org/services/img/tam-ly-hoc-ve-tien",
-      "updatedAt": 1727580900000
-    },
-    "yt_48_nguyen_tac": {
-      "trackIndex": 0,
-      "currentTime": 138,
-      "duration": 3832,
-      "title": "[Sách Nói] 48 Nguyên Tắc Chủ Chốt Của Quyền Lực - Chương 1 | Robert Greene",
-      "type": "youtube",
-      "videoId": "QCzY-rJJhGE",
-      "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg",
-      "updatedAt": 1727581000000
+      "updatedAt": 1727580900000,
+      "identifier": "tam-ly-hoc-ve-tien"
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
@@ -143,10 +134,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 5,
       "trackTitle": "track 6 chuong thu sau quan niem ve ai tinh cua nguoi dan ong va nguoi dan ba",
-      "currentTime": 1239,
+      "currentTime": 1240,
       "duration": 1975,
       "percent": 63,
-      "updatedAt": 1790993617834
+      "updatedAt": 1790993618254
     },
     "yt_QCzY-rJJhGE": {
       "identifier": "yt_QCzY-rJJhGE",
@@ -190,12 +181,13 @@
       "createdAt": 1790665644124
     }
   ],
+  "audioNotes": {},
   "lastPlayedId": "4a26f9254024abe6a7fb3dbda27709a3",
   "audioState": {
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 5,
-    "time": 1239,
+    "time": 1240,
     "volume": 1,
     "speedIndex": 1
   },
