@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790996833576,
+  "lastUpdated": 1790996864345,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -181,10 +181,10 @@
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
       "trackIndex": 0,
       "trackTitle": "MoDau OcSangSuot",
-      "currentTime": 15,
+      "currentTime": 30,
       "duration": 683,
-      "percent": 2,
-      "updatedAt": 1790996828367
+      "percent": 4,
+      "updatedAt": 1790996864238
     }
   },
   "audioBookmarks": [
@@ -257,8 +257,8 @@
     "identifier": "oc-sang-suot.sna",
     "type": "archive",
     "trackIndex": 0,
-    "time": 15,
-    "volume": 1,
+    "time": 30,
+    "volume": 0.5,
     "speedIndex": 1
   },
   "searchHistory": [
