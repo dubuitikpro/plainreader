@@ -344,9 +344,9 @@
                         </svg>
                         <span>Tự Động Đồng Bộ GitHub</span>
                     </div>
-                    <h2 class="history-page-title">Tiến Trình & Lịch Sử Nghe Sách Nói</h2>
+                    <h2 class="history-page-title">Tiến Trình & Sách Đã Bookmark</h2>
                     <p class="history-page-subtitle">
-                        Toàn bộ các cuốn sách bạn đang nghe dở, tiến độ %, vị trí phút giây và các điểm đánh dấu bookmark đều được lưu lại và tự động nạp trên mọi thiết bị.
+                        Chỉ các cuốn sách nói bạn đã Bookmark hoặc có Ghi chú cá nhân mới được lưu lại tiến trình nghe và tự động đồng bộ trên mọi thiết bị.
                     </p>
                     <div class="history-filter-pills" id="historyFilterPills">
                         <button class="history-pill-btn active" id="btnFilterHistoryAll" data-filter="all" type="button">
@@ -374,8 +374,8 @@
                     <circle cx="12" cy="12" r="10"/>
                     <polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <h3>Chưa có sách nào đang nghe dở</h3>
-                <p>Khi bạn nghe bất kỳ cuốn sách nói nào từ Web Archive hoặc YouTube, vị trí dừng và tiến trình sẽ tự động xuất hiện tại đây.</p>
+                <h3>Chưa có sách nào được bookmark tiến trình</h3>
+                <p>Nhấn nút Bookmark 🔖 ở góc trên trình phát khi nghe để lưu lại tiến trình của cuốn sách bạn muốn tiếp tục theo dõi.</p>
                 <button class="btn-explore-audio-jump" id="btnExploreAudiobooks" type="button">
                     🎧 Khám phá sách nói ngay
                 </button>
@@ -516,7 +516,7 @@
                         </svg>
                         <span>Ghi chú</span>
                     </button>
-                    <button class="player-header-btn" id="btnPlayerBookmark" title="Đánh dấu mốc thời gian đang nghe">
+                    <button class="player-header-btn" id="btnPlayerBookmark" title="Bookmark để lưu tiến trình nghe của sách này">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                         </svg>
@@ -686,7 +686,7 @@
                                 </svg>
                                 <span id="playlistChapterHeader">Danh sách chương</span>
                             </button>
-                            <button class="playlist-tab-btn" id="tabBookmarksBtn" type="button" title="Các mốc thời gian đã đánh dấu">
+                            <button class="playlist-tab-btn" id="tabBookmarksBtn" type="button" title="Các mốc thời gian đã đánh dấu" style="display: none;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                 </svg>
@@ -964,7 +964,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=5.9"></script>
-    <script src="catalog.js?v=5.9"></script>
+    <script src="sync.js?v=6.0"></script>
+    <script src="catalog.js?v=6.0"></script>
 </body>
 </html>

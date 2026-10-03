@@ -330,7 +330,14 @@
 
         if (audioHistoryCount) {
             const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
-            const count = Object.values(progressMap).filter(p => p && (p.currentTime > 2 || p.percent > 0)).length;
+            const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+            const count = Object.entries(progressMap).filter(([k, p]) => {
+                if (!p) return false;
+                const id = p.identifier || k;
+                const bookmarked = isAudiobookBookmarked(id) || p.isBookmarked === true;
+                const note = p.note || notesMap[id]?.text || notesMap[k]?.text;
+                return bookmarked || (note && note.trim().length > 0);
+            }).length;
             audioHistoryCount.textContent = count;
             audioHistoryCount.style.display = count > 0 ? 'inline-block' : 'none';
         }
@@ -2565,7 +2572,9 @@
         }
 
         const p = progressMap[lastPlayedId];
-        if (!p.currentTime || p.currentTime < 3) {
+        const isBookmarked = isAudiobookBookmarked(lastPlayedId) || p.isBookmarked === true;
+        const hasNote = Boolean(getAudioNote(lastPlayedId));
+        if (!p.currentTime || p.currentTime < 3 || (!isBookmarked && !hasNote)) {
             section.style.display = 'none';
             return;
         }
@@ -2576,7 +2585,14 @@
         const durStr = p.duration ? formatTime(p.duration) : '--:--';
         const sourceLabel = isYt ? 'YouTube Music' : 'Internet Archive';
 
-        const allInProgress = Object.values(progressMap).filter(item => item && (item.currentTime > 2 || item.percent > 0));
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+        const allInProgress = Object.entries(progressMap).filter(([k, item]) => {
+            if (!item) return false;
+            const id = item.identifier || k;
+            const bm = isAudiobookBookmarked(id) || item.isBookmarked === true;
+            const note = item.note || notesMap[id]?.text || notesMap[k]?.text;
+            return (item.currentTime > 2 || item.percent > 0) && (bm || (note && note.trim().length > 0));
+        });
         const totalInProgress = allInProgress.length;
 
         section.style.display = 'block';
@@ -2615,8 +2631,8 @@
                         <span>Tiếp tục nghe</span>
                     </button>
                     ${totalInProgress > 0 ? `
-                        <button class="btn-continue-view-all" id="btnContinueViewAll" title="Xem tất cả sách đang nghe dở">
-                            <span>Lịch sử nghe (${totalInProgress}) →</span>
+                        <button class="btn-continue-view-all" id="btnContinueViewAll" title="Xem tất cả sách đã bookmark tiến trình">
+                            <span>Sách đã bookmark (${totalInProgress}) →</span>
                         </button>
                     ` : ''}
                     <button class="btn-continue-dismiss" id="btnContinueDismiss" title="Ẩn thanh này">
@@ -2697,7 +2713,12 @@
                 item.noteUpdatedAt = notesMap[item.identifier]?.updatedAt || notesMap[key]?.updatedAt;
             }
 
-            if (item.title && (item.currentTime > 2 || item.percent > 0 || (note && note.trim().length > 0))) {
+            const bookmarked = isAudiobookBookmarked(item.identifier) || item.isBookmarked === true;
+            item.isBookmarked = bookmarked;
+            const hasNote = Boolean(note && note.trim().length > 0);
+
+            // ONLY show in history if bookmarked or has personal note!
+            if (item.title && (bookmarked || hasNote)) {
                 list.push(item);
             }
         }
@@ -2757,8 +2778,7 @@
             const durStr = item.duration ? formatTime(item.duration) : '--:--';
             const updatedRelative = item.updatedAt ? formatRelativeDate(item.updatedAt) : '';
 
-            // Count bookmarks for this book
-            const itemBookmarks = allBookmarks.filter(b => b.identifier === item.identifier);
+            const isBookmarked = item.isBookmarked || isAudiobookBookmarked(item.identifier);
 
             const card = document.createElement('div');
             card.className = `history-card ${isYt ? 'is-youtube' : ''}`;
@@ -2825,12 +2845,12 @@
                                     <span>${updatedRelative}</span>
                                 </span>
                             ` : ''}
-                            ${itemBookmarks.length > 0 ? `
-                                <span class="history-bookmark-tag" title="${itemBookmarks.length} mốc đánh dấu bookmark đã lưu">
+                            ${isBookmarked ? `
+                                <span class="history-bookmark-tag" title="Sách đã được bookmark để lưu tiến trình nghe">
                                     <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11">
                                         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                     </svg>
-                                    <span>${itemBookmarks.length} dấu trang</span>
+                                    <span>Đã bookmark</span>
                                 </span>
                             ` : ''}
                         </div>
@@ -2985,11 +3005,19 @@
             if (identifier && notesMap[identifier]) delete notesMap[identifier];
             saveToStorage(STORAGE_AUDIO_NOTES, notesMap);
 
+            let allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+            allBookmarks = allBookmarks.filter(b => {
+                const bId = (typeof b === 'string') ? b : (b?.identifier || (b?.videoId ? `yt_${b.videoId}` : null));
+                return bId !== targetId && bId !== keyToDelete && bId !== identifier;
+            });
+            saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks);
+
             const lastPlayedId = loadFromStorage(STORAGE_AUDIO_LAST_PLAYED, null);
             if (lastPlayedId === targetId || lastPlayedId === keyToDelete || lastPlayedId === identifier) {
                 saveToStorage(STORAGE_AUDIO_LAST_PLAYED, null);
             }
 
+            updateBookmarkButtonState();
             updateCounts();
             renderAudioHistoryTab();
             renderAudioContinueSection();
@@ -3023,14 +3051,16 @@
                 return;
             }
 
-            if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử tiến trình nghe của tất cả các cuốn sách không? (Ghi chú cá nhân cũng sẽ được dọn dẹp)')) {
+            if (confirm('Bạn có chắc chắn muốn xóa toàn bộ danh sách sách đã bookmark và tiến trình nghe không? (Ghi chú cá nhân cũng sẽ được dọn dẹp)')) {
                 saveToStorage(STORAGE_AUDIO_PROGRESS, {});
+                saveToStorage(STORAGE_AUDIO_BOOKMARKS, []);
                 saveToStorage(STORAGE_AUDIO_NOTES, {});
                 saveToStorage(STORAGE_AUDIO_LAST_PLAYED, null);
                 updateCounts();
+                updateBookmarkButtonState();
                 renderAudioHistoryTab();
                 renderAudioContinueSection();
-                showToast('Đã xóa toàn bộ lịch sử tiến trình nghe');
+                showToast('Đã xóa toàn bộ lịch sử tiến trình và bookmark');
 
                 if (window.PlainSync && typeof window.PlainSync.triggerAutoSync === 'function') {
                     window.PlainSync.triggerAutoSync(1000, true);
@@ -3530,9 +3560,9 @@
         // Render chapters in playlist
         renderYoutubePlaylist(item);
 
-        // Switch to chapters tab and update bookmark badge
+        // Switch to chapters tab and update bookmark button state
         switchPlaylistTab('chapters');
-        updateBookmarksBadge();
+        updateBookmarkButtonState();
         updateNoteIndicator();
 
         // Open player modal
@@ -3857,9 +3887,9 @@
             // Populate Playlist
             renderPlayerPlaylist();
 
-            // Reset playlist tab to Chapters and update bookmark badge
+            // Reset playlist tab to Chapters and update bookmark button state
             switchPlaylistTab('chapters');
-            updateBookmarksBadge();
+            updateBookmarkButtonState();
             updateNoteIndicator();
 
             // Play track
@@ -4374,290 +4404,168 @@
     }
 
     // =========================================
-    // Bookmarks Management & Tabs
+    // Bookmarks Management (Book-Level Progress Saving)
     // =========================================
-    function switchPlaylistTab(tabName, highlightId = null) {
+    function isAudiobookBookmarked(identifier) {
+        if (!identifier) return false;
+        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+        const inBookmarks = allBookmarks.some(b => {
+            if (!b) return false;
+            if (typeof b === 'string') return b === identifier;
+            return b.identifier === identifier || (b.videoId && `yt_${b.videoId}` === identifier);
+        });
+        if (inBookmarks) return true;
+
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        if (progressMap[identifier] && progressMap[identifier].isBookmarked === true) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function getCurrentAudioBookInfo() {
+        if (currentAudioType === 'youtube') {
+            if (!ytCurrentItem) return null;
+            const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
+            return {
+                identifier: identifier,
+                type: 'youtube',
+                videoId: ytCurrentItem.videoId,
+                title: ytCurrentItem.title,
+                author: ytCurrentItem.author || 'YouTube',
+                cover: ytCurrentItem.cover || `https://i.ytimg.com/vi/${ytCurrentItem.videoId}/hqdefault.jpg`
+            };
+        }
+        if (!currentAudiobook) return null;
+        return {
+            identifier: currentAudiobook.identifier,
+            type: 'archive',
+            title: currentAudiobook.title,
+            author: currentAudiobook.author,
+            cover: currentAudiobook.cover
+        };
+    }
+
+    function updateBookmarkButtonState() {
+        if (!btnPlayerBookmark) return;
+        const id = getCurrentAudioIdentifier();
+        const bookmarked = id ? isAudiobookBookmarked(id) : false;
+        btnPlayerBookmark.classList.toggle('is-bookmarked', bookmarked);
+        const span = btnPlayerBookmark.querySelector('span');
+        if (span) {
+            span.textContent = bookmarked ? 'Đã bookmark' : 'Bookmark';
+        }
+        btnPlayerBookmark.title = bookmarked
+            ? 'Đã bookmark: Tiến trình nghe sách này đang được lưu (Bấm để hủy)'
+            : 'Bookmark để lưu tiến trình nghe của sách này';
+    }
+
+    function toggleAudiobookBookmark(identifier = null, bookInfo = null) {
+        const id = identifier || getCurrentAudioIdentifier();
+        if (!id) {
+            showToast('Vui lòng chọn phát một sách nói trước khi bookmark');
+            return;
+        }
+
+        const info = bookInfo || getCurrentAudioBookInfo() || {};
+        let allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const isCurrentlyBookmarked = isAudiobookBookmarked(id);
+
+        if (isCurrentlyBookmarked) {
+            // UNBOOKMARK: Remove from bookmarks list
+            allBookmarks = allBookmarks.filter(b => {
+                if (!b) return false;
+                if (typeof b === 'string') return b !== id;
+                return b.identifier !== id && (`yt_${b.videoId}` !== id);
+            });
+            saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks);
+
+            if (progressMap[id]) {
+                delete progressMap[id].isBookmarked;
+                // If book has no personal note, remove from progress history immediately!
+                const hasNote = Boolean(getAudioNote(id));
+                if (!hasNote) {
+                    delete progressMap[id];
+                }
+                saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+            }
+
+            updateBookmarkButtonState();
+            updateCounts();
+            if (contentHistory && contentHistory.classList.contains('active')) {
+                renderAudioHistoryTab();
+            }
+            renderAudioContinueSection();
+            showToast('Đã bỏ bookmark: Đã hủy lưu tiến trình cuốn sách');
+        } else {
+            // BOOKMARK: Save to bookmarks list and mark progress
+            const bookTitle = info.title || progressMap[id]?.title || 'Sách nói';
+            const bookEntry = {
+                identifier: id,
+                type: info.type || (id.startsWith('yt_') ? 'youtube' : 'archive'),
+                videoId: info.videoId || (id.startsWith('yt_') ? id.replace(/^yt_/, '') : undefined),
+                title: bookTitle,
+                author: info.author || progressMap[id]?.author || '',
+                cover: info.cover || progressMap[id]?.cover || '',
+                bookmarkedAt: Date.now()
+            };
+
+            allBookmarks = allBookmarks.filter(b => {
+                if (!b) return false;
+                if (typeof b === 'string') return b !== id;
+                return b.identifier !== id && (`yt_${b.videoId}` !== id);
+            });
+            allBookmarks.unshift(bookEntry);
+            saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks);
+
+            if (progressMap[id]) {
+                progressMap[id].isBookmarked = true;
+                saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+            } else {
+                saveAudioProgress();
+            }
+
+            updateBookmarkButtonState();
+            updateCounts();
+            if (contentHistory && contentHistory.classList.contains('active')) {
+                renderAudioHistoryTab();
+            }
+            renderAudioContinueSection();
+            showToast(`🔖 Đã bookmark: Tiến trình nghe sách "${bookTitle}" sẽ được lưu lại!`);
+        }
+
+        if (window.PlainSync && typeof window.PlainSync.triggerAutoSync === 'function') {
+            window.PlainSync.triggerAutoSync(1000, true);
+        }
+    }
+
+    function switchPlaylistTab(tabName) {
         const tabChapters = document.getElementById('tabChaptersBtn');
-        const tabBookmarks = document.getElementById('tabBookmarksBtn');
         const tabNotes = document.getElementById('tabNotesBtn');
         const chaptersList = document.getElementById('playerChaptersList');
-        const bookmarksContainer = document.getElementById('playerBookmarksContainer');
         const notesContainer = document.getElementById('playerNotesContainer');
         const hintText = document.getElementById('playlistHintText');
 
-        if (tabName === 'bookmarks') {
+        if (tabName === 'notes') {
             if (tabChapters) tabChapters.classList.remove('active');
-            if (tabBookmarks) tabBookmarks.classList.add('active');
-            if (tabNotes) tabNotes.classList.remove('active');
-            if (chaptersList) chaptersList.style.display = 'none';
-            if (bookmarksContainer) bookmarksContainer.style.display = 'flex';
-            if (notesContainer) notesContainer.style.display = 'none';
-            if (hintText) hintText.textContent = 'Bấm để nghe đoạn đã lưu';
-            renderPlayerBookmarks(highlightId);
-        } else if (tabName === 'notes') {
-            if (tabChapters) tabChapters.classList.remove('active');
-            if (tabBookmarks) tabBookmarks.classList.remove('active');
             if (tabNotes) tabNotes.classList.add('active');
             if (chaptersList) chaptersList.style.display = 'none';
-            if (bookmarksContainer) bookmarksContainer.style.display = 'none';
             if (notesContainer) notesContainer.style.display = 'flex';
             if (hintText) hintText.textContent = 'Ghi chú cá nhân';
             loadPlayerNoteTab();
         } else {
             if (tabChapters) tabChapters.classList.add('active');
-            if (tabBookmarks) tabBookmarks.classList.remove('active');
             if (tabNotes) tabNotes.classList.remove('active');
             if (chaptersList) chaptersList.style.display = 'flex';
-            if (bookmarksContainer) bookmarksContainer.style.display = 'none';
             if (notesContainer) notesContainer.style.display = 'none';
             if (hintText) hintText.textContent = 'Cuộn để xem';
         }
     }
 
     function updateBookmarksBadge() {
-        const countEl = document.getElementById('playerBookmarksCount');
-        if (!countEl) return;
-        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-        const currentId = currentAudioType === 'youtube'
-            ? (ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null)
-            : (currentAudiobook ? currentAudiobook.identifier : null);
-
-        const count = currentId 
-            ? allBookmarks.filter(b => b.identifier === currentId).length 
-            : allBookmarks.length;
-        countEl.textContent = count;
-    }
-
-    function addBookmark() {
-        if (currentAudioType === 'youtube') {
-            if (!ytCurrentItem) {
-                showToast('Vui lòng chọn phát một video/audio trước khi đánh dấu');
-                return;
-            }
-            const curTime = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
-            const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
-            const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-
-            const duplicate = allBookmarks.find(b =>
-                b.identifier === identifier &&
-                Math.abs(b.time - curTime) < 4
-            );
-
-            if (duplicate) {
-                showToast(`⚠️ Mốc ${duplicate.timeFormatted || formatTime(duplicate.time)} đã được lưu trước đó`);
-                switchPlaylistTab('bookmarks', duplicate.id);
-                return;
-            }
-
-            const newBookmark = {
-                id: 'bm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-                identifier: identifier,
-                type: 'youtube',
-                videoId: ytCurrentItem.videoId,
-                bookTitle: ytCurrentItem.title,
-                cover: ytCurrentItem.cover || `https://i.ytimg.com/vi/${ytCurrentItem.videoId}/hqdefault.jpg`,
-                trackIndex: 0,
-                trackTitle: ytCurrentItem.title,
-                time: curTime,
-                timeFormatted: formatTime(curTime),
-                createdAt: Date.now()
-            };
-
-            allBookmarks.unshift(newBookmark);
-            saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks.slice(0, 100));
-
-            if (btnPlayerBookmark) {
-                btnPlayerBookmark.classList.add('is-bookmarked');
-                const bookmarkSpan = btnPlayerBookmark.querySelector('span');
-                if (bookmarkSpan) bookmarkSpan.textContent = 'Đã lưu!';
-                setTimeout(() => {
-                    btnPlayerBookmark.classList.remove('is-bookmarked');
-                    if (bookmarkSpan) bookmarkSpan.textContent = 'Bookmark';
-                }, 2200);
-            }
-
-            updateBookmarksBadge();
-            switchPlaylistTab('bookmarks', newBookmark.id);
-            showToast(`🔖 Đã lưu dấu trang YouTube: [${formatTime(curTime)}]`);
-            return;
-        }
-
-        if (!currentAudiobook || !currentAudiobook.tracks || !currentAudiobook.tracks[currentTrackIndex]) {
-            showToast('Vui lòng chọn phát một sách nói trước khi đánh dấu');
-            return;
-        }
-
-        const curTime = Math.floor(audioElement.currentTime || 0);
-        const track = currentAudiobook.tracks[currentTrackIndex];
-        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-
-        const duplicate = allBookmarks.find(b => 
-            b.identifier === currentAudiobook.identifier && 
-            b.trackIndex === currentTrackIndex && 
-            Math.abs(b.time - curTime) < 4
-        );
-
-        if (duplicate) {
-            showToast(`⚠️ Mốc ${duplicate.timeFormatted || formatTime(duplicate.time)} đã được lưu trước đó`);
-            switchPlaylistTab('bookmarks', duplicate.id);
-            return;
-        }
-
-        const newBookmark = {
-            id: 'bm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-            identifier: currentAudiobook.identifier,
-            type: 'archive',
-            bookTitle: currentAudiobook.title,
-            cover: currentAudiobook.cover,
-            trackIndex: currentTrackIndex,
-            trackTitle: track.title,
-            time: curTime,
-            timeFormatted: formatTime(curTime),
-            createdAt: Date.now()
-        };
-
-        allBookmarks.unshift(newBookmark);
-        saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks.slice(0, 100));
-
-        if (btnPlayerBookmark) {
-            btnPlayerBookmark.classList.add('is-bookmarked');
-            const bookmarkSpan = btnPlayerBookmark.querySelector('span');
-            if (bookmarkSpan) bookmarkSpan.textContent = 'Đã lưu!';
-            setTimeout(() => {
-                btnPlayerBookmark.classList.remove('is-bookmarked');
-                if (bookmarkSpan) bookmarkSpan.textContent = 'Bookmark';
-            }, 2200);
-        }
-
-        updateBookmarksBadge();
-        switchPlaylistTab('bookmarks', newBookmark.id);
-        showToast(`🔖 Đã lưu dấu trang: ${track.title} [${formatTime(curTime)}]`);
-    }
-
-    function deleteBookmark(id) {
-        let allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-        allBookmarks = allBookmarks.filter(b => b.id !== id);
-        saveToStorage(STORAGE_AUDIO_BOOKMARKS, allBookmarks);
-        renderPlayerBookmarks();
-        updateBookmarksBadge();
-        showToast('Đã xóa dấu trang');
-    }
-
-    function renderPlayerBookmarks(highlightId = null) {
-        const listEl = document.getElementById('playerBookmarksList');
-        if (!listEl) return;
-
-        const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
-        const currentId = currentAudioType === 'youtube'
-            ? (ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null)
-            : (currentAudiobook ? currentAudiobook.identifier : null);
-
-        const bookBookmarks = currentId 
-            ? allBookmarks.filter(b => b.identifier === currentId)
-            : allBookmarks;
-
-        updateBookmarksBadge();
-        listEl.innerHTML = '';
-
-        if (bookBookmarks.length === 0) {
-            listEl.innerHTML = `
-                <div class="bookmarks-empty-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <p class="bm-empty-title">Chưa có dấu trang nào cho sách này</p>
-                    <p class="bm-empty-sub">Nhấn nút <b>"+ Đánh dấu mốc hiện tại"</b> ở trên hoặc nút <b>Bookmark</b> ở góc phải để ghi nhớ lại các đoạn bạn muốn nghe lại!</p>
-                </div>
-            `;
-            return;
-        }
-
-        bookBookmarks.forEach(bm => {
-            const row = document.createElement('div');
-            row.className = `player-bookmark-row ${bm.id === highlightId ? 'just-added-highlight' : ''}`;
-            const dateStr = formatRelativeDate(bm.createdAt);
-
-            row.innerHTML = `
-                <div class="bm-row-left">
-                    <div class="bm-time-tag">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        <span>${bm.timeFormatted || formatTime(bm.time)}</span>
-                    </div>
-                    <div class="bm-details">
-                        <div class="bm-chapter-name" title="${escapeHtml(bm.trackTitle)}">${escapeHtml(bm.trackTitle)}</div>
-                        <div class="bm-date">${dateStr}</div>
-                    </div>
-                </div>
-                <div class="bm-row-actions">
-                    <button class="bm-action-play" title="Nghe từ mốc này">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
-                            <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                        <span>Nghe tiếp</span>
-                    </button>
-                    <button class="bm-action-del" title="Xóa dấu trang">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-
-            // Action: Play from bookmark
-            const btnPlay = row.querySelector('.bm-action-play');
-            if (btnPlay) {
-                btnPlay.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (bm.type === 'youtube' || (bm.identifier && bm.identifier.startsWith('yt_'))) {
-                        const targetId = bm.videoId || bm.identifier.replace(/^yt_/, '');
-                        if (currentAudioType !== 'youtube' || !ytCurrentItem || ytCurrentItem.videoId !== targetId) {
-                            const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === targetId) || {
-                                identifier: bm.identifier,
-                                videoId: targetId,
-                                title: bm.bookTitle,
-                                cover: bm.cover,
-                                type: 'youtube'
-                            };
-                            loadAndPlayYoutube(found, bm.time, true);
-                        } else {
-                            if (ytPlayer && ytPlayer.seekTo) {
-                                ytPlayer.seekTo(bm.time, true);
-                                ytPlayer.playVideo();
-                            }
-                        }
-                    } else {
-                        if (currentTrackIndex !== bm.trackIndex) {
-                            playTrack(bm.trackIndex, bm.time, true);
-                        } else {
-                            audioElement.currentTime = bm.time;
-                            if (audioElement.paused) audioElement.play();
-                        }
-                    }
-                    showToast(`▶ Đang nghe từ mốc [${bm.timeFormatted || formatTime(bm.time)}] - ${bm.trackTitle}`);
-                });
-            }
-
-            // Action: Delete bookmark
-            const btnDel = row.querySelector('.bm-action-del');
-            if (btnDel) {
-                btnDel.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteBookmark(bm.id);
-                });
-            }
-
-            listEl.appendChild(row);
-
-            if (bm.id === highlightId) {
-                setTimeout(() => {
-                    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 100);
-            }
-        });
+        updateBookmarkButtonState();
     }
 
     // =========================================
@@ -4899,11 +4807,11 @@
 
     // Attach Bookmark & Playlist tab event listeners
     if (btnPlayerBookmark) {
-        btnPlayerBookmark.addEventListener('click', addBookmark);
+        btnPlayerBookmark.addEventListener('click', () => toggleAudiobookBookmark());
     }
     const btnAddBookmarkNowEl = document.getElementById('btnAddBookmarkNow');
     if (btnAddBookmarkNowEl) {
-        btnAddBookmarkNowEl.addEventListener('click', addBookmark);
+        btnAddBookmarkNowEl.addEventListener('click', () => toggleAudiobookBookmark());
     }
     const tabChaptersBtnEl = document.getElementById('tabChaptersBtn');
     if (tabChaptersBtnEl) {
@@ -5167,6 +5075,20 @@
 
     // Save and Restore Audio State & Progress
     function saveAudioProgress() {
+        const identifier = currentAudioType === 'youtube'
+            ? (ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null)
+            : (currentAudiobook ? currentAudiobook.identifier : null);
+
+        if (!identifier) return;
+
+        // CRITICAL: Only audiobooks that are Bookmarked OR have a Personal Note are saved into progress history!
+        const bookmarked = isAudiobookBookmarked(identifier);
+        const hasNote = Boolean(getAudioNote(identifier));
+        if (!bookmarked && !hasNote) {
+            saveAudioState();
+            return;
+        }
+
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
         const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
 
@@ -5174,7 +5096,6 @@
             if (!ytCurrentItem) return;
             const cur = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
             const dur = Math.floor(ytPlayer && ytPlayer.getDuration ? (ytPlayer.getDuration() || ytCurrentItem.duration || 0) : (ytCurrentItem.duration || 0));
-            const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
 
             const existing = progressMap[identifier] || {};
             const noteText = existing.note || notesMap[identifier]?.text;
@@ -5192,6 +5113,7 @@
                 currentTime: cur,
                 duration: dur,
                 percent: dur > 0 ? Math.min(100, Math.round((cur / dur) * 100)) : 0,
+                isBookmarked: bookmarked,
                 note: noteText || undefined,
                 noteUpdatedAt: noteUpdated || undefined,
                 updatedAt: Date.now()
@@ -5226,6 +5148,7 @@
             currentTime: cur,
             duration: dur,
             percent: dur > 0 ? Math.min(100, Math.round((cur / dur) * 100)) : 0,
+            isBookmarked: bookmarked,
             note: noteText || undefined,
             noteUpdatedAt: noteUpdated || undefined,
             updatedAt: Date.now()

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790998991178,
+  "lastUpdated": 1790999500000,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -76,15 +76,21 @@
     }
   ],
   "audioProgress": {
-    "tam-ly-hoc-ve-tien": {
-      "trackIndex": 0,
-      "currentTime": 0,
-      "duration": 1800,
-      "title": "Tâm Lý Học Về Tiền",
+    "oc-sang-suot.sna": {
+      "identifier": "oc-sang-suot.sna",
       "type": "archive",
-      "cover": "https://archive.org/services/img/tam-ly-hoc-ve-tien",
-      "updatedAt": 1727580900000,
-      "identifier": "tam-ly-hoc-ve-tien"
+      "title": "Óc Sáng Suốt - sachnoi.app",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/oc-sang-suot.sna",
+      "trackIndex": 2,
+      "trackTitle": "C01B ThuatQuanSat OcSangSuot",
+      "currentTime": 504,
+      "duration": 1875,
+      "percent": 27,
+      "isBookmarked": true,
+      "note": "Nghệ thuật quan sát",
+      "noteUpdatedAt": 1790998933002,
+      "updatedAt": 1790998991129
     },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
@@ -98,6 +104,7 @@
       "currentTime": 48,
       "duration": 5072,
       "percent": 1,
+      "isBookmarked": true,
       "updatedAt": 1790727471354,
       "note": "Hiểu về con người",
       "noteUpdatedAt": 1790993706310
@@ -113,22 +120,10 @@
       "currentTime": 2116,
       "duration": 2266,
       "percent": 93,
+      "isBookmarked": true,
       "updatedAt": 1790710319626,
       "note": "Ghi chú khi đi làm",
       "noteUpdatedAt": 1790993671331
-    },
-    "di-tim-le-song.sna": {
-      "identifier": "di-tim-le-song.sna",
-      "type": "archive",
-      "title": "Đi Tìm Lẽ Sống - sachnoi.app",
-      "author": "Viktor Emil Frankl",
-      "cover": "https://archive.org/services/img/di-tim-le-song.sna",
-      "trackIndex": 0,
-      "trackTitle": "GioiThieu DiTimLeSong",
-      "currentTime": 426,
-      "duration": 833,
-      "percent": 51,
-      "updatedAt": 1790996226562
     },
     "4a26f9254024abe6a7fb3dbda27709a3": {
       "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
@@ -141,63 +136,45 @@
       "currentTime": 1672,
       "duration": 1975,
       "percent": 85,
+      "isBookmarked": true,
       "updatedAt": 1790995968527,
       "note": "Bản chất nam nữ khi yêu đương",
       "noteUpdatedAt": 1790998956255
-    },
-    "oc-sang-suot.sna": {
+    }
+  },
+  "audioBookmarks": [
+    {
       "identifier": "oc-sang-suot.sna",
       "type": "archive",
       "title": "Óc Sáng Suốt - sachnoi.app",
       "author": "Internet Archive",
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
-      "trackIndex": 2,
-      "trackTitle": "C01B ThuatQuanSat OcSangSuot",
-      "currentTime": 504,
-      "duration": 1875,
-      "percent": 27,
-      "note": "Nghệ thuật quan sát",
-      "noteUpdatedAt": 1790998933002,
-      "updatedAt": 1790998991129
-    }
-  },
-  "audioBookmarks": [
-    {
-      "id": "bm_1790996820022_816",
-      "identifier": "oc-sang-suot.sna",
-      "type": "archive",
-      "bookTitle": "Óc Sáng Suốt - sachnoi.app",
-      "cover": "https://archive.org/services/img/oc-sang-suot.sna",
-      "trackIndex": 0,
-      "trackTitle": "MoDau OcSangSuot",
-      "time": 5,
-      "timeFormatted": "00:05",
-      "createdAt": 1790996820022
+      "bookmarkedAt": 1790998583676
     },
     {
-      "id": "bm_1790734929260_330",
       "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
       "type": "archive",
-      "bookTitle": "thuat-yeu-duong",
+      "title": "thuat-yeu-duong",
+      "author": "Internet Archive",
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
-      "trackIndex": 2,
-      "trackTitle": "track 3 chuong 3 ai tinh",
-      "time": 449,
-      "timeFormatted": "07:29",
-      "createdAt": 1790734929260
+      "bookmarkedAt": 1790996042637
     },
     {
-      "id": "bm_1790665644124_242",
-      "identifier": "yt_IBh60rV9ue0",
+      "identifier": "yt_6wbQme0JZkQ",
       "type": "youtube",
-      "videoId": "IBh60rV9ue0",
-      "bookTitle": "Book Summary | The Laws of Human Nature",
-      "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
-      "trackIndex": 0,
-      "trackTitle": "Book Summary | The Laws of Human Nature",
-      "time": 2013,
-      "timeFormatted": "33:33",
-      "createdAt": 1790665644124
+      "videoId": "6wbQme0JZkQ",
+      "title": "Sách Nói: Những Quy Luật Của Bản Chất Con Người - Robert Greene",
+      "author": "Hải Đăng BED",
+      "cover": "https://i.ytimg.com/vi/6wbQme0JZkQ/hqdefault.jpg",
+      "bookmarkedAt": 1790993706310
+    },
+    {
+      "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
+      "type": "archive",
+      "title": "48 nguyên tắc chủ chốt của quyền lực",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
+      "bookmarkedAt": 1790993671331
     }
   ],
   "audioNotes": {

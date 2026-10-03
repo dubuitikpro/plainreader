@@ -2542,6 +2542,10 @@ a { color: inherit; text-decoration: none; }
     background: rgba(253, 203, 110, 0.15);
 }
 
+.player-header-btn.is-bookmarked svg {
+    fill: currentColor;
+}
+
 .player-close-btn:hover {
     background: var(--danger-soft);
     color: var(--danger);
