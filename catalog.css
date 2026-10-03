@@ -2110,6 +2110,29 @@ a { color: inherit; text-decoration: none; }
     flex-shrink: 0;
 }
 
+.audiobook-badge-rating {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.audiobook-badge-rating svg {
+    flex-shrink: 0;
+}
+
 .audiobook-card.is-youtube:hover .audiobook-play-circle {
     background: linear-gradient(135deg, #ff4757, #eb2f06);
     box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6);
@@ -2423,6 +2446,20 @@ a { color: inherit; text-decoration: none; }
     border-radius: 8px;
     font-size: 0.74rem;
     color: #a0aec0;
+}
+
+.player-badge-rating {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    color: #fbbf24 !important;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.player-badge-rating svg {
+    flex-shrink: 0;
 }
 
 .player-goodreads-btn {

@@ -1883,6 +1883,8 @@
             author: 'James Clear',
             genre: 'self-help',
             chapters: 13,
+            rating: 4.0,
+            ratingsCount: 1445,
             cover: 'https://archive.org/services/img/tdthhqbn',
             description: 'Tác phẩm bán chạy kỷ lục toàn cầu của James Clear về phương pháp xây dựng thói quen tốt và loại bỏ thói quen xấu thông qua những cải thiện nhỏ 1% mỗi ngày.',
             aliases: ['atomic habits', 'thay doi ti hon', 'thay đổi tí hon', 'thói quen nguyên tử', 'thoi quen nguyen tu', 'james clear', 'tdthhqbn']
@@ -1894,6 +1896,8 @@
             author: 'Robert T. Kiyosaki',
             genre: 'self-help',
             chapters: 13,
+            rating: 4.1,
+            ratingsCount: 1820,
             cover: 'https://archive.org/services/img/cha-giau-cha-ngheo',
             description: 'Cuốn sách bán chạy kinh điển về giáo dục tài chính của Robert Kiyosaki, vén màn sự khác biệt trong tư duy về tiền bạc giữa người giàu và người nghèo, giúp độc giả làm chủ đồng tiền.',
             aliases: ['rich dad poor dad', 'rich dad, poor dad', 'day con lam giau', 'cha giau cha ngheo', 'dạy con làm giàu', 'cha giàu cha nghèo', 'rich dad']
@@ -1905,6 +1909,8 @@
             author: 'Morgan Housel',
             genre: 'self-help',
             chapters: 16,
+            rating: 4.0,
+            ratingsCount: 423,
             cover: 'https://archive.org/services/img/tam-ly-hoc-ve-tien',
             description: 'Cuốn sách bán chạy toàn cầu của Morgan Housel, phân tích sâu sắc mối quan hệ giữa tâm lý, cảm xúc và các quyết định tài chính của con người. Làm giàu không chỉ là kiến thức toán học, mà là hành vi và sự tự chủ.',
             aliases: ['the psychology of money', 'psychology of money', 'tam ly hoc ve tien', 'tâm lý học về tiền', 'tam ly tien bac', 'tâm lý tiền bạc', 'morgan housel']
@@ -1916,6 +1922,8 @@
             author: 'Chin-Ning Chu',
             genre: 'self-help',
             chapters: 19,
+            rating: 3.9,
+            ratingsCount: 85,
             cover: 'https://archive.org/services/img/mat-day-tam-den.sna',
             description: 'Tác phẩm nổi tiếng của Chin-Ning Chu kết hợp triết lý phương Đông và tư duy hành động thực tiễn để khai phá sức mạnh nội tâm, xây dựng bản lĩnh vững vàng vượt qua mọi sóng gió thương trường và đời sống.',
             aliases: ['mat day tam den', 'thick face black heart', 'thick face, black heart']
@@ -1927,6 +1935,8 @@
             author: 'Dale Carnegie',
             genre: 'self-help',
             chapters: 31,
+            rating: 4.2,
+            ratingsCount: 444,
             cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
             description: 'Cuốn sách nghệ thuật thu phục lòng người kinh điển nhất mọi thời đại của Dale Carnegie, chỉ dẫn cách lắng nghe, thấu hiểu, ứng xử nhân văn và xây dựng những mối quan hệ bền vững.',
             aliases: ['dac nhan tam', 'how to win friends and influence people', 'how to win friends & influence people']
@@ -1938,6 +1948,8 @@
             author: 'Paulo Coelho',
             genre: 'literature',
             chapters: 12,
+            rating: 4.1,
+            ratingsCount: 1250,
             cover: 'https://archive.org/services/img/nha-gia-kim.sna',
             description: 'Kiệt tác văn học thế giới kể về hành trình theo đuổi vận mệnh của chàng trai chăn cừu Santiago: Khi bạn thực sự khao khát một điều gì, cả vũ trụ sẽ hợp lực giúp bạn đạt được.',
             aliases: ['the alchemist', 'nha gia kim', 'o alquimista']
@@ -1949,6 +1961,8 @@
             author: 'Mario Puzo',
             genre: 'literature',
             chapters: 32,
+            rating: 4.3,
+            ratingsCount: 560,
             cover: 'https://archive.org/services/img/bogia_201903',
             description: 'Tác phẩm hình sự - tâm lý xuất sắc nhất về thế giới ngầm mafia Mỹ và gia tộc Corleone dưới sự dẫn dắt của Don Vito Corleone đầy quyền uy và danh dự.',
             aliases: ['the godfather', 'bo gia', 'bố già']
@@ -1960,6 +1974,8 @@
             author: 'La Quán Trung',
             genre: 'history-philosophy',
             chapters: 40,
+            rating: 4.5,
+            ratingsCount: 190,
             cover: 'https://archive.org/services/img/tam-quoc-chi-dien-nghia-tap-1.sna',
             description: 'Đại kiệt tác văn học lịch sử Trung Hoa, khắc họa cuộc tranh hùng thời Tam Quốc với những mưu lược quân sự kiệt xuất, tài trí của Gia Cát Lượng, Tào Tháo, Quan Vũ, Lưu Bị.',
             aliases: ['tam quoc dien nghia', 'tam quoc chi', 'romance of the three kingdoms']
@@ -1971,6 +1987,8 @@
             author: 'Dan Brown',
             genre: 'literature',
             chapters: 105,
+            rating: 3.9,
+            ratingsCount: 980,
             cover: 'https://archive.org/services/img/mat-ma-da-vinci.sna',
             description: 'Tiểu thuyết trinh thám ly kỳ chấn động thế giới của Dan Brown, theo chân giáo sư biểu tượng học Robert Langdon giải mã các thông điệp ẩn giấu trong các tuyệt tác của Leonardo da Vinci.',
             aliases: ['the da vinci code', 'mat ma da vinci']
@@ -1982,6 +2000,8 @@
             author: 'Joseph Murphy',
             genre: 'self-help',
             chapters: 20,
+            rating: 4.1,
+            ratingsCount: 310,
             cover: 'https://archive.org/services/img/suc-manh-tiem-thuc.sna',
             description: 'Khám phá bí mật tiềm ẩn của trí não và tiềm thức, phương pháp khai mở nguồn năng lượng chữa lành, thịnh vượng và hạnh phúc trong mỗi con người.',
             aliases: ['suc manh tiem thuc', 'the power of your subconscious mind']
@@ -1992,6 +2012,8 @@
             author: 'Rosie Nguyễn',
             genre: 'self-help',
             chapters: 17,
+            rating: 4.0,
+            ratingsCount: 220,
             cover: 'https://archive.org/services/img/tuoi-tre-dang-gia-bao-nhieu.sna',
             description: 'Cuốn sách truyền cảm hứng cho hàng triệu bạn trẻ Việt Nam về việc học tập, đọc sách, trải nghiệm du lịch bụi và tìm ra đam mê đích thực của cuộc đời.',
             aliases: ['tuoi tre dang gia bao nhieu']
@@ -2002,6 +2024,8 @@
             author: 'Thích Nhất Hạnh',
             genre: 'history-philosophy',
             chapters: 15,
+            rating: 4.4,
+            ratingsCount: 390,
             cover: 'https://archive.org/services/img/gian.sna',
             description: 'Những lời dạy minh triết của Thiền sư Thích Nhất Hạnh về phương pháp ôm ấp và chuyển hóa cơn giận, tìm lại sự an lạc sâu sắc trong tâm hồn và hàn gắn mối quan hệ.',
             aliases: ['gian thich nhat hanh', 'gian']
@@ -2012,6 +2036,8 @@
             author: 'Tony Buổi Sáng',
             genre: 'self-help',
             chapters: 21,
+            rating: 4.2,
+            ratingsCount: 260,
             cover: 'https://archive.org/services/img/tren-duong-bang.sna',
             description: 'Tác phẩm truyền động lực mạnh mẽ của Tony Buổi Sáng dành cho người trẻ dám dấn thân, rèn luyện ngoại ngữ, tính kỷ luật và bản lĩnh vươn ra biển lớn thế giới.',
             aliases: ['tren duong bang', 'tony buoi sang']
@@ -2023,6 +2049,8 @@
             author: 'Hector Malot',
             genre: 'literature',
             chapters: 25,
+            rating: 4.3,
+            ratingsCount: 410,
             cover: 'https://archive.org/services/img/khong-gia-dinh.sna',
             description: 'Hành trình lưu lạc đầy thử thách nhưng ngập tràn tình yêu thương và lòng quả cảm của chú bé Rémi cùng cụ Vitalis và đoàn xiếc thú qua khắp nẻo đường nước Pháp.',
             aliases: ['khong gia dinh', 'sans famille', 'nobody\'s boy']
@@ -2034,6 +2062,8 @@
             author: 'Jeffrey Archer',
             genre: 'literature',
             chapters: 35,
+            rating: 4.4,
+            ratingsCount: 780,
             cover: 'https://archive.org/services/img/hai-so-phan.sna',
             description: 'Tiểu thuyết kinh điển về cuộc đối đầu định mệnh giữa William Kane giàu sang quyền quý và Abel Rosnovski di dân nghèo khó trên thương trường nước Mỹ suốt nửa thế kỷ.',
             aliases: ['hai so phan', 'kane and abel', 'kane & abel']
@@ -2045,6 +2075,8 @@
             author: 'Dale Carnegie',
             genre: 'self-help',
             chapters: 28,
+            rating: 4.2,
+            ratingsCount: 280,
             cover: 'https://archive.org/services/img/quang-ganh-lo-di-va-vui-song.sna',
             description: 'Chỉ dẫn tâm lý thiết thực giúp độc giả phân tích và loại bỏ âu lo phiền muộn, sống trọn vẹn từng ngày hôm nay trong niềm vui và sự thanh thản.',
             aliases: ['quang ganh lo di va vui song', 'how to stop worrying and start living']
@@ -2056,6 +2088,8 @@
             author: 'Napoleon Hill',
             genre: 'self-help',
             chapters: 16,
+            rating: 4.2,
+            ratingsCount: 1650,
             cover: 'https://archive.org/services/img/nghi-giau-lam-giau.sna',
             description: '13 nguyên tắc thành công được đúc kết từ hơn 500 nhân vật kiệt xuất nhất nước Mỹ của Napoleon Hill, mở rộng tầm nhìn về sức mạnh của khát khao và trí tuệ.',
             aliases: ['nghi giau lam giau', 'think and grow rich']
@@ -2067,6 +2101,8 @@
             author: 'Antoine de Saint-Exupéry',
             genre: 'literature',
             chapters: 27,
+            rating: 4.4,
+            ratingsCount: 2100,
             cover: 'https://archive.org/services/img/hoang-tu-be.sna',
             description: 'Kiệt tác văn học Pháp đẹp đẽ và sâu sắc: "Người ta chỉ có thể nhìn thấy rõ ràng bằng trái tim. Những điều cốt yếu thì mắt thường không nhìn thấy được."',
             aliases: ['hoang tu be', 'the little prince', 'le petit prince']
@@ -2078,6 +2114,8 @@
             author: 'Sun Tzu / Lionel Giles',
             genre: 'english',
             chapters: 13,
+            rating: 4.1,
+            ratingsCount: 850,
             cover: 'https://archive.org/services/img/art_of_war_librivox',
             description: 'Bộ binh thư quân sự vĩ đại nhất lịch sử phương Đông, đúc kết các quy luật chiến lược, nghệ thuật chỉ huy và triết lý nắm bắt cơ hội được áp dụng rộng rãi trong cả kinh doanh hiện đại.',
             aliases: ['binh phap ton tu', 'the art of war']
@@ -2088,6 +2126,8 @@
             author: 'Arthur Conan Doyle',
             genre: 'english',
             chapters: 13,
+            rating: 4.3,
+            ratingsCount: 470,
             cover: 'https://archive.org/services/img/sherlock_holmes_canon_08_02_librivox',
             description: 'Tuyển tập truyện trinh thám đặc sắc đánh dấu sự trở lại ngoạn mục của thám tử đại tài Sherlock Holmes và bác sĩ Watson trên phố Baker.',
             aliases: ['sherlock holmes']
@@ -2623,6 +2663,105 @@
             if (gQuery) {
                 googleLink.href = `https://www.google.com/search?q=${encodeURIComponent('goodreads ' + gQuery).replace(/%20/g, '+')}`;
             }
+        }
+    }
+
+    // =========================================
+    // Open Library Metadata & Rating Enrichment
+    // =========================================
+    const olMetaMemoryCache = new Map();
+
+    async function fetchOpenLibraryBookMeta(title, author = '') {
+        if (!title || typeof title !== 'string' || title.trim().length < 2) return null;
+
+        // 1. Get clean search query
+        const grData = getGoodreadsSearchData(title, author, '');
+        let cleanQuery = (grData && grData.query) || title.trim();
+        cleanQuery = cleanQuery.replace(/[\(\)\[\]]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!cleanQuery) return null;
+
+        const cacheKey = cleanQuery.toLowerCase();
+        if (olMetaMemoryCache.has(cacheKey)) {
+            return olMetaMemoryCache.get(cacheKey);
+        }
+
+        // Check sessionStorage cache
+        try {
+            const stored = sessionStorage.getItem(`ol_meta_${cacheKey}`);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                olMetaMemoryCache.set(cacheKey, parsed);
+                return parsed;
+            }
+        } catch (e) {}
+
+        try {
+            const enc = encodeURIComponent(cleanQuery);
+            const url = `https://openlibrary.org/search.json?q=${enc}&limit=1&fields=title,author_name,ratings_average,ratings_count,first_publish_year,cover_i,key`;
+            
+            let controller;
+            let timeoutId;
+            if (typeof AbortController !== 'undefined') {
+                controller = new AbortController();
+                timeoutId = setTimeout(() => controller.abort(), 6500);
+            }
+
+            const resp = await fetch(url, { signal: controller ? controller.signal : undefined });
+            if (timeoutId) clearTimeout(timeoutId);
+            if (!resp.ok) return null;
+
+            const data = await resp.json();
+            const doc = (data.docs && data.docs[0]) || null;
+            if (!doc) {
+                olMetaMemoryCache.set(cacheKey, null);
+                return null;
+            }
+
+            let coverUrl = null;
+            if (doc.cover_i) {
+                coverUrl = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`;
+            }
+
+            const meta = {
+                title: doc.title || '',
+                author: (doc.author_name && doc.author_name[0]) || '',
+                rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : null,
+                ratingsCount: doc.ratings_count || 0,
+                firstPublishYear: doc.first_publish_year || null,
+                cover: coverUrl,
+                workKey: doc.key || null
+            };
+
+            olMetaMemoryCache.set(cacheKey, meta);
+            try {
+                sessionStorage.setItem(`ol_meta_${cacheKey}`, JSON.stringify(meta));
+            } catch (e) {}
+
+            return meta;
+        } catch (err) {
+            console.warn('Open Library meta fetch skipped/failed:', err);
+            return null;
+        }
+    }
+
+    async function fetchOpenLibraryWorkDescription(workKey) {
+        if (!workKey || typeof workKey !== 'string') return '';
+        const cacheKey = `desc_${workKey}`;
+        if (olMetaMemoryCache.has(cacheKey)) return olMetaMemoryCache.get(cacheKey);
+
+        try {
+            const url = `https://openlibrary.org${workKey}.json`;
+            const resp = await fetch(url);
+            if (!resp.ok) return '';
+            const data = await resp.json();
+            const desc = typeof data.description === 'string'
+                ? data.description
+                : (data.description && data.description.value) || '';
+            const cleanDesc = desc.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1').replace(/\r\n/g, '\n').trim();
+            olMetaMemoryCache.set(cacheKey, cleanDesc);
+            return cleanDesc;
+        } catch (e) {
+            return '';
         }
     }
 
@@ -3326,6 +3465,16 @@
                   `;
 
             const badgeYoutubeHtml = isYt ? `<span class="audiobook-badge-youtube">YouTube Music</span>` : '';
+            const ratingBadgeHtml = (b.rating && b.rating > 0)
+                ? `
+                    <span class="audiobook-badge-rating" title="Đánh giá sách: ${b.rating}/5.0 ${b.ratingsCount ? '(' + b.ratingsCount.toLocaleString() + ' đánh giá)' : ''}">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="#fbbf24">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>
+                        <span>${b.rating} ★</span>
+                    </span>
+                  `
+                : '';
 
             card.innerHTML = `
                 <div class="audiobook-cover-wrap">
@@ -3340,6 +3489,7 @@
                     </span>
                     ${badgeYoutubeHtml}
                     ${resumeBadgeHtml}
+                    ${ratingBadgeHtml}
                     <div class="audiobook-overlay-play">
                         <div class="audiobook-play-circle">
                             <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
@@ -3457,6 +3607,9 @@
             let cleanPhrase = cleanTitleForAudioSearch(viQuery);
             if (!cleanPhrase) cleanPhrase = viQuery.replace(/["\\]/g, '').trim();
 
+            // Parallel call to Open Library to get rich book metadata (ratings, author, cover)
+            const olMetaPromise = fetchOpenLibraryBookMeta(cleanPhrase, '');
+
             const fetchIaDocs = async (phrase) => {
                 try {
                     const enc = encodeURIComponent(phrase);
@@ -3479,14 +3632,44 @@
                 }
             }
 
-            const remoteBooks = docs.map(d => ({
-                identifier: d.identifier,
-                title: d.title || d.identifier,
-                author: d.creator || 'Internet Archive',
-                cover: `https://archive.org/services/img/${d.identifier}`,
-                description: d.description || '',
-                chapters: null
-            }));
+            // Await Open Library metadata
+            let olMeta = null;
+            try {
+                olMeta = await olMetaPromise;
+            } catch (e) {}
+
+            const remoteBooks = docs.map(d => {
+                let rAuthor = d.creator || 'Internet Archive';
+                let rCover = `https://archive.org/services/img/${d.identifier}`;
+                let rDesc = d.description || '';
+                let rRating = null;
+                let rRatingsCount = 0;
+
+                if (olMeta) {
+                    if (olMeta.rating) {
+                        rRating = olMeta.rating;
+                        rRatingsCount = olMeta.ratingsCount;
+                    }
+                    if (olMeta.cover && (!rCover || rCover.includes('archive_logo'))) {
+                        rCover = olMeta.cover;
+                    }
+                    if (olMeta.author && (!rAuthor || rAuthor === 'Internet Archive' || /^(admin|archive\.org|sachnoi\.app)$/i.test(rAuthor))) {
+                        rAuthor = olMeta.author;
+                    }
+                }
+
+                return {
+                    identifier: d.identifier,
+                    title: d.title || d.identifier,
+                    author: rAuthor,
+                    cover: rCover,
+                    description: rDesc,
+                    rating: rRating,
+                    ratingsCount: rRatingsCount,
+                    olWorkKey: olMeta ? olMeta.workKey : null,
+                    chapters: null
+                };
+            });
 
             // Merge & deduplicate by identifier
             const seen = new Set();
@@ -3744,6 +3927,32 @@
         const ytFallback = (item.chapterList && item.chapterList[0] && item.chapterList[0].title) || '';
         const grData = getGoodreadsSearchData(item.title, item.author, ytFallback);
         updatePlayerGoodreadsLinks(grData);
+
+        // Rating badge handling
+        const ytRatingBadge = document.getElementById('playerRatingBadge');
+        const ytRatingBadgeText = document.getElementById('playerRatingBadgeText');
+        if (ytRatingBadge) {
+            if (item.rating && item.rating > 0) {
+                ytRatingBadge.style.display = 'inline-flex';
+                if (ytRatingBadgeText) {
+                    ytRatingBadgeText.textContent = item.ratingsCount > 0 
+                        ? `${item.rating} ★ (${item.ratingsCount.toLocaleString()})`
+                        : `${item.rating} ★`;
+                }
+            } else {
+                ytRatingBadge.style.display = 'none';
+            }
+        }
+        fetchOpenLibraryBookMeta(item.title, item.author).then((olMeta) => {
+            if (olMeta && olMeta.rating && ytRatingBadge) {
+                ytRatingBadge.style.display = 'inline-flex';
+                if (ytRatingBadgeText) {
+                    ytRatingBadgeText.textContent = olMeta.ratingsCount > 0 
+                        ? `${olMeta.rating} ★ (${olMeta.ratingsCount.toLocaleString()} đánh giá)`
+                        : `${olMeta.rating} ★`;
+                }
+            }
+        }).catch(() => {});
 
         if (playerBookDescription) {
             playerBookDescription.textContent = item.description || item.title;
@@ -4059,6 +4268,46 @@
             const firstTrackTitle = (tracks && tracks[0] && tracks[0].title) || '';
             const grData = getGoodreadsSearchData(bookTitle, bookAuthor, firstTrackTitle);
             updatePlayerGoodreadsLinks(grData);
+
+            // Handle Rating Badge
+            const ratingBadge = document.getElementById('playerRatingBadge');
+            const ratingBadgeText = document.getElementById('playerRatingBadgeText');
+            let initialRating = (curated && curated.rating) || null;
+            let initialRatingsCount = (curated && curated.ratingsCount) || 0;
+            if (ratingBadge) {
+                if (initialRating) {
+                    ratingBadge.style.display = 'inline-flex';
+                    if (ratingBadgeText) {
+                        ratingBadgeText.textContent = initialRatingsCount > 0 
+                            ? `${initialRating} ★ (${initialRatingsCount.toLocaleString()})`
+                            : `${initialRating} ★`;
+                    }
+                } else {
+                    ratingBadge.style.display = 'none';
+                }
+            }
+
+            // Asynchronously fetch/enrich Open Library metadata (ratings, synopsis, HD cover)
+            fetchOpenLibraryBookMeta(bookTitle, bookAuthor).then(async (olMeta) => {
+                if (!olMeta) return;
+                if (olMeta.rating && ratingBadge) {
+                    ratingBadge.style.display = 'inline-flex';
+                    if (ratingBadgeText) {
+                        ratingBadgeText.textContent = olMeta.ratingsCount > 0 
+                            ? `${olMeta.rating} ★ (${olMeta.ratingsCount.toLocaleString()} đánh giá)`
+                            : `${olMeta.rating} ★`;
+                    }
+                }
+                if (olMeta.author && (!bookAuthor || bookAuthor === 'Internet Archive' || /^(admin|archive\.org|sachnoi\.app)$/i.test(bookAuthor))) {
+                    if (playerBookAuthor) playerBookAuthor.textContent = olMeta.author;
+                }
+                if (olMeta.workKey && (!bookDesc || bookDesc.length < 60 || bookDesc.includes('Sách nói từ Internet Archive'))) {
+                    const synopsis = await fetchOpenLibraryWorkDescription(olMeta.workKey);
+                    if (synopsis && playerBookDescription) {
+                        playerBookDescription.innerHTML = `<p>${escapeHtml(synopsis)}</p>`;
+                    }
+                }
+            }).catch(() => {});
 
             if (playerBookDescription) playerBookDescription.innerHTML = bookDesc;
 
