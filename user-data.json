@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790997401878,
+  "lastUpdated": 1790997409645,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -145,20 +145,6 @@
       "note": "Bản chất yêu đương",
       "noteUpdatedAt": 1790996042637
     },
-    "yt_lYOLg3ZkSqk": {
-      "identifier": "yt_lYOLg3ZkSqk",
-      "type": "youtube",
-      "videoId": "lYOLg3ZkSqk",
-      "title": "[Tóm Tắt Sách] Óc Sáng Suốt – Một quyết định sai, cả đời thay đổi, óc sáng suốt quyết định điều gì?",
-      "author": "ABook Audio",
-      "cover": "https://i.ytimg.com/vi/lYOLg3ZkSqk/hqdefault.jpg",
-      "trackIndex": 0,
-      "trackTitle": "[Tóm Tắt Sách] Óc Sáng Suốt – Một quyết định sai, cả đời thay đổi, óc sáng suốt quyết định điều gì?",
-      "currentTime": 12,
-      "duration": 3000,
-      "percent": 0,
-      "updatedAt": 1790996799362
-    },
     "oc-sang-suot.sna": {
       "identifier": "oc-sang-suot.sna",
       "type": "archive",
@@ -167,10 +153,10 @@
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
       "trackIndex": 1,
       "trackTitle": "C01A ThuatQuanSat OcSangSuot",
-      "currentTime": 14,
+      "currentTime": 24,
       "duration": 1353,
-      "percent": 1,
-      "updatedAt": 1790997401301
+      "percent": 2,
+      "updatedAt": 1790997409278
     }
   },
   "audioBookmarks": [
@@ -243,7 +229,7 @@
     "identifier": "oc-sang-suot.sna",
     "type": "archive",
     "trackIndex": 1,
-    "time": 14,
+    "time": 24,
     "volume": 0.5,
     "speedIndex": 1
   },
