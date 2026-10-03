@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1791018577238,
+  "lastUpdated": 1791018681694,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -196,13 +196,13 @@
       "cover": "https://archive.org/services/img/tdthhqbn",
       "trackIndex": 2,
       "trackTitle": "[Audiobook] ATOMIC HABITS THÓI QUEN NGUYÊN TỬ (P3) James Clear Sách kỹ năng cực hay",
-      "currentTime": 610,
+      "currentTime": 730,
       "duration": 1186,
-      "percent": 51,
+      "percent": 62,
       "isBookmarked": true,
       "note": "cách tư duy để thay đổi thói quen",
       "noteUpdatedAt": 1791017523196,
-      "updatedAt": 1791018577098
+      "updatedAt": 1791018681659
     }
   },
   "audioBookmarks": [
@@ -311,11 +311,12 @@
     "identifier": "tdthhqbn",
     "type": "archive",
     "trackIndex": 2,
-    "time": 610,
+    "time": 730,
     "volume": 0.5,
     "speedIndex": 1
   },
   "searchHistory": [
+    "Control (Psychology)",
     "Thay Đổi Tí Hon",
     "Tinh hoa Đạo học Đông phương",
     "Óc sáng suốt",
