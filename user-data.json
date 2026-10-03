@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790997608174,
+  "lastUpdated": 1790998126365,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -153,10 +153,10 @@
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
       "trackIndex": 1,
       "trackTitle": "C01A ThuatQuanSat OcSangSuot",
-      "currentTime": 272,
+      "currentTime": 917,
       "duration": 1353,
-      "percent": 20,
-      "updatedAt": 1790997607662
+      "percent": 68,
+      "updatedAt": 1790998123362
     }
   },
   "audioBookmarks": [
@@ -229,7 +229,7 @@
     "identifier": "oc-sang-suot.sna",
     "type": "archive",
     "trackIndex": 1,
-    "time": 272,
+    "time": 917,
     "volume": 0.5,
     "speedIndex": 1
   },
