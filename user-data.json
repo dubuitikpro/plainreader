@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1791012276739,
+  "lastUpdated": 1791012294474,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -156,9 +156,10 @@
       "currentTime": 1212,
       "duration": 1875,
       "percent": 65,
+      "isBookmarked": true,
       "note": "Nghệ thuật quan sát",
       "noteUpdatedAt": 1790998933002,
-      "updatedAt": 1790999558118
+      "updatedAt": 1791012293366
     },
     "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can-full-audio": {
       "identifier": "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can-full-audio",
@@ -172,7 +173,7 @@
       "duration": 8304,
       "percent": 7,
       "isBookmarked": true,
-      "updatedAt": 1791012274719
+      "updatedAt": 1791012283375
     },
     "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can": {
       "identifier": "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can",
@@ -295,12 +296,12 @@
       "updatedAt": 1790998933002
     }
   },
-  "lastPlayedId": "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can-full-audio",
+  "lastPlayedId": "oc-sang-suot.sna",
   "audioState": {
-    "identifier": "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can-full-audio",
+    "identifier": "oc-sang-suot.sna",
     "type": "archive",
-    "trackIndex": 0,
-    "time": 596,
+    "trackIndex": 2,
+    "time": 1212,
     "volume": 0.5,
     "speedIndex": 1
   },
