@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=6.2">
+    <link rel="stylesheet" href="catalog.css?v=6.3">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -748,16 +748,16 @@
                     <!-- Personal Notes Panel -->
                     <div class="player-notes-container" id="playerNotesContainer" style="display: none;">
                         <div class="player-notes-toolbar">
-                            <button type="button" class="btn-note-insert-timestamp" id="btnPlayerNoteInsertTimestamp" title="Chèn mốc thời gian đang nghe vào ghi chú">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12 6 12 12 16 14"/>
+                            <div class="player-notes-title-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                                 </svg>
-                                <span>+ Mốc thời gian (<b id="playerNoteTimePreview">00:00</b>)</span>
-                            </button>
+                                <span>Ghi chú chung cho cuốn sách</span>
+                            </div>
                             <span class="note-status-saved" id="playerNoteStatusSaved">☁️ Tự động đồng bộ</span>
                         </div>
-                        <textarea class="player-notes-textarea" id="playerNotesTextarea" placeholder="Ghi lại cảm nhận, trích dẫn hay, hoặc bài học từ cuốn sách này..."></textarea>
+                        <textarea class="player-notes-textarea" id="playerNotesTextarea" placeholder="Ghi lại cảm nhận, suy nghĩ, bài học hoặc nội dung đắc giá từ cuốn sách này..."></textarea>
                         <div class="player-notes-actions">
                             <button type="button" class="btn-player-note-delete" id="btnPlayerNoteDelete" style="display:none;" title="Xóa ghi chú này">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
@@ -943,17 +943,17 @@
 
                 <div class="audio-note-editor-wrap">
                     <div class="audio-note-editor-toolbar">
-                        <button type="button" class="btn-note-insert-timestamp" id="btnModalNoteInsertTimestamp" title="Chèn mốc thời gian vào ghi chú">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12 6 12 12 16 14"/>
+                        <div class="audio-note-title-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                <path d="M12 20h9"/>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                             </svg>
-                            <span>+ Mốc thời gian (<b id="modalNoteTimePreview">00:00</b>)</span>
-                        </button>
+                            <span>Ghi chú chung cho cuốn sách</span>
+                        </div>
                         <span class="audio-note-sync-tag">☁️ Tự động đồng bộ GitHub</span>
                     </div>
 
-                    <textarea id="audioNoteModalTextarea" class="audio-note-textarea" rows="7" placeholder="Viết cảm nhận, trích dẫn đắc giá, bài học cốt lõi hoặc ghi nhớ quan trọng từ cuốn sách này..."></textarea>
+                    <textarea id="audioNoteModalTextarea" class="audio-note-textarea" rows="7" placeholder="Ghi lại cảm nhận, suy nghĩ, bài học hoặc nội dung đắc giá từ cuốn sách này..."></textarea>
 
                     <div class="audio-note-meta-bar">
                         <span class="audio-note-char-count" id="audioNoteModalCharCount">0 ký tự</span>
@@ -988,6 +988,6 @@
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="sync.js?v=6.0"></script>
-    <script src="catalog.js?v=6.7"></script>
+    <script src="catalog.js?v=6.8"></script>
 </body>
 </html>

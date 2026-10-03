@@ -3214,7 +3214,7 @@
             const notePrev = card.querySelector('.history-note-preview');
             const onOpenNote = (e) => {
                 e.stopPropagation();
-                openAudioNoteModal(item.identifier || item._storageKey, item.title, authorText, coverSrc, item.currentTime || 0);
+                openAudioNoteModal(item.identifier || item._storageKey, item.title, authorText, coverSrc);
             };
             if (noteBtn) noteBtn.addEventListener('click', onOpenNote);
             if (notePrev) notePrev.addEventListener('click', onOpenNote);
@@ -5088,8 +5088,8 @@
                 cover: noteObj.cover,
                 trackIndex: 0,
                 trackTitle: noteObj.title,
-                currentTime: bookInfo?.currentTime || 0,
-                duration: bookInfo?.duration || 0,
+                currentTime: 0,
+                duration: 0,
                 percent: 0,
                 note: cleanText,
                 noteUpdatedAt: now,
@@ -5182,27 +5182,19 @@
 
         if (playerNotesTextarea) {
             playerNotesTextarea.disabled = false;
-            playerNotesTextarea.placeholder = 'Viết ghi chú, suy nghĩ, mốc thời gian hay đoạn trích tâm đắc của cuốn sách này...';
+            playerNotesTextarea.placeholder = 'Ghi lại cảm nhận, suy nghĩ, bài học hoặc nội dung đắc giá từ cuốn sách này...';
             playerNotesTextarea.value = getAudioNote(id);
             updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
         }
-
-        const curSec = currentAudioType === 'youtube'
-            ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
-            : Math.floor(audioElement.currentTime || 0);
-        if (playerNoteTimePreview) {
-            playerNoteTimePreview.textContent = formatTime(curSec);
-        }
     }
 
-    function openAudioNoteModal(identifier, title, author, cover, fallbackTime = 0) {
+    function openAudioNoteModal(identifier, title, author, cover) {
         if (!audioNoteModal || !identifier) return;
         currentEditingNoteBook = {
             identifier: identifier,
             title: title || 'Sách nói',
             author: author || '',
-            cover: cover || '',
-            fallbackTime: fallbackTime
+            cover: cover || ''
         };
 
         if (audioNoteModalBookTitle) audioNoteModalBookTitle.textContent = currentEditingNoteBook.title;
@@ -5222,17 +5214,6 @@
             } else {
                 audioNoteModalSavedTime.textContent = '';
             }
-        }
-
-        let curSec = fallbackTime;
-        const currentActiveId = getCurrentAudioIdentifier();
-        if (currentActiveId === identifier) {
-            curSec = currentAudioType === 'youtube'
-                ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
-                : Math.floor(audioElement.currentTime || 0);
-        }
-        if (modalNoteTimePreview) {
-            modalNoteTimePreview.textContent = formatTime(curSec);
         }
 
         audioNoteModal.style.display = 'flex';
@@ -5277,16 +5258,6 @@
     }
 
     // Player Notes tab controls
-    if (btnPlayerNoteInsertTimestamp && playerNotesTextarea) {
-        btnPlayerNoteInsertTimestamp.addEventListener('click', () => {
-            const curSec = currentAudioType === 'youtube'
-                ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
-                : Math.floor(audioElement.currentTime || 0);
-            insertTextAtCursor(playerNotesTextarea, `[${formatTime(curSec)}] `);
-            updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
-        });
-    }
-
     if (playerNotesTextarea) {
         playerNotesTextarea.addEventListener('input', () => {
             updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
@@ -5343,19 +5314,6 @@
             if (e.target === audioNoteModal) {
                 closeAudioNoteModal();
             }
-        });
-    }
-    if (btnModalNoteInsertTimestamp && audioNoteModalTextarea) {
-        btnModalNoteInsertTimestamp.addEventListener('click', () => {
-            let curSec = currentEditingNoteBook?.fallbackTime || 0;
-            const currentActiveId = getCurrentAudioIdentifier();
-            if (currentEditingNoteBook && currentActiveId === currentEditingNoteBook.identifier) {
-                curSec = currentAudioType === 'youtube'
-                    ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
-                    : Math.floor(audioElement.currentTime || 0);
-            }
-            insertTextAtCursor(audioNoteModalTextarea, `[${formatTime(curSec)}] `);
-            updateNoteCharCount(audioNoteModalTextarea, audioNoteModalCharCount);
         });
     }
     if (audioNoteModalTextarea) {

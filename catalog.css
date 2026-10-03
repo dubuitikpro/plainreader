@@ -4715,6 +4715,21 @@ a { color: inherit; text-decoration: none; }
     justify-content: space-between;
 }
 
+.player-notes-title-wrap,
+.audio-note-title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.player-notes-title-wrap svg,
+.audio-note-title-wrap svg {
+    color: #00cec9;
+}
+
 .btn-note-insert-timestamp {
     display: inline-flex;
     align-items: center;
