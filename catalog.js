@@ -2930,6 +2930,23 @@
         });
     }
 
+    function updateHistoryCardProgress(identifier, cur, dur, pct) {
+        if (!historyGrid || !contentHistory || !contentHistory.classList.contains('active')) return;
+        const card = historyGrid.querySelector(`.history-card[data-id="${identifier}"]`);
+        if (!card) {
+            renderAudioHistoryTab();
+            return;
+        }
+        const curEl = card.querySelector('.history-cur-time');
+        if (curEl) curEl.textContent = formatTime(cur);
+        const durEl = card.querySelector('.history-total-time');
+        if (durEl && dur > 0) durEl.textContent = formatTime(dur);
+        const pctEl = card.querySelector('.history-percent-badge');
+        if (pctEl) pctEl.textContent = `${pct}%`;
+        const fillEl = card.querySelector('.history-progress-fill');
+        if (fillEl) fillEl.style.width = `${pct}%`;
+    }
+
     function resumeAudioHistoryItem(item) {
         if (!item) return;
         const id = item.identifier || item._storageKey || (item.videoId ? `yt_${item.videoId}` : null);
@@ -5123,7 +5140,7 @@
             saveAudioState();
             updateCounts();
             if (contentHistory && contentHistory.classList.contains('active') && !isAudioSeeking) {
-                renderAudioHistoryTab();
+                updateHistoryCardProgress(identifier, cur, dur, progressMap[identifier].percent);
             }
             return;
         }
@@ -5159,7 +5176,7 @@
         saveAudioState();
         updateCounts();
         if (contentHistory && contentHistory.classList.contains('active') && !isAudioSeeking) {
-            renderAudioHistoryTab();
+            updateHistoryCardProgress(currentAudiobook.identifier, cur, dur, progressMap[currentAudiobook.identifier].percent);
         }
     }
 
