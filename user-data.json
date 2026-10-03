@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790989092041,
+  "lastUpdated": 1790989156237,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -143,10 +143,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 3,
       "trackTitle": "track 4 chuong thu tu ai tinh la gi",
-      "currentTime": 2942,
+      "currentTime": 3008,
       "duration": 3289,
-      "percent": 89,
-      "updatedAt": 1790751524039
+      "percent": 91,
+      "updatedAt": 1790989156002
     },
     "yt_QCzY-rJJhGE": {
       "identifier": "yt_QCzY-rJJhGE",
@@ -160,7 +160,7 @@
       "currentTime": 144,
       "duration": 12504,
       "percent": 1,
-      "updatedAt": 1790989092038
+      "updatedAt": 1790989092072
     }
   },
   "audioBookmarks": [
@@ -190,13 +190,13 @@
       "createdAt": 1790665644124
     }
   ],
-  "lastPlayedId": "yt_QCzY-rJJhGE",
+  "lastPlayedId": "4a26f9254024abe6a7fb3dbda27709a3",
   "audioState": {
-    "identifier": "yt_QCzY-rJJhGE",
-    "type": "youtube",
-    "trackIndex": 0,
-    "time": 144,
-    "volume": 0.6,
+    "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
+    "type": "archive",
+    "trackIndex": 3,
+    "time": 3008,
+    "volume": 1,
     "speedIndex": 1
   },
   "searchHistory": [
