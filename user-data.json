@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790999985307,
+  "lastUpdated": 1791000027253,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -168,11 +168,11 @@
       "cover": "https://archive.org/services/img/tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can-full-audio",
       "trackIndex": 0,
       "trackTitle": "Tinh hoa Đạo học Đông phương Nguyễn Duy Cần Full Audio",
-      "currentTime": 490,
+      "currentTime": 542,
       "duration": 8304,
-      "percent": 6,
+      "percent": 7,
       "isBookmarked": true,
-      "updatedAt": 1790999985301
+      "updatedAt": 1791000027035
     },
     "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can": {
       "identifier": "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can",
@@ -278,7 +278,7 @@
     "identifier": "tinh-hoa-dao-hoc-dong-phuong-nguyen-duy-can-full-audio",
     "type": "archive",
     "trackIndex": 0,
-    "time": 490,
+    "time": 542,
     "volume": 0.5,
     "speedIndex": 1
   },
