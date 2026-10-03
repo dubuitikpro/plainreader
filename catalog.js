@@ -22,6 +22,7 @@
     const STORAGE_THEME = 'plainreader-theme';
     const STORAGE_AUDIO_PROGRESS = 'plainreader-audio-progress';
     const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
+    const STORAGE_AUDIO_NOTES = 'plainreader-audio-notes';
     const STORAGE_AUDIO_LAST_PLAYED = 'plainreader-audio-last-played';
     const STORAGE_AUDIO_STATE = 'plainreader-audio-state';
     const PAGE_SIZE = 20;
@@ -134,6 +135,12 @@
     const historyHeaderActions = document.getElementById('historyHeaderActions');
     const btnClearAllHistory = document.getElementById('btnClearAllHistory');
     const btnExploreAudiobooks = document.getElementById('btnExploreAudiobooks');
+    const btnFilterHistoryAll = document.getElementById('btnFilterHistoryAll');
+    const btnFilterHistoryNotes = document.getElementById('btnFilterHistoryNotes');
+    const historyCountAll = document.getElementById('historyCountAll');
+    const historyCountNotes = document.getElementById('historyCountNotes');
+    let currentHistoryFilter = 'all';
+    let currentEditingNoteBook = null;
 
     // Dedicated Audio Player Modal Elements
     const audioPlayerModal = document.getElementById('audioPlayerModal');
@@ -144,16 +151,41 @@
     const playerTotalDurationBadge = document.getElementById('playerTotalDurationBadge');
     const playerTrackCounter = document.getElementById('playerTrackCounter');
     const playerTrackTitle = document.getElementById('playerTrackTitle');
+    const btnPlayerNote = document.getElementById('btnPlayerNote');
     const btnPlayerBookmark = document.getElementById('btnPlayerBookmark');
     const tabChaptersBtn = document.getElementById('tabChaptersBtn');
     const tabBookmarksBtn = document.getElementById('tabBookmarksBtn');
+    const tabNotesBtn = document.getElementById('tabNotesBtn');
+    const playerNoteTabBadge = document.getElementById('playerNoteTabBadge');
     const playerBookmarksContainer = document.getElementById('playerBookmarksContainer');
     const playerBookmarksList = document.getElementById('playerBookmarksList');
     const playerBookmarksCount = document.getElementById('playerBookmarksCount');
     const btnAddBookmarkNow = document.getElementById('btnAddBookmarkNow');
     const bookmarkNowTimePreview = document.getElementById('bookmarkNowTimePreview');
+    const playerNotesContainer = document.getElementById('playerNotesContainer');
+    const btnPlayerNoteInsertTimestamp = document.getElementById('btnPlayerNoteInsertTimestamp');
+    const playerNoteTimePreview = document.getElementById('playerNoteTimePreview');
+    const playerNotesTextarea = document.getElementById('playerNotesTextarea');
+    const btnPlayerNoteDelete = document.getElementById('btnPlayerNoteDelete');
+    const playerNoteCharCount = document.getElementById('playerNoteCharCount');
+    const btnPlayerNoteSave = document.getElementById('btnPlayerNoteSave');
+    const playerNoteStatusSaved = document.getElementById('playerNoteStatusSaved');
     const playlistHintText = document.getElementById('playlistHintText');
     const audioContinueSection = document.getElementById('audioContinueSection');
+
+    // Audiobook Note Modal Elements
+    const audioNoteModal = document.getElementById('audioNoteModal');
+    const btnCloseAudioNoteModal = document.getElementById('btnCloseAudioNoteModal');
+    const audioNoteModalBookTitle = document.getElementById('audioNoteModalBookTitle');
+    const audioNoteModalBookAuthor = document.getElementById('audioNoteModalBookAuthor');
+    const btnModalNoteInsertTimestamp = document.getElementById('btnModalNoteInsertTimestamp');
+    const modalNoteTimePreview = document.getElementById('modalNoteTimePreview');
+    const audioNoteModalTextarea = document.getElementById('audioNoteModalTextarea');
+    const audioNoteModalCharCount = document.getElementById('audioNoteModalCharCount');
+    const audioNoteModalSavedTime = document.getElementById('audioNoteModalSavedTime');
+    const btnAudioNoteModalDelete = document.getElementById('btnAudioNoteModalDelete');
+    const btnAudioNoteModalCancel = document.getElementById('btnAudioNoteModalCancel');
+    const btnAudioNoteModalSave = document.getElementById('btnAudioNoteModalSave');
     const btnPlayerMinimize = document.getElementById('btnPlayerMinimize');
     const btnPlayerClose = document.getElementById('btnPlayerClose');
     const playerCurrentTime = document.getElementById('playerCurrentTime');
@@ -2642,14 +2674,36 @@
 
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
         const allBookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
 
-        // Filter valid items in progress
+        // Filter valid items in progress or items that have notes
         const list = Object.values(progressMap).filter(item => {
-            return item && item.title && (item.currentTime > 2 || item.percent > 0);
+            const note = (item && item.note) || (notesMap[item?.identifier]?.text || '');
+            return item && item.title && (item.currentTime > 2 || item.percent > 0 || (note && note.trim().length > 0));
+        });
+
+        // Ensure notes are merged onto list items
+        list.forEach(item => {
+            if (!item.note && notesMap[item.identifier]?.text) {
+                item.note = notesMap[item.identifier].text;
+            }
+            if (!item.noteUpdatedAt && notesMap[item.identifier]?.updatedAt) {
+                item.noteUpdatedAt = notesMap[item.identifier].updatedAt;
+            }
         });
 
         // Sort by most recently updated
-        list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        list.sort((a, b) => {
+            const timeA = Math.max(a.noteUpdatedAt || 0, a.updatedAt || 0);
+            const timeB = Math.max(b.noteUpdatedAt || 0, b.updatedAt || 0);
+            return timeB - timeA;
+        });
+
+        // Update count badges
+        const totalCount = list.length;
+        const notesCount = list.filter(item => item.note && item.note.trim().length > 0).length;
+        if (historyCountAll) historyCountAll.textContent = totalCount;
+        if (historyCountNotes) historyCountNotes.textContent = notesCount;
 
         if (list.length === 0) {
             if (historyEmpty) historyEmpty.style.display = 'flex';
@@ -2664,7 +2718,26 @@
 
         historyGrid.innerHTML = '';
 
-        list.forEach(item => {
+        // Apply active filter: 'all' or 'notes'
+        const displayList = currentHistoryFilter === 'notes'
+            ? list.filter(item => item.note && item.note.trim().length > 0)
+            : list;
+
+        if (displayList.length === 0 && currentHistoryFilter === 'notes') {
+            historyGrid.innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1; display: flex; padding: 40px 20px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                        <path d="M12 20h9"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                    <h3>Chưa có sách nào được ghi chú</h3>
+                    <p>Hãy chuyển sang xem "Tất cả" và bấm vào nút [Ghi chú] trên từng cuốn sách để lưu lại cảm nhận, trích dẫn hay hoặc mốc nghe quan trọng.</p>
+                </div>
+            `;
+            return;
+        }
+
+        displayList.forEach(item => {
             const isYt = item.type === 'youtube' || (item.identifier && item.identifier.startsWith('yt_'));
             const pct = Math.min(100, Math.max(0, item.percent || 0));
             const curStr = formatTime(item.currentTime || 0);
@@ -2684,6 +2757,8 @@
 
             const trackTitle = item.trackTitle || ('Chương ' + ((item.trackIndex || 0) + 1));
             const authorText = item.author || (isYt ? 'YouTube Music' : 'Internet Archive');
+            const noteText = (item.note || '').trim();
+            const hasNote = noteText.length > 0;
 
             card.innerHTML = `
                 <div class="history-card-top">
@@ -2746,6 +2821,22 @@
                                 </span>
                             ` : ''}
                         </div>
+
+                        ${hasNote ? `
+                            <div class="history-note-preview" title="Nhấn để xem hoặc sửa ghi chú cá nhân">
+                                <div class="history-note-preview-header">
+                                    <span class="history-note-badge">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+                                            <path d="M12 20h9"/>
+                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                        </svg>
+                                        Ghi chú cá nhân
+                                    </span>
+                                    ${item.noteUpdatedAt ? `<span class="history-note-date">${formatRelativeDate(item.noteUpdatedAt)}</span>` : ''}
+                                </div>
+                                <div class="history-note-snippet">"${escapeHtml(noteText)}"</div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
 
@@ -2755,6 +2846,13 @@
                             <polygon points="6 3 20 12 6 21 6 3"/>
                         </svg>
                         <span>Tiếp tục nghe</span>
+                    </button>
+                    <button class="btn-history-note ${hasNote ? 'has-note' : ''}" title="${hasNote ? 'Xem & sửa ghi chú cá nhân' : 'Thêm ghi chú cá nhân'}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        <span>${hasNote ? 'Sửa ghi chú' : 'Ghi chú'}</span>
                     </button>
                     <button class="btn-history-delete" title="Xóa cuốn sách này khỏi danh sách đang nghe">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
@@ -2766,7 +2864,7 @@
                 </div>
             `;
 
-            // Click to resume (either thumbnail or resume button)
+            // Click to resume
             const thumbWrap = card.querySelector('.history-thumb-wrap');
             const resumeBtn = card.querySelector('.btn-history-resume');
             const onResume = (e) => {
@@ -2775,6 +2873,16 @@
             };
             if (thumbWrap) thumbWrap.addEventListener('click', onResume);
             if (resumeBtn) resumeBtn.addEventListener('click', onResume);
+
+            // Click to open note modal
+            const noteBtn = card.querySelector('.btn-history-note');
+            const notePrev = card.querySelector('.history-note-preview');
+            const onOpenNote = (e) => {
+                e.stopPropagation();
+                openAudioNoteModal(item.identifier, item.title, authorText, coverSrc, item.currentTime || 0);
+            };
+            if (noteBtn) noteBtn.addEventListener('click', onOpenNote);
+            if (notePrev) notePrev.addEventListener('click', onOpenNote);
 
             // Click to delete
             const deleteBtn = card.querySelector('.btn-history-delete');
@@ -2820,6 +2928,12 @@
             delete progressMap[identifier];
             saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
 
+            const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+            if (notesMap[identifier]) {
+                delete notesMap[identifier];
+                saveToStorage(STORAGE_AUDIO_NOTES, notesMap);
+            }
+
             const lastPlayedId = loadFromStorage(STORAGE_AUDIO_LAST_PLAYED, null);
             if (lastPlayedId === identifier) {
                 saveToStorage(STORAGE_AUDIO_LAST_PLAYED, null);
@@ -2850,6 +2964,7 @@
 
             if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử tiến trình nghe của tất cả các cuốn sách không?')) {
                 saveToStorage(STORAGE_AUDIO_PROGRESS, {});
+                saveToStorage(STORAGE_AUDIO_NOTES, {});
                 saveToStorage(STORAGE_AUDIO_LAST_PLAYED, null);
                 updateCounts();
                 renderAudioHistoryTab();
@@ -3353,6 +3468,7 @@
         // Switch to chapters tab and update bookmark badge
         switchPlaylistTab('chapters');
         updateBookmarksBadge();
+        updateNoteIndicator();
 
         // Open player modal
         openAudioPlayerModal();
@@ -3463,6 +3579,7 @@
 
             const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
             if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
+            if (playerNoteTimePreview) playerNoteTimePreview.textContent = formatTime(cur);
 
             if (dur > 0) {
                 const percent = (cur / dur) * 100;
@@ -3678,6 +3795,7 @@
             // Reset playlist tab to Chapters and update bookmark badge
             switchPlaylistTab('chapters');
             updateBookmarksBadge();
+            updateNoteIndicator();
 
             // Play track
             playTrack(targetTrack, targetResumeTime, autoPlay);
@@ -3861,6 +3979,7 @@
 
         const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
         if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
+        if (playerNoteTimePreview) playerNoteTimePreview.textContent = formatTime(cur);
 
         if (dur > 0) {
             const percent = (cur / dur) * 100;
@@ -4195,22 +4314,37 @@
     function switchPlaylistTab(tabName, highlightId = null) {
         const tabChapters = document.getElementById('tabChaptersBtn');
         const tabBookmarks = document.getElementById('tabBookmarksBtn');
+        const tabNotes = document.getElementById('tabNotesBtn');
         const chaptersList = document.getElementById('playerChaptersList');
         const bookmarksContainer = document.getElementById('playerBookmarksContainer');
+        const notesContainer = document.getElementById('playerNotesContainer');
         const hintText = document.getElementById('playlistHintText');
 
         if (tabName === 'bookmarks') {
             if (tabChapters) tabChapters.classList.remove('active');
             if (tabBookmarks) tabBookmarks.classList.add('active');
+            if (tabNotes) tabNotes.classList.remove('active');
             if (chaptersList) chaptersList.style.display = 'none';
             if (bookmarksContainer) bookmarksContainer.style.display = 'flex';
+            if (notesContainer) notesContainer.style.display = 'none';
             if (hintText) hintText.textContent = 'Bấm để nghe đoạn đã lưu';
             renderPlayerBookmarks(highlightId);
+        } else if (tabName === 'notes') {
+            if (tabChapters) tabChapters.classList.remove('active');
+            if (tabBookmarks) tabBookmarks.classList.remove('active');
+            if (tabNotes) tabNotes.classList.add('active');
+            if (chaptersList) chaptersList.style.display = 'none';
+            if (bookmarksContainer) bookmarksContainer.style.display = 'none';
+            if (notesContainer) notesContainer.style.display = 'flex';
+            if (hintText) hintText.textContent = 'Ghi chú cá nhân';
+            loadPlayerNoteTab();
         } else {
             if (tabChapters) tabChapters.classList.add('active');
             if (tabBookmarks) tabBookmarks.classList.remove('active');
+            if (tabNotes) tabNotes.classList.remove('active');
             if (chaptersList) chaptersList.style.display = 'flex';
             if (bookmarksContainer) bookmarksContainer.style.display = 'none';
+            if (notesContainer) notesContainer.style.display = 'none';
             if (hintText) hintText.textContent = 'Cuộn để xem';
         }
     }
@@ -4461,6 +4595,243 @@
         });
     }
 
+    // =========================================
+    // Audiobook Personal Notes Management
+    // =========================================
+    function getCurrentAudioIdentifier() {
+        if (currentAudioType === 'youtube') {
+            return ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null;
+        }
+        return currentAudiobook ? currentAudiobook.identifier : null;
+    }
+
+    function getAudioNote(identifier) {
+        if (!identifier) return '';
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+        if (notesMap[identifier] && typeof notesMap[identifier].text === 'string') {
+            return notesMap[identifier].text;
+        }
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        if (progressMap[identifier] && progressMap[identifier].note) {
+            return progressMap[identifier].note;
+        }
+        return '';
+    }
+
+    function getAudioNoteMeta(identifier) {
+        if (!identifier) return null;
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+        if (notesMap[identifier]) return notesMap[identifier];
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        if (progressMap[identifier] && progressMap[identifier].note) {
+            return {
+                text: progressMap[identifier].note,
+                updatedAt: progressMap[identifier].noteUpdatedAt || progressMap[identifier].updatedAt || Date.now()
+            };
+        }
+        return null;
+    }
+
+    function saveAudioNote(identifier, text, bookInfo = null) {
+        if (!identifier) return;
+        const cleanText = (text || '').trim();
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+
+        if (!cleanText) {
+            deleteAudioNote(identifier);
+            return;
+        }
+
+        const now = Date.now();
+        const noteObj = {
+            identifier: identifier,
+            text: cleanText,
+            title: bookInfo?.title || progressMap[identifier]?.title || (currentAudiobook?.title) || (ytCurrentItem?.title) || 'Sách nói',
+            author: bookInfo?.author || progressMap[identifier]?.author || (currentAudiobook?.author) || (ytCurrentItem?.author) || '',
+            cover: bookInfo?.cover || progressMap[identifier]?.cover || (currentAudiobook?.cover) || (ytCurrentItem?.cover) || '',
+            updatedAt: now
+        };
+
+        notesMap[identifier] = noteObj;
+        saveToStorage(STORAGE_AUDIO_NOTES, notesMap);
+
+        if (progressMap[identifier]) {
+            progressMap[identifier].note = cleanText;
+            progressMap[identifier].noteUpdatedAt = now;
+        } else {
+            progressMap[identifier] = {
+                identifier: identifier,
+                type: bookInfo?.type || (identifier.startsWith('yt_') ? 'youtube' : 'archive'),
+                title: noteObj.title,
+                author: noteObj.author,
+                cover: noteObj.cover,
+                trackIndex: 0,
+                trackTitle: noteObj.title,
+                currentTime: bookInfo?.currentTime || 0,
+                duration: bookInfo?.duration || 0,
+                percent: 0,
+                note: cleanText,
+                noteUpdatedAt: now,
+                updatedAt: now
+            };
+        }
+        saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+
+        updateNoteIndicator();
+        if (contentHistory && contentHistory.classList.contains('active')) {
+            renderAudioHistoryTab();
+        }
+        if (window.PlainSync && typeof window.PlainSync.triggerAutoSync === 'function') {
+            window.PlainSync.triggerAutoSync();
+        }
+    }
+
+    function deleteAudioNote(identifier) {
+        if (!identifier) return;
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+        if (notesMap[identifier]) {
+            delete notesMap[identifier];
+            saveToStorage(STORAGE_AUDIO_NOTES, notesMap);
+        }
+
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        if (progressMap[identifier]) {
+            delete progressMap[identifier].note;
+            delete progressMap[identifier].noteUpdatedAt;
+            saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
+        }
+
+        updateNoteIndicator();
+        if (contentHistory && contentHistory.classList.contains('active')) {
+            renderAudioHistoryTab();
+        }
+        if (window.PlainSync && typeof window.PlainSync.triggerAutoSync === 'function') {
+            window.PlainSync.triggerAutoSync();
+        }
+    }
+
+    function insertTextAtCursor(textarea, textToInsert) {
+        if (!textarea) return;
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const val = textarea.value;
+        const before = val.substring(0, start);
+        const after = val.substring(end);
+
+        const prefix = (before.length > 0 && !before.endsWith('\n') && !before.endsWith(' ')) ? '\n' : '';
+        const insertContent = prefix + textToInsert;
+
+        textarea.value = before + insertContent + after;
+        const newCursor = start + insertContent.length;
+        textarea.selectionStart = newCursor;
+        textarea.selectionEnd = newCursor;
+        textarea.focus();
+    }
+
+    function updateNoteCharCount(textarea, countEl) {
+        if (!textarea || !countEl) return;
+        const len = textarea.value.length;
+        countEl.textContent = `${len} ký tự`;
+    }
+
+    function updateNoteIndicator() {
+        const id = getCurrentAudioIdentifier();
+        const note = id ? getAudioNote(id) : '';
+        const hasNote = note.trim().length > 0;
+
+        if (btnPlayerNote) {
+            btnPlayerNote.classList.toggle('has-note', hasNote);
+        }
+        if (playerNoteTabBadge) {
+            playerNoteTabBadge.style.display = hasNote ? 'inline-block' : 'none';
+        }
+    }
+
+    function loadPlayerNoteTab() {
+        const id = getCurrentAudioIdentifier();
+        if (!id) {
+            if (playerNotesTextarea) {
+                playerNotesTextarea.value = '';
+                playerNotesTextarea.placeholder = 'Hãy chọn một sách nói để bắt đầu ghi chú...';
+                playerNotesTextarea.disabled = true;
+            }
+            if (playerNoteCharCount) playerNoteCharCount.textContent = '0 ký tự';
+            return;
+        }
+
+        if (playerNotesTextarea) {
+            playerNotesTextarea.disabled = false;
+            playerNotesTextarea.placeholder = 'Viết ghi chú, suy nghĩ, mốc thời gian hay đoạn trích tâm đắc của cuốn sách này...';
+            playerNotesTextarea.value = getAudioNote(id);
+            updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
+        }
+
+        const curSec = currentAudioType === 'youtube'
+            ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
+            : Math.floor(audioElement.currentTime || 0);
+        if (playerNoteTimePreview) {
+            playerNoteTimePreview.textContent = formatTime(curSec);
+        }
+    }
+
+    function openAudioNoteModal(identifier, title, author, cover, fallbackTime = 0) {
+        if (!audioNoteModal || !identifier) return;
+        currentEditingNoteBook = {
+            identifier: identifier,
+            title: title || 'Sách nói',
+            author: author || '',
+            cover: cover || '',
+            fallbackTime: fallbackTime
+        };
+
+        if (audioNoteModalBookTitle) audioNoteModalBookTitle.textContent = currentEditingNoteBook.title;
+        if (audioNoteModalBookAuthor) audioNoteModalBookAuthor.textContent = currentEditingNoteBook.author;
+
+        const noteMeta = getAudioNoteMeta(identifier);
+        const existingNote = (noteMeta && noteMeta.text) || '';
+
+        if (audioNoteModalTextarea) {
+            audioNoteModalTextarea.value = existingNote;
+            updateNoteCharCount(audioNoteModalTextarea, audioNoteModalCharCount);
+        }
+
+        if (audioNoteModalSavedTime) {
+            if (noteMeta && noteMeta.updatedAt) {
+                audioNoteModalSavedTime.textContent = `Lưu gần nhất: ${formatRelativeDate(noteMeta.updatedAt)}`;
+            } else {
+                audioNoteModalSavedTime.textContent = '';
+            }
+        }
+
+        let curSec = fallbackTime;
+        const currentActiveId = getCurrentAudioIdentifier();
+        if (currentActiveId === identifier) {
+            curSec = currentAudioType === 'youtube'
+                ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
+                : Math.floor(audioElement.currentTime || 0);
+        }
+        if (modalNoteTimePreview) {
+            modalNoteTimePreview.textContent = formatTime(curSec);
+        }
+
+        audioNoteModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            if (audioNoteModalTextarea) {
+                audioNoteModalTextarea.focus();
+            }
+        }, 150);
+    }
+
+    function closeAudioNoteModal() {
+        if (audioNoteModal) {
+            audioNoteModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        currentEditingNoteBook = null;
+    }
+
     // Attach Bookmark & Playlist tab event listeners
     if (btnPlayerBookmark) {
         btnPlayerBookmark.addEventListener('click', addBookmark);
@@ -4476,6 +4847,138 @@
     const tabBookmarksBtnEl = document.getElementById('tabBookmarksBtn');
     if (tabBookmarksBtnEl) {
         tabBookmarksBtnEl.addEventListener('click', () => switchPlaylistTab('bookmarks'));
+    }
+    const tabNotesBtnEl = document.getElementById('tabNotesBtn');
+    if (tabNotesBtnEl) {
+        tabNotesBtnEl.addEventListener('click', () => switchPlaylistTab('notes'));
+    }
+    if (btnPlayerNote) {
+        btnPlayerNote.addEventListener('click', () => switchPlaylistTab('notes'));
+    }
+
+    // Player Notes tab controls
+    if (btnPlayerNoteInsertTimestamp && playerNotesTextarea) {
+        btnPlayerNoteInsertTimestamp.addEventListener('click', () => {
+            const curSec = currentAudioType === 'youtube'
+                ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
+                : Math.floor(audioElement.currentTime || 0);
+            insertTextAtCursor(playerNotesTextarea, `[${formatTime(curSec)}] `);
+            updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
+        });
+    }
+
+    if (playerNotesTextarea) {
+        playerNotesTextarea.addEventListener('input', () => {
+            updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
+            if (playerNoteStatusSaved) playerNoteStatusSaved.textContent = '';
+        });
+    }
+
+    if (btnPlayerNoteSave && playerNotesTextarea) {
+        btnPlayerNoteSave.addEventListener('click', () => {
+            const id = getCurrentAudioIdentifier();
+            if (!id) {
+                showToast('Chưa có sách nào đang phát');
+                return;
+            }
+            const text = playerNotesTextarea.value.trim();
+            saveAudioNote(id, text);
+            if (playerNoteStatusSaved) {
+                playerNoteStatusSaved.textContent = '✓ Đã lưu ghi chú';
+                setTimeout(() => {
+                    if (playerNoteStatusSaved) playerNoteStatusSaved.textContent = '';
+                }, 3000);
+            }
+            showToast('Đã lưu ghi chú thành công');
+        });
+    }
+
+    if (btnPlayerNoteDelete && playerNotesTextarea) {
+        btnPlayerNoteDelete.addEventListener('click', () => {
+            const id = getCurrentAudioIdentifier();
+            if (!id) return;
+            if (!playerNotesTextarea.value.trim()) {
+                showToast('Ghi chú đang trống');
+                return;
+            }
+            if (confirm('Bạn có chắc chắn muốn xóa ghi chú của sách này?')) {
+                playerNotesTextarea.value = '';
+                deleteAudioNote(id);
+                updateNoteCharCount(playerNotesTextarea, playerNoteCharCount);
+                if (playerNoteStatusSaved) playerNoteStatusSaved.textContent = '';
+                showToast('Đã xóa ghi chú');
+            }
+        });
+    }
+
+    // Note Modal Controls
+    if (btnCloseAudioNoteModal) {
+        btnCloseAudioNoteModal.addEventListener('click', closeAudioNoteModal);
+    }
+    if (btnAudioNoteModalCancel) {
+        btnAudioNoteModalCancel.addEventListener('click', closeAudioNoteModal);
+    }
+    if (audioNoteModal) {
+        audioNoteModal.addEventListener('click', (e) => {
+            if (e.target === audioNoteModal) {
+                closeAudioNoteModal();
+            }
+        });
+    }
+    if (btnModalNoteInsertTimestamp && audioNoteModalTextarea) {
+        btnModalNoteInsertTimestamp.addEventListener('click', () => {
+            let curSec = currentEditingNoteBook?.fallbackTime || 0;
+            const currentActiveId = getCurrentAudioIdentifier();
+            if (currentEditingNoteBook && currentActiveId === currentEditingNoteBook.identifier) {
+                curSec = currentAudioType === 'youtube'
+                    ? Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0)
+                    : Math.floor(audioElement.currentTime || 0);
+            }
+            insertTextAtCursor(audioNoteModalTextarea, `[${formatTime(curSec)}] `);
+            updateNoteCharCount(audioNoteModalTextarea, audioNoteModalCharCount);
+        });
+    }
+    if (audioNoteModalTextarea) {
+        audioNoteModalTextarea.addEventListener('input', () => {
+            updateNoteCharCount(audioNoteModalTextarea, audioNoteModalCharCount);
+        });
+    }
+    if (btnAudioNoteModalSave && audioNoteModalTextarea) {
+        btnAudioNoteModalSave.addEventListener('click', () => {
+            if (!currentEditingNoteBook) return;
+            const text = audioNoteModalTextarea.value.trim();
+            saveAudioNote(currentEditingNoteBook.identifier, text, currentEditingNoteBook);
+            closeAudioNoteModal();
+            showToast('Đã lưu ghi chú thành công');
+        });
+    }
+    if (btnAudioNoteModalDelete) {
+        btnAudioNoteModalDelete.addEventListener('click', () => {
+            if (!currentEditingNoteBook) return;
+            if (confirm(`Bạn có chắc muốn xóa ghi chú của cuốn "${currentEditingNoteBook.title}" không?`)) {
+                deleteAudioNote(currentEditingNoteBook.identifier);
+                closeAudioNoteModal();
+                showToast('Đã xóa ghi chú');
+            }
+        });
+    }
+
+    // History Filter Pills
+    if (btnFilterHistoryAll) {
+        btnFilterHistoryAll.addEventListener('click', () => {
+            currentHistoryFilter = 'all';
+            btnFilterHistoryAll.classList.add('active');
+            if (btnFilterHistoryNotes) btnFilterHistoryNotes.classList.remove('active');
+            renderAudioHistoryTab();
+        });
+    }
+    if (btnFilterHistoryNotes) {
+        btnFilterHistoryNotes.addEventListener('click', () => {
+            currentHistoryFilter = 'notes';
+            btnFilterHistoryNotes.classList.add('active');
+            if (btnFilterHistoryAll) btnFilterHistoryAll.classList.remove('active');
+            renderAudioHistoryTab();
+        });
     }
 
     // Modal Minimize & Close
@@ -4595,12 +5098,17 @@
     // Save and Restore Audio State & Progress
     function saveAudioProgress() {
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
 
         if (currentAudioType === 'youtube') {
             if (!ytCurrentItem) return;
             const cur = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
             const dur = Math.floor(ytPlayer && ytPlayer.getDuration ? (ytPlayer.getDuration() || ytCurrentItem.duration || 0) : (ytCurrentItem.duration || 0));
             const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
+
+            const existing = progressMap[identifier] || {};
+            const noteText = existing.note || notesMap[identifier]?.text;
+            const noteUpdated = existing.noteUpdatedAt || notesMap[identifier]?.updatedAt;
 
             progressMap[identifier] = {
                 identifier: identifier,
@@ -4614,6 +5122,8 @@
                 currentTime: cur,
                 duration: dur,
                 percent: dur > 0 ? Math.min(100, Math.round((cur / dur) * 100)) : 0,
+                note: noteText || undefined,
+                noteUpdatedAt: noteUpdated || undefined,
                 updatedAt: Date.now()
             };
             saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
@@ -4631,6 +5141,10 @@
         const dur = Math.floor(audioElement.duration || currentAudiobook.tracks[currentTrackIndex]?.duration || 0);
         const track = currentAudiobook.tracks[currentTrackIndex];
 
+        const existing = progressMap[currentAudiobook.identifier] || {};
+        const noteText = existing.note || notesMap[currentAudiobook.identifier]?.text;
+        const noteUpdated = existing.noteUpdatedAt || notesMap[currentAudiobook.identifier]?.updatedAt;
+
         progressMap[currentAudiobook.identifier] = {
             identifier: currentAudiobook.identifier,
             type: 'archive',
@@ -4642,6 +5156,8 @@
             currentTime: cur,
             duration: dur,
             percent: dur > 0 ? Math.min(100, Math.round((cur / dur) * 100)) : 0,
+            note: noteText || undefined,
+            noteUpdatedAt: noteUpdated || undefined,
             updatedAt: Date.now()
         };
         saveToStorage(STORAGE_AUDIO_PROGRESS, progressMap);
@@ -4804,6 +5320,9 @@
             renderAudioContinueSection();
             if (contentHistory && contentHistory.classList.contains('active')) {
                 renderAudioHistoryTab();
+            }
+            if (typeof updateNoteIndicator === 'function') {
+                updateNoteIndicator();
             }
             if (typeof updateBookmarkList === 'function') {
                 updateBookmarkList();

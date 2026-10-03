@@ -16,6 +16,7 @@
     const STORAGE_FAVORITES = 'plainreader-favorites';
     const STORAGE_AUDIO_PROGRESS = 'plainreader-audio-progress';
     const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
+    const STORAGE_AUDIO_NOTES = 'plainreader-audio-notes';
     const STORAGE_AUDIO_LAST_PLAYED = 'plainreader-audio-last-played';
     const STORAGE_AUDIO_STATE = 'plainreader-audio-state';
     const STORAGE_SEARCH_HISTORY = 'plainreader-search-history';
@@ -42,6 +43,7 @@
             favorites: parse(STORAGE_FAVORITES, []),
             audioProgress: parse(STORAGE_AUDIO_PROGRESS, {}),
             audioBookmarks: parse(STORAGE_AUDIO_BOOKMARKS, []),
+            audioNotes: parse(STORAGE_AUDIO_NOTES, {}),
             lastPlayedId: parse(STORAGE_AUDIO_LAST_PLAYED, null),
             audioState: parse(STORAGE_AUDIO_STATE, null),
             searchHistory: parse(STORAGE_SEARCH_HISTORY, [])
@@ -57,6 +59,7 @@
                 if (data.favorites) localStorage.setItem(STORAGE_FAVORITES, JSON.stringify(data.favorites));
                 if (data.audioProgress) localStorage.setItem(STORAGE_AUDIO_PROGRESS, JSON.stringify(data.audioProgress));
                 if (data.audioBookmarks) localStorage.setItem(STORAGE_AUDIO_BOOKMARKS, JSON.stringify(data.audioBookmarks));
+                if (data.audioNotes) localStorage.setItem(STORAGE_AUDIO_NOTES, JSON.stringify(data.audioNotes));
                 if (data.lastPlayedId) localStorage.setItem(STORAGE_AUDIO_LAST_PLAYED, JSON.stringify(data.lastPlayedId));
                 if (data.audioState) localStorage.setItem(STORAGE_AUDIO_STATE, JSON.stringify(data.audioState));
                 if (data.searchHistory) localStorage.setItem(STORAGE_SEARCH_HISTORY, JSON.stringify(data.searchHistory));
