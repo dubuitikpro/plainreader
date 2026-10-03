@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790992874516,
+  "lastUpdated": 1790993617836,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -143,10 +143,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 5,
       "trackTitle": "track 6 chuong thu sau quan niem ve ai tinh cua nguoi dan ong va nguoi dan ba",
-      "currentTime": 310,
+      "currentTime": 1239,
       "duration": 1975,
-      "percent": 16,
-      "updatedAt": 1790992874395
+      "percent": 63,
+      "updatedAt": 1790993617834
     },
     "yt_QCzY-rJJhGE": {
       "identifier": "yt_QCzY-rJJhGE",
@@ -195,7 +195,7 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 5,
-    "time": 310,
+    "time": 1239,
     "volume": 1,
     "speedIndex": 1
   },
