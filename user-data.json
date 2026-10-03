@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790999321515,
+  "lastUpdated": 1790999474479,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -153,12 +153,12 @@
       "cover": "https://archive.org/services/img/oc-sang-suot.sna",
       "trackIndex": 2,
       "trackTitle": "C01B ThuatQuanSat OcSangSuot",
-      "currentTime": 916,
+      "currentTime": 1108,
       "duration": 1875,
-      "percent": 49,
+      "percent": 59,
       "note": "Nghệ thuật quan sát",
       "noteUpdatedAt": 1790998933002,
-      "updatedAt": 1790999321326
+      "updatedAt": 1790999474300
     }
   },
   "audioBookmarks": [
@@ -239,7 +239,7 @@
     "identifier": "oc-sang-suot.sna",
     "type": "archive",
     "trackIndex": 2,
-    "time": 916,
+    "time": 1108,
     "volume": 0.5,
     "speedIndex": 1
   },
