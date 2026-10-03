@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1791000075916,
+  "lastUpdated": 1791000561718,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -195,11 +195,11 @@
       "cover": "https://archive.org/services/img/tdthhqbn",
       "trackIndex": 0,
       "trackTitle": "[Audiobook] ATOMIC HABITS THÓI QUEN NGUYÊN TỬ (P1) James Clear Sách kỹ năng cực hay",
-      "currentTime": 2,
+      "currentTime": 608,
       "duration": 2832,
-      "percent": 0,
+      "percent": 21,
       "isBookmarked": true,
-      "updatedAt": 1791000075915
+      "updatedAt": 1791000560846
     }
   },
   "audioBookmarks": [
@@ -300,7 +300,7 @@
     "identifier": "tdthhqbn",
     "type": "archive",
     "trackIndex": 0,
-    "time": 2,
+    "time": 608,
     "volume": 0.5,
     "speedIndex": 1
   },
