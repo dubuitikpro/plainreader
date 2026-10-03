@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790989081108,
+  "lastUpdated": 1790989092041,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -147,6 +147,20 @@
       "duration": 3289,
       "percent": 89,
       "updatedAt": 1790751524039
+    },
+    "yt_QCzY-rJJhGE": {
+      "identifier": "yt_QCzY-rJJhGE",
+      "type": "youtube",
+      "videoId": "QCzY-rJJhGE",
+      "title": "Cha Giàu Cha Nghèo (Dạy Con Làm Giàu Full 3.5 Giờ)",
+      "author": "Robert T. Kiyosaki",
+      "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg",
+      "trackIndex": 0,
+      "trackTitle": "Cha Giàu Cha Nghèo (Dạy Con Làm Giàu Full 3.5 Giờ)",
+      "currentTime": 144,
+      "duration": 12504,
+      "percent": 1,
+      "updatedAt": 1790989092038
     }
   },
   "audioBookmarks": [
@@ -176,12 +190,12 @@
       "createdAt": 1790665644124
     }
   ],
-  "lastPlayedId": "4a26f9254024abe6a7fb3dbda27709a3",
+  "lastPlayedId": "yt_QCzY-rJJhGE",
   "audioState": {
-    "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
-    "type": "archive",
-    "trackIndex": 3,
-    "time": 2942,
+    "identifier": "yt_QCzY-rJJhGE",
+    "type": "youtube",
+    "trackIndex": 0,
+    "time": 144,
     "volume": 0.6,
     "speedIndex": 1
   },
