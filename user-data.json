@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790996793565,
+  "lastUpdated": 1790996813569,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -168,10 +168,10 @@
       "cover": "https://i.ytimg.com/vi/lYOLg3ZkSqk/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "[Tóm Tắt Sách] Óc Sáng Suốt – Một quyết định sai, cả đời thay đổi, óc sáng suốt quyết định điều gì?",
-      "currentTime": 6,
+      "currentTime": 12,
       "duration": 3000,
       "percent": 0,
-      "updatedAt": 1790996793283
+      "updatedAt": 1790996799362
     }
   },
   "audioBookmarks": [
@@ -232,7 +232,7 @@
     "identifier": "yt_lYOLg3ZkSqk",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 6,
+    "time": 12,
     "volume": 1,
     "speedIndex": 1
   },
