@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790996015642,
+  "lastUpdated": 1790996043647,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -141,7 +141,9 @@
       "currentTime": 1672,
       "duration": 1975,
       "percent": 85,
-      "updatedAt": 1790995968527
+      "updatedAt": 1790995968527,
+      "note": "Bản chất yêu đương",
+      "noteUpdatedAt": 1790996042637
     },
     "yt_QCzY-rJJhGE": {
       "identifier": "yt_QCzY-rJJhGE",
@@ -201,6 +203,14 @@
       "author": "Hải Đăng BED",
       "cover": "https://i.ytimg.com/vi/6wbQme0JZkQ/hqdefault.jpg",
       "updatedAt": 1790993706310
+    },
+    "4a26f9254024abe6a7fb3dbda27709a3": {
+      "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
+      "text": "Bản chất yêu đương",
+      "title": "thuat-yeu-duong",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
+      "updatedAt": 1790996042637
     }
   },
   "lastPlayedId": "4a26f9254024abe6a7fb3dbda27709a3",
