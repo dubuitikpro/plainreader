@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790996771624,
+  "lastUpdated": 1790996793565,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -158,6 +158,20 @@
       "duration": 12504,
       "percent": 1,
       "updatedAt": 1790989092072
+    },
+    "yt_lYOLg3ZkSqk": {
+      "identifier": "yt_lYOLg3ZkSqk",
+      "type": "youtube",
+      "videoId": "lYOLg3ZkSqk",
+      "title": "[Tóm Tắt Sách] Óc Sáng Suốt – Một quyết định sai, cả đời thay đổi, óc sáng suốt quyết định điều gì?",
+      "author": "ABook Audio",
+      "cover": "https://i.ytimg.com/vi/lYOLg3ZkSqk/hqdefault.jpg",
+      "trackIndex": 0,
+      "trackTitle": "[Tóm Tắt Sách] Óc Sáng Suốt – Một quyết định sai, cả đời thay đổi, óc sáng suốt quyết định điều gì?",
+      "currentTime": 6,
+      "duration": 3000,
+      "percent": 0,
+      "updatedAt": 1790996793283
     }
   },
   "audioBookmarks": [
@@ -213,12 +227,12 @@
       "updatedAt": 1790996042637
     }
   },
-  "lastPlayedId": "di-tim-le-song.sna",
+  "lastPlayedId": "yt_lYOLg3ZkSqk",
   "audioState": {
-    "identifier": "di-tim-le-song.sna",
-    "type": "archive",
+    "identifier": "yt_lYOLg3ZkSqk",
+    "type": "youtube",
     "trackIndex": 0,
-    "time": 426,
+    "time": 6,
     "volume": 1,
     "speedIndex": 1
   },
