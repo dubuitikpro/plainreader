@@ -1877,6 +1877,17 @@
     // =========================================
     const CURATED_AUDIOBOOKS = [
         {
+            identifier: 'tdthhqbn',
+            title: 'Thay Đổi Tí Hon (Atomic Habits)',
+            originalTitle: 'Atomic Habits',
+            author: 'James Clear',
+            genre: 'self-help',
+            chapters: 13,
+            cover: 'https://archive.org/services/img/tdthhqbn',
+            description: 'Tác phẩm bán chạy kỷ lục toàn cầu của James Clear về phương pháp xây dựng thói quen tốt và loại bỏ thói quen xấu thông qua những cải thiện nhỏ 1% mỗi ngày.',
+            aliases: ['atomic habits', 'thay doi ti hon', 'thay đổi tí hon', 'thói quen nguyên tử', 'thoi quen nguyen tu', 'james clear', 'tdthhqbn']
+        },
+        {
             identifier: 'cha-giau-cha-ngheo',
             title: 'Cha Giàu Cha Nghèo (Dạy Con Làm Giàu)',
             originalTitle: 'Rich Dad Poor Dad',
@@ -2462,49 +2473,157 @@
     // =========================================
     // Goodreads Smart Search Link Helper
     // =========================================
-    function getGoodreadsSearchUrl(title, author, fallbackContext) {
-        let clean = (title || '').trim();
-        
-        // If title looks like an identifier/slug without spaces or very short, use fallback context
-        const isSlug = !clean || clean.length < 3 || (!clean.includes(' ') && clean.toLowerCase() === clean);
-        if (isSlug && fallbackContext) {
-            clean = fallbackContext.trim();
+    const KNOWN_SPAM_CHANNELS = [
+        'sachnoi.app', 'sachnoi.cc', 'sachnoi.vn', 'kenhsachnoi.com', 
+        'truyenaudiomoi.com', 'dtv-ebook.com', 'hải đăng bed', 'hải đăng', 
+        'sách tinh hoa', 'nghe sách hay', 'sách nói hay', 'sach noi', 'audiobook',
+        'cực hay', 'hay nhất', 'trọn bộ'
+    ];
+
+    function hasVietnameseDiacritics(str) {
+        return /[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]/i.test(str);
+    }
+
+    function getGoodreadsSearchData(title, author, fallbackContext) {
+        // 1. First check if current item matches a curated book
+        const id = (currentAudiobook && currentAudiobook.identifier) || 
+                   (ytCurrentItem && (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`)) || '';
+        const titleLower = (title || '').toLowerCase().trim();
+        const curated = CURATED_AUDIOBOOKS.find(b => (id && b.identifier === id) || 
+                        (b.title && titleLower && b.title.toLowerCase() === titleLower) ||
+                        (b.aliases && titleLower && b.aliases.some(a => titleLower.includes(a)))) ||
+                        CURATED_YOUTUBE_AUDIOBOOKS.find(y => (id && (y.videoId === id || y.identifier === id)) || 
+                        (y.title && titleLower && y.title.toLowerCase() === titleLower) ||
+                        (y.aliases && titleLower && y.aliases.some(a => titleLower.includes(a))));
+        if (curated) {
+            const cTitle = (curated.originalTitle || curated.title || '').trim();
+            const cAuthor = (curated.author || '').trim();
+            const q = cAuthor && !cTitle.toLowerCase().includes(cAuthor.toLowerCase()) ? `${cTitle} ${cAuthor}` : cTitle;
+            return {
+                query: q,
+                url: `https://www.goodreads.com/search?q=${encodeURIComponent(q).replace(/%20/g, '+')}`
+            };
         }
 
-        // Clean common prefixes
-        clean = clean.replace(/^(sách nói|audiobook|nghe sách|audio|full|mp3)\s*[:\-\—|]\s*/gi, '');
-        clean = clean.replace(/^\[(sách nói|audiobook|audio|mp3|full)\]\s*/gi, '');
-        clean = clean.replace(/^\((sách nói|audiobook|audio|mp3|full)\)\s*/gi, '');
+        // 2. Normalize and clean input text
+        let text = (title || '').trim();
+        if ((!text || text.length < 4 || (!text.includes(' ') && text.toLowerCase() === text)) && fallbackContext) {
+            text = fallbackContext.trim();
+        }
 
-        // Clean inline bracket tags
-        clean = clean.replace(/\[(audiobook|sách nói|audio|mp3|full)\]/gi, ' ');
-        clean = clean.replace(/\((audiobook|sách nói|audio|mp3|full)\)/gi, ' ');
+        // Strip file extension
+        text = text.replace(/\.[a-zA-Z0-9]{2,4}$/, '');
 
-        // Clean parts like (P1), [P1], - Phần 1, - Tập 1, Chương 1...
-        clean = clean.replace(/[\(\[\-]\s*(p\d+|phần\s*\d+|tập\s*\d+|chương\s*\d+|track\s*\d+)[^\)\]]*[\)\]]?/gi, ' ');
-        
-        // Clean trailing keywords
-        clean = clean.replace(/sách\s+(kỹ năng|phát triển bản thân|kinh doanh|nói|kinh điển).*/gi, ' ');
-        clean = clean.replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
+        // Clean common prefixes first
+        text = text.replace(/^(?:track|chương|chuong|bai|bài)\s*\d+[\s\.\-:]*/i, '');
+        text = text.replace(/^\d{1,3}[\.\-]\s*/, ''); // Only match 01. or 01- not book numbers like 48
+        text = text.replace(/^(sách nói|audiobook|nghe sách|audio|full|mp3)\s*[:\-\—|]\s*/gi, '');
+        text = text.replace(/^\[(sách nói|audiobook|audio|mp3|full)[^\]]*\]\s*/gi, '');
 
-        // Author
-        let authorClean = (author || '').trim();
-        const isGenericAuthor = !authorClean || /^(internet archive|youtube|youtube music|admin|archive\.org|sachnoi\.app)$/i.test(authorClean) || authorClean.toLowerCase() === (title || '').toLowerCase();
-        
-        let query = clean;
-        if (!isGenericAuthor && !clean.toLowerCase().includes(authorClean.toLowerCase())) {
-            query = `${clean} ${authorClean}`.trim();
+        // Strip tags [Audiobook], [Sách nói], etc. inside
+        text = text.replace(/\[(audiobook|sách nói|audio|mp3|full)[^\]]*\]/gi, ' ');
+        text = text.replace(/\((audiobook|sách nói|audio|mp3|full)[^\)]*\)/gi, ' ');
+
+        // Strip promotional channel/website suffixes and spam tags
+        text = text.replace(/sách\s+(kỹ năng|phát triển bản thân|kinh doanh|nói hay nhất|nói|cực hay).*/gi, ' ');
+
+        // Check if there is an English title in parentheses e.g. 'Bố Già (The Godfather)' or 'Thay Đổi Tí Hon (Atomic Habits)'
+        const parenMatch = text.match(/\(([^)]+)\)/);
+        let englishInParen = null;
+        if (parenMatch) {
+            const inside = parenMatch[1].trim();
+            if (!/^(p\d+|phần\s*\d+|tập\s*\d+|chương\s*\d+|track\s*\d+|audiobook|sách nói)$/i.test(inside)) {
+                if (!hasVietnameseDiacritics(inside) && inside.length > 2) {
+                    englishInParen = inside;
+                }
+            }
+        }
+
+        // Strip (P1), [P1], - Phần 1, - Tập 1...
+        text = text.replace(/[\(\[\-]\s*(p\d+|phần\s*\d+|tập\s*\d+|chương\s*\d+|track\s*\d+)[^\)\]]*[\)\]]?/gi, ' ');
+
+        // Split by hyphens or dashes or pipes
+        let segments = text.split(/\s*[-–—|]\s*/).map(s => s.trim()).filter(s => s.length > 1);
+
+        // Filter out known domains and channels
+        segments = segments.filter(s => {
+            const low = s.toLowerCase();
+            return !KNOWN_SPAM_CHANNELS.some(c => low.includes(c));
+        });
+
+        let cleanTitle = '';
+        let detectedAuthor = '';
+
+        if (englishInParen) {
+            cleanTitle = englishInParen;
+        } else if (segments.length >= 2) {
+            const seg0 = segments[0];
+            const seg1 = segments[1];
+            const seg2 = segments[2];
+
+            // Check if seg2 or seg1 is a person name (Author)
+            if (seg2 && /^[A-Z][a-zA-Z\s\.]+$/.test(seg2) && seg2.split(' ').length <= 4) {
+                detectedAuthor = seg2;
+            } else if (seg1 && /^[A-Z][a-zA-Z\s\.]+$/.test(seg1) && seg1.split(' ').length <= 4 && !hasVietnameseDiacritics(seg1)) {
+                detectedAuthor = seg1;
+            }
+
+            // Check if seg0 is an English title (no diacritics) and seg1 is Vietnamese translation
+            if (!hasVietnameseDiacritics(seg0) && hasVietnameseDiacritics(seg1)) {
+                cleanTitle = seg0; // Prefer English title
+            } else {
+                cleanTitle = seg0;
+            }
+        } else {
+            cleanTitle = segments[0] || text;
+        }
+
+        // Clean extra punctuation and spaces
+        cleanTitle = cleanTitle.replace(/[\(\)\[\]_]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+        // Author resolution
+        let authorClean = detectedAuthor || author || '';
+        const lowAuthor = authorClean.trim().toLowerCase();
+        if (/^(internet archive|youtube|youtube music|admin|archive\.org|sachnoi\.app|hải đăng.*)$/i.test(lowAuthor) || lowAuthor === (title || '').toLowerCase()) {
+            authorClean = '';
+        }
+
+        let query = cleanTitle;
+        if (authorClean && !cleanTitle.toLowerCase().includes(authorClean.toLowerCase())) {
+            query = `${cleanTitle} ${authorClean}`.trim();
         }
 
         if (!query) query = (title || fallbackContext || 'books').trim();
 
-        return `https://www.goodreads.com/search?q=${encodeURIComponent(query).replace(/%20/g, '+')}`;
+        return {
+            query: query,
+            url: `https://www.goodreads.com/search?q=${encodeURIComponent(query).replace(/%20/g, '+')}`
+        };
     }
 
-    function updatePlayerGoodreadsLinks(url) {
-        if (!url) return;
+    function getGoodreadsSearchUrl(title, author, fallbackContext) {
+        const data = getGoodreadsSearchData(title, author, fallbackContext);
+        return data ? data.url : 'https://www.goodreads.com';
+    }
+
+    function updatePlayerGoodreadsLinks(grData) {
+        if (!grData) return;
+        const url = typeof grData === 'string' ? grData : (grData.url || 'https://www.goodreads.com');
+        const query = typeof grData === 'object' ? (grData.query || '') : '';
         if (playerGoodreadsLink) playerGoodreadsLink.href = url;
         if (playerIntroGoodreadsLink) playerIntroGoodreadsLink.href = url;
+        const googleLink = document.getElementById('playerGoogleLink');
+        if (googleLink) {
+            let gQuery = query;
+            if (!gQuery && url && url.includes('?q=')) {
+                try {
+                    gQuery = decodeURIComponent(url.split('?q=')[1].replace(/\+/g, ' '));
+                } catch(e) {}
+            }
+            if (gQuery) {
+                googleLink.href = `https://www.google.com/search?q=${encodeURIComponent('goodreads ' + gQuery).replace(/%20/g, '+')}`;
+            }
+        }
     }
 
     // =========================================
@@ -3623,8 +3742,8 @@
         if (extText) extText.textContent = 'Mở trên YouTube Music';
 
         const ytFallback = (item.chapterList && item.chapterList[0] && item.chapterList[0].title) || '';
-        const grUrl = getGoodreadsSearchUrl(item.title, item.author, ytFallback);
-        updatePlayerGoodreadsLinks(grUrl);
+        const grData = getGoodreadsSearchData(item.title, item.author, ytFallback);
+        updatePlayerGoodreadsLinks(grData);
 
         if (playerBookDescription) {
             playerBookDescription.textContent = item.description || item.title;
@@ -3938,8 +4057,8 @@
             if (extText) extText.textContent = 'Mở trên Archive.org';
 
             const firstTrackTitle = (tracks && tracks[0] && tracks[0].title) || '';
-            const grUrl = getGoodreadsSearchUrl(bookTitle, bookAuthor, firstTrackTitle);
-            updatePlayerGoodreadsLinks(grUrl);
+            const grData = getGoodreadsSearchData(bookTitle, bookAuthor, firstTrackTitle);
+            updatePlayerGoodreadsLinks(grData);
 
             if (playerBookDescription) playerBookDescription.innerHTML = bookDesc;
 
@@ -5123,18 +5242,16 @@
         });
     }
 
-    // Goodreads Action Handlers for Dynamic Search
+    // Goodreads & Google Search Action Handlers for Dynamic Search
     function handleGoodreadsClick(e) {
-        const link = e.currentTarget;
-        const currentHref = link ? link.getAttribute('href') : '';
-        if (!currentHref || currentHref === '#' || currentHref.endsWith('goodreads.com') || currentHref.endsWith('goodreads.com/')) {
-            e.preventDefault();
-            const title = (playerBookTitle ? playerBookTitle.textContent : '').trim();
-            const author = (playerBookAuthor ? playerBookAuthor.textContent : '').trim();
-            const headerTrack = (playerTrackTitle ? playerTrackTitle.textContent : '').trim();
-            const url = getGoodreadsSearchUrl(title, author, headerTrack);
-            window.open(url, '_blank', 'noopener,noreferrer');
-        }
+        e.preventDefault();
+        const title = (playerBookTitle ? playerBookTitle.textContent : '').trim();
+        const author = (playerBookAuthor ? playerBookAuthor.textContent : '').trim();
+        const headerTrack = (playerTrackTitle ? playerTrackTitle.textContent : '').trim();
+        const firstTrack = (currentAudiobook && currentAudiobook.tracks && currentAudiobook.tracks[0] && currentAudiobook.tracks[0].title) || '';
+        const grData = getGoodreadsSearchData(title, author, headerTrack || firstTrack);
+        const url = grData ? grData.url : 'https://www.goodreads.com';
+        window.open(url, '_blank', 'noopener,noreferrer');
     }
 
     if (playerGoodreadsLink) {
@@ -5142,6 +5259,20 @@
     }
     if (playerIntroGoodreadsLink) {
         playerIntroGoodreadsLink.addEventListener('click', handleGoodreadsClick);
+    }
+    const playerGoogleLink = document.getElementById('playerGoogleLink');
+    if (playerGoogleLink) {
+        playerGoogleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const title = (playerBookTitle ? playerBookTitle.textContent : '').trim();
+            const author = (playerBookAuthor ? playerBookAuthor.textContent : '').trim();
+            const headerTrack = (playerTrackTitle ? playerTrackTitle.textContent : '').trim();
+            const firstTrack = (currentAudiobook && currentAudiobook.tracks && currentAudiobook.tracks[0] && currentAudiobook.tracks[0].title) || '';
+            const grData = getGoodreadsSearchData(title, author, headerTrack || firstTrack);
+            const query = grData ? grData.query : (title || 'books');
+            const gUrl = `https://www.google.com/search?q=${encodeURIComponent('goodreads ' + query).replace(/%20/g, '+')}`;
+            window.open(gUrl, '_blank', 'noopener,noreferrer');
+        });
     }
 
     // Keyboard Shortcuts for Audio Player

@@ -3314,6 +3314,22 @@ a { color: inherit; text-decoration: none; }
     text-decoration: none;
 }
 
+.player-intro-link.link-google {
+    color: #81ecec;
+    background: rgba(129, 236, 236, 0.08);
+    border: 1px solid rgba(129, 236, 236, 0.22);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.player-intro-link.link-google:hover {
+    background: rgba(129, 236, 236, 0.18);
+    border-color: rgba(129, 236, 236, 0.45);
+    color: #ffffff;
+    text-decoration: none;
+}
+
 .player-intro-content {
     font-size: 0.78rem;
     line-height: 1.55;
