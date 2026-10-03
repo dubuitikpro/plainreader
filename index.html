@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="catalog.css?v=6.4">
+    <link rel="stylesheet" href="catalog.css?v=6.5">
 </head>
 <body>
     <!-- Background animated elements -->
@@ -504,10 +504,15 @@
                     <span id="playerSourceTagText">Source: Internet</span>
                 </div>
                 
-                <div class="player-now-playing-pill">
+                <div class="player-now-playing-pill" id="playerNowPlayingPill">
                     <span class="now-playing-dot"></span>
-                    <span>Now Playing</span>
+                    <span id="playerNowPlayingText">Now Playing</span>
                 </div>
+
+                <button class="player-bg-playing-pill" id="playerBgPlayingPill" type="button" style="display: none;" title="Bấm để quay lại cuốn sách đang phát">
+                    <span class="bg-sound-anim"><span></span><span></span><span></span></span>
+                    <span id="playerBgPlayingText">Đang phát</span>
+                </button>
 
                 <div class="player-track-info-header">
                     <span id="playerTrackCounter" class="player-track-counter">1/19</span>
@@ -988,6 +993,6 @@
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="sync.js?v=6.0"></script>
-    <script src="catalog.js?v=6.9"></script>
+    <script src="catalog.js?v=7.0"></script>
 </body>
 </html>

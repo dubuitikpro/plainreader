@@ -2475,6 +2475,17 @@
     let ytProgressInterval = null;
     let isVideoMode = false;
 
+    // Preview Mode State (allows viewing another book without interrupting background playback)
+    let isViewingPreview = false;
+    let previewViewingBook = null;
+    let previewViewingType = 'archive';
+    let previewTargetTrack = 0;
+    let previewResumeTime = 0;
+    const playerNowPlayingPill = document.getElementById('playerNowPlayingPill');
+    const playerNowPlayingText = document.getElementById('playerNowPlayingText');
+    const playerBgPlayingPill = document.getElementById('playerBgPlayingPill');
+    const playerBgPlayingText = document.getElementById('playerBgPlayingText');
+
     // Hook YouTube IFrame API Ready Callback
     window.onYouTubeIframeAPIReady = function() {
         isYtApiReady = true;
@@ -2508,6 +2519,42 @@
         // Clean underscores and multiple spaces
         name = name.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
         return name;
+    }
+
+    function isAudioActiveAndPlaying() {
+        if (currentAudioType === 'youtube') {
+            if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+                try {
+                    const st = ytPlayer.getPlayerState();
+                    return st === 1 || st === 3;
+                } catch (e) {
+                    return false;
+                }
+            }
+            return false;
+        }
+        return Boolean(audioElement && !audioElement.paused && audioElement.src && audioElement.src !== window.location.href);
+    }
+
+    function hasActiveAudioSession() {
+        if (currentAudioType === 'youtube') {
+            return Boolean(ytCurrentItem);
+        }
+        return Boolean(currentAudiobook && audioElement.src);
+    }
+
+    function getActiveSessionIdentifier() {
+        if (currentAudioType === 'youtube') {
+            return ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null;
+        }
+        return currentAudiobook ? currentAudiobook.identifier : null;
+    }
+
+    function getActiveAudioTitle() {
+        if (currentAudioType === 'youtube') {
+            return ytCurrentItem ? ytCurrentItem.title : '';
+        }
+        return currentAudiobook ? currentAudiobook.title : '';
     }
 
     // =========================================
@@ -3260,17 +3307,21 @@
     function openPlayerForHistoryItem(item, autoPlay = false) {
         if (!item) return;
         const id = item.identifier || item._storageKey || (item.videoId ? `yt_${item.videoId}` : null);
-        const currentId = getCurrentAudioIdentifier();
-        const isCurrentActive = Boolean(currentId && (
-            currentId === id ||
-            currentId === item.identifier ||
-            currentId === item._storageKey ||
-            (item.videoId && currentId === `yt_${item.videoId}`)
+        const activeId = getActiveSessionIdentifier();
+        const isCurrentActive = Boolean(activeId && (
+            activeId === id ||
+            activeId === item.identifier ||
+            activeId === item._storageKey ||
+            (item.videoId && activeId === `yt_${item.videoId}`)
         ));
 
         if (isCurrentActive) {
             // Sách này đang mở trong player: mở lại modal, giữ nguyên audio và vị trí đang nghe
-            openAudioPlayerModal();
+            if (isViewingPreview) {
+                restoreActiveAudiobookModal();
+            } else {
+                openAudioPlayerModal();
+            }
             if (autoPlay) {
                 if (currentAudioType === 'youtube') {
                     if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
@@ -3288,6 +3339,29 @@
         }
 
         const isYt = item.type === 'youtube' || (id && id.startsWith('yt_'));
+
+        // Nếu autoPlay = false (người dùng click vào khung sách để xem thông tin/ghi chú):
+        // Mở chế độ xem trước (Preview), KHÔNG làm gián đoạn âm thanh đang phát ở nền!
+        if (!autoPlay) {
+            if (isYt) {
+                const videoId = item.videoId || (id ? id.replace(/^yt_/, '') : '');
+                const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === videoId) || {
+                    identifier: id || `yt_${videoId}`,
+                    videoId: videoId,
+                    title: item.title,
+                    author: item.author || 'YouTube',
+                    cover: item.cover,
+                    duration: item.duration,
+                    durationFormatted: formatTime(item.duration),
+                    type: 'youtube'
+                };
+                previewYoutubeAudiobook(found, item.currentTime || 0);
+            } else {
+                previewAudiobook(id, item.trackIndex || 0, item.currentTime || 0);
+            }
+            return;
+        }
+
         if (isYt) {
             const videoId = item.videoId || (id ? id.replace(/^yt_/, '') : '');
             const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === videoId) || {
@@ -3540,20 +3614,38 @@
                 </div>
             `;
 
-            card.addEventListener('click', () => {
-                const currentId = getCurrentAudioIdentifier();
-                const isCurrentActive = Boolean(currentId && (
-                    currentId === b.identifier ||
-                    (b.videoId && currentId === `yt_${b.videoId}`)
+            card.addEventListener('click', (e) => {
+                const activeId = getActiveSessionIdentifier();
+                const isCurrentActive = Boolean(activeId && (
+                    activeId === b.identifier ||
+                    (b.videoId && activeId === `yt_${b.videoId}`)
                 ));
                 if (isCurrentActive) {
-                    openAudioPlayerModal();
+                    if (isViewingPreview) {
+                        restoreActiveAudiobookModal();
+                    } else {
+                        openAudioPlayerModal();
+                    }
                     return;
                 }
+
+                // Nếu người dùng bấm trực tiếp vào nút "Nghe ngay" / "Nghe tiếp":
+                const clickedListenBtn = e.target.closest('.audiobook-btn-listen');
+                if (clickedListenBtn) {
+                    if (isYt) {
+                        loadAndPlayYoutube(b, null, true);
+                    } else {
+                        loadAndPlayAudiobook(b.identifier, null, true, null);
+                    }
+                    return;
+                }
+
+                // Người dùng click vào khung thẻ sách / bìa / tiêu đề để xem chi tiết:
+                // Mở player ở chế độ Xem Trước (Preview), KHÔNG làm dừng hay ngắt âm thanh đang phát ở nền!
                 if (isYt) {
-                    loadAndPlayYoutube(b, null, true);
+                    previewYoutubeAudiobook(b, 0);
                 } else {
-                    loadAndPlayAudiobook(b.identifier, null, true, null);
+                    previewAudiobook(b.identifier, 0, 0);
                 }
             });
 
@@ -3880,10 +3972,508 @@
     }
 
     // =========================================
+    // Audiobook Preview Mode (Non-interrupting)
+    // =========================================
+    async function previewAudiobook(identifier, trackIndex = 0, resumeTime = 0) {
+        showToast('Đang mở thông tin sách nói...');
+        try {
+            const resp = await fetch(`https://archive.org/metadata/${identifier}`);
+            if (!resp.ok) throw new Error('Failed to fetch audiobook metadata');
+            const data = await resp.json();
+
+            const files = data.files || [];
+            let mp3Files = files.filter(f =>
+                f.name &&
+                f.name.toLowerCase().endsWith('.mp3') &&
+                !f.name.includes('_spectrogram') &&
+                !f.name.includes('_64kb')
+            );
+            if (mp3Files.length === 0) {
+                mp3Files = files.filter(f => f.name && f.name.toLowerCase().endsWith('.mp3'));
+            }
+            if (mp3Files.length === 0) {
+                showToast('Tác phẩm này chưa có bản ghi âm MP3 trên Archive.org');
+                return;
+            }
+
+            mp3Files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            const curated = CURATED_AUDIOBOOKS.find(b => b.identifier === identifier);
+            const bookTitle = (curated && curated.title) || data.metadata.title || identifier;
+            const bookAuthor = (curated && curated.author) || data.metadata.creator || 'Internet Archive';
+            const bookDesc = (curated && curated.description) || data.metadata.description || 'Sách nói từ Internet Archive mở toàn cầu.';
+            const bookCover = (curated && curated.cover) || `https://archive.org/services/img/${identifier}`;
+
+            const tracks = mp3Files.map((f, i) => {
+                const duration = f.length ? parseFloat(f.length) : 0;
+                return {
+                    index: i,
+                    fileName: f.name,
+                    title: cleanChapterTitle(f.name, f.title),
+                    duration: duration,
+                    durationFormatted: formatTime(duration),
+                    url: `https://archive.org/download/${identifier}/${encodeURIComponent(f.name)}`
+                };
+            });
+
+            const previewBook = {
+                identifier: identifier,
+                title: bookTitle,
+                author: bookAuthor,
+                description: bookDesc,
+                cover: bookCover,
+                tracks: tracks,
+                totalTracks: tracks.length,
+                rating: (curated && curated.rating) || null,
+                ratingsCount: (curated && curated.ratingsCount) || 0
+            };
+
+            showBookPreviewInModal(previewBook, 'archive', trackIndex, resumeTime);
+        } catch (err) {
+            console.error('Error previewing audiobook:', err);
+            showToast('Lỗi tải thông tin sách nói từ Internet Archive.');
+        }
+    }
+
+    function previewYoutubeAudiobook(item, resumeTime = 0) {
+        showBookPreviewInModal(item, 'youtube', 0, resumeTime);
+    }
+
+    function showBookPreviewInModal(book, type, targetTrack = 0, targetResumeTime = 0) {
+        if (!book) return;
+
+        isViewingPreview = true;
+        previewViewingBook = book;
+        previewViewingType = type;
+        previewTargetTrack = targetTrack || 0;
+        previewResumeTime = targetResumeTime || 0;
+
+        const isBgPlaying = isAudioActiveAndPlaying();
+
+        if (isBgPlaying) {
+            if (playerNowPlayingPill) playerNowPlayingPill.style.display = 'none';
+            if (playerBgPlayingPill) {
+                playerBgPlayingPill.style.display = 'inline-flex';
+                if (playerBgPlayingText) {
+                    playerBgPlayingText.textContent = `Đang phát ở nền: ${getActiveAudioTitle()}`;
+                }
+                playerBgPlayingPill.title = `Bấm để quay lại cuốn sách đang phát: ${getActiveAudioTitle()}`;
+            }
+        } else {
+            if (playerBgPlayingPill) playerBgPlayingPill.style.display = 'none';
+            if (playerNowPlayingPill) {
+                playerNowPlayingPill.style.display = 'inline-flex';
+                if (playerNowPlayingText) playerNowPlayingText.textContent = 'Xem thông tin';
+            }
+        }
+
+        // Hide video screen (preview is static info)
+        const ytScreen = document.getElementById('playerYoutubeScreen');
+        if (ytScreen) ytScreen.style.display = 'none';
+        const coverBox = document.getElementById('playerCoverBox');
+        if (coverBox) coverBox.style.display = 'block';
+        const btnToggleVideo = document.getElementById('btnToggleVideoMode');
+        if (btnToggleVideo) btnToggleVideo.style.display = 'none';
+
+        const sourceTag = document.getElementById('playerSourceTag');
+        const coverBadge = document.getElementById('playerCoverBadge');
+        const badgeSourceText = document.getElementById('playerBadgeSourceText');
+        const badgeIcon = document.getElementById('playerCoverBadgeIcon');
+        const extText = document.getElementById('playerExternalLinkText');
+
+        if (type === 'youtube') {
+            if (sourceTag) sourceTag.classList.add('is-youtube');
+            if (playerSourceTagText) playerSourceTagText.textContent = 'Source: YouTube Music';
+            if (audioPlayerModal) {
+                audioPlayerModal.classList.add('is-youtube');
+                const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+                if (dialog) dialog.classList.add('is-youtube');
+            }
+            if (badgeSourceText) badgeSourceText.textContent = 'YouTube Music';
+            if (coverBadge) coverBadge.style.color = '#ff4757';
+            if (badgeIcon) {
+                badgeIcon.innerHTML = `
+                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor"/>
+                `;
+            }
+            if (playerArchiveLink) playerArchiveLink.href = `https://www.youtube.com/watch?v=${book.videoId}`;
+            if (extText) extText.textContent = 'Mở trên YouTube';
+            if (playerTotalChaptersBadge) playerTotalChaptersBadge.textContent = 'YouTube Audio';
+            if (playerTotalDurationBadge) playerTotalDurationBadge.textContent = book.durationFormatted || 'YouTube';
+            if (playlistChapterHeader) playlistChapterHeader.textContent = 'Chương phát';
+            if (playerTrackCounter) playerTrackCounter.textContent = '1/1';
+            if (playerTrackTitle) playerTrackTitle.textContent = book.title;
+        } else {
+            if (sourceTag) sourceTag.classList.remove('is-youtube');
+            if (playerSourceTagText) playerSourceTagText.textContent = 'Source: Internet Archive';
+            if (audioPlayerModal) {
+                audioPlayerModal.classList.remove('is-youtube');
+                const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+                if (dialog) dialog.classList.remove('is-youtube');
+            }
+            if (badgeSourceText) badgeSourceText.textContent = 'Internet Archive';
+            if (coverBadge) coverBadge.style.color = '#00cec9';
+            if (badgeIcon) {
+                badgeIcon.innerHTML = `
+                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                `;
+            }
+            if (playerArchiveLink) playerArchiveLink.href = `https://archive.org/details/${book.identifier}`;
+            if (extText) extText.textContent = 'Mở trên Archive.org';
+            const numTracks = book.tracks ? book.tracks.length : (book.totalTracks || 1);
+            if (playerTotalChaptersBadge) playerTotalChaptersBadge.textContent = `${numTracks} Chương`;
+            if (playlistChapterHeader) playlistChapterHeader.textContent = `${numTracks} Chương`;
+            if (playerTrackCounter) playerTrackCounter.textContent = `${previewTargetTrack + 1}/${numTracks}`;
+            const curTr = (book.tracks && book.tracks[previewTargetTrack]) ? book.tracks[previewTargetTrack] : null;
+            if (playerTrackTitle) playerTrackTitle.textContent = curTr ? curTr.title : book.title;
+
+            const totalSecs = (book.tracks || []).reduce((acc, t) => acc + (t.duration || 0), 0);
+            if (playerTotalDurationBadge) {
+                if (totalSecs > 0) {
+                    const hrs = (totalSecs / 3600).toFixed(1);
+                    playerTotalDurationBadge.textContent = `~${hrs} giờ`;
+                } else {
+                    playerTotalDurationBadge.textContent = 'Audiobook';
+                }
+            }
+        }
+
+        // Book details
+        if (playerBookCover) playerBookCover.src = book.cover || (book.videoId ? `https://i.ytimg.com/vi/${book.videoId}/hqdefault.jpg` : `https://archive.org/services/img/${book.identifier}`);
+        if (playerBookTitle) playerBookTitle.textContent = book.title;
+        if (playerBookAuthor) playerBookAuthor.textContent = book.author || (type === 'youtube' ? 'YouTube' : 'Internet Archive');
+        if (playerBookDescription) playerBookDescription.innerHTML = book.description || '';
+
+        // Goodreads
+        const firstTr = (book.tracks && book.tracks[0] && book.tracks[0].title) || '';
+        const grData = getGoodreadsSearchData(book.title, book.author || '', firstTr);
+        updatePlayerGoodreadsLinks(grData);
+
+        // Rating badge
+        const ratingBadge = document.getElementById('playerRatingBadge');
+        const ratingBadgeText = document.getElementById('playerRatingBadgeText');
+        if (ratingBadge) {
+            if (book.rating) {
+                ratingBadge.style.display = 'inline-flex';
+                if (ratingBadgeText) {
+                    ratingBadgeText.textContent = book.ratingsCount > 0 
+                        ? `${book.rating} ★ (${book.ratingsCount.toLocaleString()})`
+                        : `${book.rating} ★`;
+                }
+            } else {
+                ratingBadge.style.display = 'none';
+            }
+        }
+
+        // Render chapters playlist for preview book
+        renderPreviewPlaylist(book, type, previewTargetTrack);
+
+        // Scrubber
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const savedProg = progressMap[book.identifier || `yt_${book.videoId}`];
+        const curSec = (previewResumeTime > 0) ? previewResumeTime : ((savedProg && savedProg.currentTime) ? savedProg.currentTime : 0);
+        let trackDur = 0;
+        if (type === 'youtube') {
+            trackDur = book.duration || 0;
+        } else if (book.tracks && book.tracks[previewTargetTrack]) {
+            trackDur = book.tracks[previewTargetTrack].duration || 0;
+        }
+        if (playerCurrentTime) playerCurrentTime.textContent = formatTime(curSec);
+        if (playerTotalDuration) playerTotalDuration.textContent = formatTime(trackDur);
+        if (trackDur > 0) {
+            const pct = (curSec / trackDur) * 100;
+            if (playerSeekSlider) playerSeekSlider.value = pct;
+            if (playerSliderFill) playerSliderFill.style.width = `${pct}%`;
+        } else {
+            if (playerSeekSlider) playerSeekSlider.value = 0;
+            if (playerSliderFill) playerSliderFill.style.width = '0%';
+        }
+
+        // Always show Play icon on main transport button in preview mode
+        if (btnPlayerPlay) {
+            const playIcon = btnPlayerPlay.querySelector('.icon-play');
+            const pauseIcon = btnPlayerPlay.querySelector('.icon-pause');
+            if (playIcon) playIcon.style.display = 'block';
+            if (pauseIcon) pauseIcon.style.display = 'none';
+            btnPlayerPlay.title = `Bắt đầu nghe sách này: ${book.title}`;
+        }
+
+        // Update bookmark and note state for this previewed book
+        switchPlaylistTab('chapters');
+        updateBookmarkButtonState();
+        updateNoteIndicator();
+
+        // Open modal
+        openAudioPlayerModal();
+    }
+
+    function renderPreviewPlaylist(book, type, activeTrackIndex = 0) {
+        if (!playerChaptersList || !book) return;
+        playerChaptersList.innerHTML = '';
+
+        if (type === 'youtube') {
+            const chapters = (book.chapterList && book.chapterList.length > 0)
+                ? book.chapterList
+                : [{ index: 0, title: book.title, time: 0 }];
+
+            chapters.forEach((ch, idx) => {
+                const row = document.createElement('div');
+                row.className = `chapter-item ${idx === 0 ? 'active-track' : ''}`;
+                row.innerHTML = `
+                    <div class="chapter-item-left">
+                        <div class="chapter-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                        </div>
+                        <div class="chapter-name" title="${escapeHtml(ch.title)}">${escapeHtml(ch.title)}</div>
+                    </div>
+                    <div class="chapter-duration">${formatTime(ch.time)}</div>
+                `;
+                row.addEventListener('click', () => {
+                    startPlayingPreviewBook(book, 'youtube', 0, ch.time);
+                });
+                playerChaptersList.appendChild(row);
+            });
+            return;
+        }
+
+        const tracks = book.tracks || [];
+        tracks.forEach((track, i) => {
+            const row = document.createElement('div');
+            row.className = `chapter-item ${i === activeTrackIndex ? 'active-track' : ''}`;
+            row.setAttribute('data-track-index', i);
+
+            row.innerHTML = `
+                <div class="chapter-item-left">
+                    <div class="chapter-state-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </div>
+                    <div class="chapter-name" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</div>
+                </div>
+                <div class="chapter-duration">${track.durationFormatted || '--:--'}</div>
+            `;
+
+            row.addEventListener('click', () => {
+                startPlayingPreviewBook(book, 'archive', i, 0);
+            });
+
+            playerChaptersList.appendChild(row);
+        });
+    }
+
+    function updatePreviewTrackDisplay() {
+        if (!isViewingPreview || !previewViewingBook) return;
+        if (previewViewingType === 'archive' && previewViewingBook.tracks) {
+            const numTracks = previewViewingBook.tracks.length;
+            const track = previewViewingBook.tracks[previewTargetTrack];
+            if (playerTrackCounter) playerTrackCounter.textContent = `${previewTargetTrack + 1}/${numTracks}`;
+            if (playerTrackTitle && track) playerTrackTitle.textContent = track.title;
+            if (playerCurrentTime) playerCurrentTime.textContent = '00:00';
+            if (playerTotalDuration && track) playerTotalDuration.textContent = formatTime(track.duration || 0);
+            if (playerSeekSlider) playerSeekSlider.value = 0;
+            if (playerSliderFill) playerSliderFill.style.width = '0%';
+            renderPreviewPlaylist(previewViewingBook, previewViewingType, previewTargetTrack);
+        }
+    }
+
+    function startPlayingPreviewBook(book, type, trackIndex = 0, resumeTime = 0) {
+        isViewingPreview = false;
+        previewViewingBook = null;
+        if (playerBgPlayingPill) playerBgPlayingPill.style.display = 'none';
+        if (playerNowPlayingPill) {
+            playerNowPlayingPill.style.display = 'inline-flex';
+            if (playerNowPlayingText) playerNowPlayingText.textContent = 'Now Playing';
+        }
+
+        if (type === 'youtube') {
+            loadAndPlayYoutube(book, resumeTime, true);
+        } else {
+            loadAndPlayAudiobook(book.identifier, trackIndex, true, resumeTime);
+        }
+    }
+
+    function restoreActiveAudiobookModal() {
+        isViewingPreview = false;
+        previewViewingBook = null;
+        if (playerBgPlayingPill) playerBgPlayingPill.style.display = 'none';
+        if (playerNowPlayingPill) {
+            playerNowPlayingPill.style.display = 'inline-flex';
+            if (playerNowPlayingText) playerNowPlayingText.textContent = 'Now Playing';
+        }
+
+        if (currentAudioType === 'youtube' && ytCurrentItem) {
+            restoreYoutubeModalUI(ytCurrentItem);
+        } else if (currentAudiobook) {
+            restoreArchiveModalUI(currentAudiobook);
+        }
+        openAudioPlayerModal();
+    }
+
+    function restoreArchiveModalUI(book) {
+        if (!book) return;
+        const sourceTag = document.getElementById('playerSourceTag');
+        if (sourceTag) sourceTag.classList.remove('is-youtube');
+        if (playerSourceTagText) playerSourceTagText.textContent = 'Source: Internet Archive';
+
+        if (audioPlayerModal) {
+            audioPlayerModal.classList.remove('is-youtube');
+            const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+            if (dialog) dialog.classList.remove('is-youtube');
+        }
+
+        const coverBadge = document.getElementById('playerCoverBadge');
+        const badgeSourceText = document.getElementById('playerBadgeSourceText');
+        const badgeIcon = document.getElementById('playerCoverBadgeIcon');
+        if (badgeSourceText) badgeSourceText.textContent = 'Internet Archive';
+        if (coverBadge) coverBadge.style.color = '#00cec9';
+        if (badgeIcon) {
+            badgeIcon.innerHTML = `
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+            `;
+        }
+
+        const ytScreen = document.getElementById('playerYoutubeScreen');
+        if (ytScreen) ytScreen.style.display = 'none';
+        const coverBox = document.getElementById('playerCoverBox');
+        if (coverBox) coverBox.style.display = 'block';
+        const btnToggleVideo = document.getElementById('btnToggleVideoMode');
+        if (btnToggleVideo) btnToggleVideo.style.display = 'none';
+
+        if (playerBookCover) playerBookCover.src = book.cover;
+        if (playerBookTitle) playerBookTitle.textContent = book.title;
+        if (playerBookAuthor) playerBookAuthor.textContent = book.author;
+        if (playerTotalChaptersBadge) playerTotalChaptersBadge.textContent = `${book.tracks.length} Chương`;
+        if (playlistChapterHeader) playlistChapterHeader.textContent = `${book.tracks.length} Chương`;
+        if (playerArchiveLink) playerArchiveLink.href = `https://archive.org/details/${book.identifier}`;
+        const extText = document.getElementById('playerExternalLinkText');
+        if (extText) extText.textContent = 'Mở trên Archive.org';
+
+        const firstTrackTitle = (book.tracks && book.tracks[0] && book.tracks[0].title) || '';
+        const grData = getGoodreadsSearchData(book.title, book.author, firstTrackTitle);
+        updatePlayerGoodreadsLinks(grData);
+
+        if (playerBookDescription) playerBookDescription.innerHTML = book.description || '';
+
+        const totalSecs = (book.tracks || []).reduce((acc, t) => acc + (t.duration || 0), 0);
+        if (playerTotalDurationBadge) {
+            if (totalSecs > 0) {
+                const hrs = (totalSecs / 3600).toFixed(1);
+                playerTotalDurationBadge.textContent = `~${hrs} giờ`;
+            } else {
+                playerTotalDurationBadge.textContent = 'Audiobook';
+            }
+        }
+
+        if (playerTrackCounter) {
+            playerTrackCounter.textContent = `${currentTrackIndex + 1}/${book.totalTracks}`;
+        }
+        if (playerTrackTitle) {
+            const tr = book.tracks[currentTrackIndex];
+            playerTrackTitle.textContent = tr ? tr.title : '';
+        }
+
+        renderPlayerPlaylist();
+        updatePlaylistActiveState();
+
+        const cur = audioElement.currentTime || 0;
+        const dur = audioElement.duration || (book.tracks[currentTrackIndex]?.duration) || 0;
+        if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
+        if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
+        if (dur > 0) {
+            const pct = (cur / dur) * 100;
+            if (playerSeekSlider) playerSeekSlider.value = pct;
+            if (playerSliderFill) playerSliderFill.style.width = `${pct}%`;
+        }
+
+        updatePlayPauseIcons(!audioElement.paused);
+        updateBookmarkButtonState();
+        updateNoteIndicator();
+    }
+
+    function restoreYoutubeModalUI(item) {
+        if (!item) return;
+        const sourceTag = document.getElementById('playerSourceTag');
+        if (sourceTag) sourceTag.classList.add('is-youtube');
+        if (playerSourceTagText) playerSourceTagText.textContent = 'Source: YouTube Music';
+
+        if (audioPlayerModal) {
+            audioPlayerModal.classList.add('is-youtube');
+            const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+            if (dialog) dialog.classList.add('is-youtube');
+        }
+
+        const coverBadge = document.getElementById('playerCoverBadge');
+        const badgeSourceText = document.getElementById('playerBadgeSourceText');
+        const badgeIcon = document.getElementById('playerCoverBadgeIcon');
+        if (badgeSourceText) badgeSourceText.textContent = 'YouTube Music';
+        if (coverBadge) coverBadge.style.color = '#ff4757';
+        if (badgeIcon) {
+            badgeIcon.innerHTML = `
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor"/>
+            `;
+        }
+
+        const btnToggleVideo = document.getElementById('btnToggleVideoMode');
+        if (btnToggleVideo) btnToggleVideo.style.display = 'inline-flex';
+
+        if (playerBookCover) playerBookCover.src = item.cover || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`;
+        if (playerBookTitle) playerBookTitle.textContent = item.title;
+        if (playerBookAuthor) playerBookAuthor.textContent = item.author || 'YouTube';
+        if (playerTrackTitle) playerTrackTitle.textContent = item.title;
+        if (playerTrackCounter) playerTrackCounter.textContent = '1/1';
+        if (playerTotalChaptersBadge) playerTotalChaptersBadge.textContent = 'YouTube Audio';
+        if (playerTotalDurationBadge) playerTotalDurationBadge.textContent = item.durationFormatted || 'YouTube';
+        if (playlistChapterHeader) playlistChapterHeader.textContent = 'Chương phát';
+
+        if (playerArchiveLink) playerArchiveLink.href = `https://www.youtube.com/watch?v=${item.videoId}`;
+        const extText = document.getElementById('playerExternalLinkText');
+        if (extText) extText.textContent = 'Mở trên YouTube';
+
+        const grData = getGoodreadsSearchData(item.title, item.author || '');
+        updatePlayerGoodreadsLinks(grData);
+
+        renderYoutubePlaylist(item);
+
+        const cur = (ytPlayer && ytPlayer.getCurrentTime) ? ytPlayer.getCurrentTime() : 0;
+        const dur = (ytPlayer && ytPlayer.getDuration) ? ytPlayer.getDuration() : (item.duration || 0);
+        if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
+        if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
+        if (dur > 0) {
+            const pct = (cur / dur) * 100;
+            if (playerSeekSlider) playerSeekSlider.value = pct;
+            if (playerSliderFill) playerSliderFill.style.width = `${pct}%`;
+        }
+
+        const isPlaying = ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === 1;
+        updatePlayPauseIcons(isPlaying);
+
+        updateBookmarkButtonState();
+        updateNoteIndicator();
+    }
+
+    // =========================================
     // Core YouTube Audio Player Logic
     // =========================================
     function loadAndPlayYoutube(item, startTime = null, autoPlay = true) {
         if (!item || !item.videoId) return;
+
+        // Clear preview mode if active
+        if (isViewingPreview) {
+            isViewingPreview = false;
+            previewViewingBook = null;
+            if (playerBgPlayingPill) playerBgPlayingPill.style.display = 'none';
+            if (playerNowPlayingPill) {
+                playerNowPlayingPill.style.display = 'inline-flex';
+                if (playerNowPlayingText) playerNowPlayingText.textContent = 'Now Playing';
+            }
+        }
 
         // If already playing this exact YouTube video, just open modal without reloading
         if (currentAudioType === 'youtube' && ytCurrentItem && (ytCurrentItem.videoId === item.videoId || ytCurrentItem.identifier === item.identifier)) {
@@ -4113,25 +4703,30 @@
                 stopYtProgressLoop();
                 return;
             }
-            if (isAudioSeeking) return;
 
             const cur = ytPlayer.getCurrentTime() || 0;
             const dur = ytPlayer.getDuration() || (ytCurrentItem ? ytCurrentItem.duration : 0) || 0;
 
-            if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
-            if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
+            if (!isViewingPreview) {
+                if (!isAudioSeeking) {
+                    if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
+                    if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
 
-            const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
-            if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
-            if (playerNoteTimePreview) playerNoteTimePreview.textContent = formatTime(cur);
+                    const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
+                    if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
+                    if (playerNoteTimePreview) playerNoteTimePreview.textContent = formatTime(cur);
 
-            if (dur > 0) {
-                const percent = (cur / dur) * 100;
-                if (playerSeekSlider) playerSeekSlider.value = percent;
-                if (playerSliderFill) playerSliderFill.style.width = `${percent}%`;
-                if (miniPlayerProgressLine) {
-                    miniPlayerProgressLine.style.setProperty('--mini-progress', `${percent}%`);
+                    if (dur > 0) {
+                        const percent = (cur / dur) * 100;
+                        if (playerSeekSlider) playerSeekSlider.value = percent;
+                        if (playerSliderFill) playerSliderFill.style.width = `${percent}%`;
+                    }
                 }
+            }
+
+            if (dur > 0 && miniPlayerProgressLine) {
+                const percent = (cur / dur) * 100;
+                miniPlayerProgressLine.style.setProperty('--mini-progress', `${percent}%`);
             }
 
             // Save progress every 3 seconds
@@ -4188,6 +4783,17 @@
     // Core Audio Player Logic (Replicating Screenshot)
     // =========================================
     async function loadAndPlayAudiobook(identifier, trackIndex = null, autoPlay = true, resumeTime = null) {
+        // Clear preview mode if active
+        if (isViewingPreview) {
+            isViewingPreview = false;
+            previewViewingBook = null;
+            if (playerBgPlayingPill) playerBgPlayingPill.style.display = 'none';
+            if (playerNowPlayingPill) {
+                playerNowPlayingPill.style.display = 'inline-flex';
+                if (playerNowPlayingText) playerNowPlayingText.textContent = 'Now Playing';
+            }
+        }
+
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
         const savedProg = progressMap[identifier];
 
@@ -4510,6 +5116,11 @@
     }
 
     function toggleAudioPlay() {
+        if (isViewingPreview && previewViewingBook) {
+            startPlayingPreviewBook(previewViewingBook, previewViewingType, previewTargetTrack, previewResumeTime);
+            return;
+        }
+
         if (currentAudioType === 'youtube') {
             if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
             const state = ytPlayer.getPlayerState();
@@ -4533,8 +5144,13 @@
         if (btnPlayerPlay) {
             const playIcon = btnPlayerPlay.querySelector('.icon-play');
             const pauseIcon = btnPlayerPlay.querySelector('.icon-pause');
-            if (playIcon) playIcon.style.display = isPlaying ? 'none' : 'block';
-            if (pauseIcon) pauseIcon.style.display = isPlaying ? 'block' : 'none';
+            if (isViewingPreview) {
+                if (playIcon) playIcon.style.display = 'block';
+                if (pauseIcon) pauseIcon.style.display = 'none';
+            } else {
+                if (playIcon) playIcon.style.display = isPlaying ? 'none' : 'block';
+                if (pauseIcon) pauseIcon.style.display = isPlaying ? 'block' : 'none';
+            }
         }
 
         if (miniBtnPlay) {
@@ -4544,7 +5160,9 @@
             if (miniPauseIcon) miniPauseIcon.style.display = isPlaying ? 'block' : 'none';
         }
 
-        updatePlaylistActiveState();
+        if (!isViewingPreview) {
+            updatePlaylistActiveState();
+        }
     }
 
     // Audio Element Event Listeners
@@ -4558,25 +5176,29 @@
     });
 
     audioElement.addEventListener('timeupdate', () => {
-        if (isAudioSeeking) return;
-
         const cur = audioElement.currentTime;
         const dur = audioElement.duration || (currentAudiobook && currentAudiobook.tracks[currentTrackIndex]?.duration) || 0;
 
-        if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
-        if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
+        if (!isViewingPreview) {
+            if (!isAudioSeeking) {
+                if (playerCurrentTime) playerCurrentTime.textContent = formatTime(cur);
+                if (playerTotalDuration && dur > 0) playerTotalDuration.textContent = formatTime(dur);
 
-        const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
-        if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
-        if (playerNoteTimePreview) playerNoteTimePreview.textContent = formatTime(cur);
+                const bookmarkPreview = document.getElementById('bookmarkNowTimePreview');
+                if (bookmarkPreview) bookmarkPreview.textContent = formatTime(cur);
+                if (playerNoteTimePreview) playerNoteTimePreview.textContent = formatTime(cur);
 
-        if (dur > 0) {
-            const percent = (cur / dur) * 100;
-            if (playerSeekSlider) playerSeekSlider.value = percent;
-            if (playerSliderFill) playerSliderFill.style.width = `${percent}%`;
-            if (miniPlayerProgressLine) {
-                miniPlayerProgressLine.style.setProperty('--mini-progress', `${percent}%`);
+                if (dur > 0) {
+                    const percent = (cur / dur) * 100;
+                    if (playerSeekSlider) playerSeekSlider.value = percent;
+                    if (playerSliderFill) playerSliderFill.style.width = `${percent}%`;
+                }
             }
+        }
+
+        if (dur > 0 && miniPlayerProgressLine) {
+            const percent = (cur / dur) * 100;
+            miniPlayerProgressLine.style.setProperty('--mini-progress', `${percent}%`);
         }
 
         // Throttle progress saving every 2 seconds
@@ -4620,6 +5242,21 @@
         playerSeekSlider.addEventListener('input', () => {
             isAudioSeeking = true;
             let dur = 0;
+            if (isViewingPreview) {
+                if (previewViewingType === 'youtube') {
+                    dur = previewViewingBook ? (previewViewingBook.duration || 0) : 0;
+                } else {
+                    dur = (previewViewingBook && previewViewingBook.tracks && previewViewingBook.tracks[previewTargetTrack])
+                        ? (previewViewingBook.tracks[previewTargetTrack].duration || 0)
+                        : 0;
+                }
+                const targetSec = (playerSeekSlider.value / 100) * dur;
+                if (playerCurrentTime) playerCurrentTime.textContent = formatTime(targetSec);
+                if (playerSliderFill) playerSliderFill.style.width = `${playerSeekSlider.value}%`;
+                previewResumeTime = targetSec;
+                return;
+            }
+
             if (currentAudioType === 'youtube') {
                 dur = (ytPlayer && ytPlayer.getDuration) ? ytPlayer.getDuration() : (ytCurrentItem ? ytCurrentItem.duration : 0);
             } else {
@@ -4632,6 +5269,19 @@
 
         playerSeekSlider.addEventListener('change', () => {
             let dur = 0;
+            if (isViewingPreview) {
+                if (previewViewingType === 'youtube') {
+                    dur = previewViewingBook ? (previewViewingBook.duration || 0) : 0;
+                } else {
+                    dur = (previewViewingBook && previewViewingBook.tracks && previewViewingBook.tracks[previewTargetTrack])
+                        ? (previewViewingBook.tracks[previewTargetTrack].duration || 0)
+                        : 0;
+                }
+                previewResumeTime = (playerSeekSlider.value / 100) * dur;
+                isAudioSeeking = false;
+                return;
+            }
+
             if (currentAudioType === 'youtube') {
                 dur = (ytPlayer && ytPlayer.getDuration) ? ytPlayer.getDuration() : (ytCurrentItem ? ytCurrentItem.duration : 0);
                 const targetSec = (playerSeekSlider.value / 100) * dur;
@@ -4653,6 +5303,7 @@
 
     if (btnPlayerRewind15) {
         btnPlayerRewind15.addEventListener('click', () => {
+            if (isViewingPreview) return;
             if (currentAudioType === 'youtube') {
                 if (ytPlayer && ytPlayer.getCurrentTime) {
                     const cur = ytPlayer.getCurrentTime() || 0;
@@ -4666,6 +5317,7 @@
 
     if (btnPlayerForward15) {
         btnPlayerForward15.addEventListener('click', () => {
+            if (isViewingPreview) return;
             if (currentAudioType === 'youtube') {
                 if (ytPlayer && ytPlayer.getCurrentTime) {
                     const cur = ytPlayer.getCurrentTime() || 0;
@@ -4709,6 +5361,16 @@
 
     if (btnPlayerPrev) {
         btnPlayerPrev.addEventListener('click', () => {
+            if (isViewingPreview) {
+                if (previewViewingType === 'archive' && previewViewingBook && previewViewingBook.tracks) {
+                    const prevTrack = Math.max(0, previewTargetTrack - 1);
+                    if (prevTrack !== previewTargetTrack) {
+                        previewTargetTrack = prevTrack;
+                        updatePreviewTrackDisplay();
+                    }
+                }
+                return;
+            }
             if (currentAudioType === 'youtube') {
                 if (ytPlayer && ytPlayer.getCurrentTime) {
                     const cur = ytPlayer.getCurrentTime() || 0;
@@ -4735,6 +5397,16 @@
 
     if (btnPlayerNext) {
         btnPlayerNext.addEventListener('click', () => {
+            if (isViewingPreview) {
+                if (previewViewingType === 'archive' && previewViewingBook && previewViewingBook.tracks) {
+                    const nextTrack = Math.min(previewViewingBook.tracks.length - 1, previewTargetTrack + 1);
+                    if (nextTrack !== previewTargetTrack) {
+                        previewTargetTrack = nextTrack;
+                        updatePreviewTrackDisplay();
+                    }
+                }
+                return;
+            }
             if (currentAudioType === 'youtube') {
                 if (ytPlayer && ytPlayer.getCurrentTime && ytCurrentItem && ytCurrentItem.chapterList) {
                     const cur = ytPlayer.getCurrentTime() || 0;
@@ -4928,6 +5600,16 @@
     }
 
     function getCurrentAudioBookInfo() {
+        if (isViewingPreview && previewViewingBook) {
+            return {
+                identifier: previewViewingBook.identifier || (previewViewingBook.videoId ? `yt_${previewViewingBook.videoId}` : null),
+                type: previewViewingType,
+                videoId: previewViewingBook.videoId,
+                title: previewViewingBook.title,
+                author: previewViewingBook.author || (previewViewingType === 'youtube' ? 'YouTube' : 'Internet Archive'),
+                cover: previewViewingBook.cover || (previewViewingBook.videoId ? `https://i.ytimg.com/vi/${previewViewingBook.videoId}/hqdefault.jpg` : `https://archive.org/services/img/${previewViewingBook.identifier}`)
+            };
+        }
         if (currentAudioType === 'youtube') {
             if (!ytCurrentItem) return null;
             const identifier = ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`;
@@ -5075,6 +5757,9 @@
     // Audiobook Personal Notes Management
     // =========================================
     function getCurrentAudioIdentifier() {
+        if (isViewingPreview && previewViewingBook) {
+            return previewViewingBook.identifier || (previewViewingBook.videoId ? `yt_${previewViewingBook.videoId}` : null);
+        }
         if (currentAudioType === 'youtube') {
             return ytCurrentItem ? (ytCurrentItem.identifier || `yt_${ytCurrentItem.videoId}`) : null;
         }
@@ -5123,9 +5808,9 @@
         const noteObj = {
             identifier: identifier,
             text: cleanText,
-            title: bookInfo?.title || progressMap[identifier]?.title || (currentAudiobook?.title) || (ytCurrentItem?.title) || 'Sách nói',
-            author: bookInfo?.author || progressMap[identifier]?.author || (currentAudiobook?.author) || (ytCurrentItem?.author) || '',
-            cover: bookInfo?.cover || progressMap[identifier]?.cover || (currentAudiobook?.cover) || (ytCurrentItem?.cover) || '',
+            title: bookInfo?.title || (isViewingPreview && previewViewingBook?.title) || progressMap[identifier]?.title || (currentAudiobook?.title) || (ytCurrentItem?.title) || 'Sách nói',
+            author: bookInfo?.author || (isViewingPreview && previewViewingBook?.author) || progressMap[identifier]?.author || (currentAudiobook?.author) || (ytCurrentItem?.author) || '',
+            cover: bookInfo?.cover || (isViewingPreview && previewViewingBook?.cover) || progressMap[identifier]?.cover || (currentAudiobook?.cover) || (ytCurrentItem?.cover) || '',
             updatedAt: now
         };
 
@@ -5474,20 +6159,39 @@
 
     if (btnPlayerMinimize) {
         btnPlayerMinimize.addEventListener('click', () => {
+            if (isViewingPreview) {
+                isViewingPreview = false;
+                previewViewingBook = null;
+            }
             minimizeAudioPlayerModal();
-            showToast('Đã thu nhỏ. Sách nói vẫn đang tiếp tục phát.');
+            if (isAudioActiveAndPlaying()) {
+                showToast('Đã thu nhỏ. Sách nói vẫn đang tiếp tục phát.');
+            }
         });
     }
     if (btnPlayerClose) {
         btnPlayerClose.addEventListener('click', () => {
-            closeAudioPlayer(true);
-            showToast('Đã dừng phát và đóng sách nói.');
+            if (isViewingPreview) {
+                isViewingPreview = false;
+                previewViewingBook = null;
+                closeAudioPlayer(false);
+                if (isAudioActiveAndPlaying() && miniAudioPlayer) {
+                    miniAudioPlayer.style.display = 'block';
+                }
+            } else {
+                closeAudioPlayer(true);
+                showToast('Đã dừng phát và đóng sách nói.');
+            }
         });
     }
 
     if (audioPlayerModal) {
         audioPlayerModal.addEventListener('click', (e) => {
             if (e.target === audioPlayerModal) {
+                if (isViewingPreview) {
+                    isViewingPreview = false;
+                    previewViewingBook = null;
+                }
                 minimizeAudioPlayerModal();
             }
         });
@@ -5495,15 +6199,33 @@
 
     // Mini Player Open & Controls
     if (miniPlayerOpen) {
-        miniPlayerOpen.addEventListener('click', openAudioPlayerModal);
+        miniPlayerOpen.addEventListener('click', () => {
+            if (isViewingPreview) {
+                restoreActiveAudiobookModal();
+            } else {
+                openAudioPlayerModal();
+            }
+        });
     }
     if (miniBtnExpand) {
-        miniBtnExpand.addEventListener('click', openAudioPlayerModal);
+        miniBtnExpand.addEventListener('click', () => {
+            if (isViewingPreview) {
+                restoreActiveAudiobookModal();
+            } else {
+                openAudioPlayerModal();
+            }
+        });
     }
     if (miniBtnClose) {
         miniBtnClose.addEventListener('click', () => {
             closeAudioPlayer(true);
             showToast('Đã dừng phát sách nói');
+        });
+    }
+
+    if (playerBgPlayingPill) {
+        playerBgPlayingPill.addEventListener('click', () => {
+            restoreActiveAudiobookModal();
         });
     }
 
@@ -5548,6 +6270,7 @@
                 toggleAudioPlay();
             } else if (e.key === 'ArrowLeft') {
                 e.preventDefault();
+                if (isViewingPreview) return;
                 if (currentAudioType === 'youtube') {
                     if (ytPlayer && ytPlayer.getCurrentTime) {
                         const cur = ytPlayer.getCurrentTime() || 0;
@@ -5558,6 +6281,7 @@
                 }
             } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
+                if (isViewingPreview) return;
                 if (currentAudioType === 'youtube') {
                     if (ytPlayer && ytPlayer.getCurrentTime) {
                         const cur = ytPlayer.getCurrentTime() || 0;
