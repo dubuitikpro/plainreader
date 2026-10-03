@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790745524944,
+  "lastUpdated": 1790989081108,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -95,20 +95,6 @@
       "cover": "https://i.ytimg.com/vi/QCzY-rJJhGE/hqdefault.jpg",
       "updatedAt": 1727581000000
     },
-    "yt_IBh60rV9ue0": {
-      "identifier": "yt_IBh60rV9ue0",
-      "type": "youtube",
-      "videoId": "IBh60rV9ue0",
-      "title": "Book Summary | The Laws of Human Nature",
-      "author": "Mỗi ngày tiến một chút",
-      "cover": "https://i.ytimg.com/vi/IBh60rV9ue0/hqdefault.jpg",
-      "trackIndex": 0,
-      "trackTitle": "Book Summary | The Laws of Human Nature",
-      "currentTime": 6,
-      "duration": 4644,
-      "percent": 0,
-      "updatedAt": 1790691895963
-    },
     "yt_6wbQme0JZkQ": {
       "identifier": "yt_6wbQme0JZkQ",
       "type": "youtube",
@@ -157,10 +143,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 3,
       "trackTitle": "track 4 chuong thu tu ai tinh la gi",
-      "currentTime": 2978,
+      "currentTime": 2942,
       "duration": 3289,
-      "percent": 91,
-      "updatedAt": 1790745524788
+      "percent": 89,
+      "updatedAt": 1790751524039
     }
   },
   "audioBookmarks": [
@@ -195,9 +181,9 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 3,
-    "time": 2978,
-    "volume": 1,
-    "speedIndex": 0
+    "time": 2942,
+    "volume": 0.6,
+    "speedIndex": 1
   },
   "searchHistory": [
     "Thuat Yeu Duong - Nguyen Duy Can",
