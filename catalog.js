@@ -3097,12 +3097,13 @@
 
             card.innerHTML = `
                 <div class="history-card-top">
-                    <div class="history-thumb-wrap" title="Nhấn để nghe tiếp ngay">
+                    <div class="history-thumb-wrap" title="Nhấn vào khung để mở player sách">
                         <img class="history-card-thumb" src="${coverSrc}" alt="${escapeHtml(item.title)}" onerror="this.src='https://archive.org/images/archive_logo.png'">
                         <div class="history-thumb-play-overlay">
-                            <div class="history-play-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-                                    <polygon points="6 3 20 12 6 21 6 3"/>
+                            <div class="history-play-icon" title="Mở player">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20">
+                                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
                                 </svg>
                             </div>
                         </div>
@@ -3199,15 +3200,14 @@
                 </div>
             `;
 
-            // Click to resume
-            const thumbWrap = card.querySelector('.history-thumb-wrap');
+            // Click to resume audio explicitly
             const resumeBtn = card.querySelector('.btn-history-resume');
-            const onResume = (e) => {
-                e.stopPropagation();
-                resumeAudioHistoryItem(item);
-            };
-            if (thumbWrap) thumbWrap.addEventListener('click', onResume);
-            if (resumeBtn) resumeBtn.addEventListener('click', onResume);
+            if (resumeBtn) {
+                resumeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    resumeAudioHistoryItem(item);
+                });
+            }
 
             // Click to open note modal
             const noteBtn = card.querySelector('.btn-history-note');
@@ -3227,6 +3227,14 @@
                     deleteAudioHistoryItem(item.identifier || item._storageKey, item);
                 });
             }
+
+            // Click anywhere on book frame (card) to open player modal WITHOUT auto-playing audio (keeps current audio intact)
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-history-resume, .btn-history-note, .btn-history-delete, .history-note-preview')) {
+                    return;
+                }
+                openPlayerForHistoryItem(item, false);
+            });
 
             historyGrid.appendChild(card);
         });
@@ -3249,9 +3257,36 @@
         if (fillEl) fillEl.style.width = `${pct}%`;
     }
 
-    function resumeAudioHistoryItem(item) {
+    function openPlayerForHistoryItem(item, autoPlay = false) {
         if (!item) return;
         const id = item.identifier || item._storageKey || (item.videoId ? `yt_${item.videoId}` : null);
+        const currentId = getCurrentAudioIdentifier();
+        const isCurrentActive = Boolean(currentId && (
+            currentId === id ||
+            currentId === item.identifier ||
+            currentId === item._storageKey ||
+            (item.videoId && currentId === `yt_${item.videoId}`)
+        ));
+
+        if (isCurrentActive) {
+            // Sách này đang mở trong player: mở lại modal, giữ nguyên audio và vị trí đang nghe
+            openAudioPlayerModal();
+            if (autoPlay) {
+                if (currentAudioType === 'youtube') {
+                    if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                        try {
+                            if (ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo();
+                        } catch (e) {}
+                    }
+                } else {
+                    if (audioElement.paused) {
+                        audioElement.play().catch(() => {});
+                    }
+                }
+            }
+            return;
+        }
+
         const isYt = item.type === 'youtube' || (id && id.startsWith('yt_'));
         if (isYt) {
             const videoId = item.videoId || (id ? id.replace(/^yt_/, '') : '');
@@ -3265,12 +3300,18 @@
                 durationFormatted: formatTime(item.duration),
                 type: 'youtube'
             };
-            loadAndPlayYoutube(found, item.currentTime, true);
+            loadAndPlayYoutube(found, item.currentTime, autoPlay);
         } else {
-            loadAndPlayAudiobook(id, item.trackIndex || 0, true, item.currentTime);
+            loadAndPlayAudiobook(id, item.trackIndex || 0, autoPlay, item.currentTime);
         }
         openAudioPlayerModal();
-        showToast(`▶ Đang tiếp tục nghe "${item.title}" [${formatTime(item.currentTime)}]`);
+        if (autoPlay) {
+            showToast(`▶ Đang tiếp tục nghe "${item.title}" [${formatTime(item.currentTime)}]`);
+        }
+    }
+
+    function resumeAudioHistoryItem(item) {
+        openPlayerForHistoryItem(item, true);
     }
 
     function deleteAudioHistoryItem(identifier, itemRef = null) {
@@ -3500,6 +3541,15 @@
             `;
 
             card.addEventListener('click', () => {
+                const currentId = getCurrentAudioIdentifier();
+                const isCurrentActive = Boolean(currentId && (
+                    currentId === b.identifier ||
+                    (b.videoId && currentId === `yt_${b.videoId}`)
+                ));
+                if (isCurrentActive) {
+                    openAudioPlayerModal();
+                    return;
+                }
                 if (isYt) {
                     loadAndPlayYoutube(b, null, true);
                 } else {
@@ -3834,6 +3884,12 @@
     // =========================================
     function loadAndPlayYoutube(item, startTime = null, autoPlay = true) {
         if (!item || !item.videoId) return;
+
+        // If already playing this exact YouTube video, just open modal without reloading
+        if (currentAudioType === 'youtube' && ytCurrentItem && (ytCurrentItem.videoId === item.videoId || ytCurrentItem.identifier === item.identifier)) {
+            openAudioPlayerModal();
+            return;
+        }
 
         // Stop archive audio playback
         if (!audioElement.paused) {
