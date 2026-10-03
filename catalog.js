@@ -2460,6 +2460,7 @@
     let currentAudiobook = null;
     let currentTrackIndex = 0;
     let isAudioSeeking = false;
+    let isAudioStopping = false;
     let sleepTimerTimeout = null;
     let sleepTimerMode = '0'; // '0', '15', '30', '45', '60', 'end'
     const SPEED_RATES = [1.0, 1.25, 1.5, 2.0, 0.75];
@@ -4545,6 +4546,15 @@
     });
 
     audioElement.addEventListener('error', (e) => {
+        // Do not show error toast if player was closed/stopped intentionally
+        if (isAudioStopping) return;
+        if (!currentAudiobook || !audioElement.src || audioElement.src === '' || audioElement.src === window.location.href) {
+            return;
+        }
+        if (audioElement.error && audioElement.error.code === 1) {
+            // Code 1 is MEDIA_ERR_ABORTED - user stopped/reset playback
+            return;
+        }
         console.error('Audio stream error:', e);
         showToast('Lỗi phát âm thanh từ nguồn máy chủ Internet Archive.');
     });
@@ -5420,13 +5430,17 @@
 
     function closeAudioPlayer(stopAudio = false) {
         if (stopAudio) {
+            isAudioStopping = true;
             try {
                 saveAudioProgress();
             } catch (e) {
                 console.warn('Error saving audio progress on close:', e);
             }
             audioElement.pause();
-            audioElement.src = '';
+            audioElement.removeAttribute('src');
+            try {
+                audioElement.load();
+            } catch (e) {}
             if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
                 ytPlayer.pauseVideo();
             }
@@ -5434,6 +5448,9 @@
             currentAudiobook = null;
             ytCurrentItem = null;
             if (miniAudioPlayer) miniAudioPlayer.style.display = 'none';
+            setTimeout(() => {
+                isAudioStopping = false;
+            }, 300);
         }
         if (audioPlayerModal) {
             audioPlayerModal.style.display = 'none';
