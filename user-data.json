@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790990339426,
+  "lastUpdated": 1790990471015,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -143,10 +143,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 4,
       "trackTitle": "track 5 5 ban thuo au tho",
-      "currentTime": 1194,
+      "currentTime": 1358,
       "duration": 4049,
-      "percent": 29,
-      "updatedAt": 1790990339196
+      "percent": 34,
+      "updatedAt": 1790990470909
     },
     "yt_QCzY-rJJhGE": {
       "identifier": "yt_QCzY-rJJhGE",
@@ -195,7 +195,7 @@
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 4,
-    "time": 1194,
+    "time": 1358,
     "volume": 1,
     "speedIndex": 1
   },
