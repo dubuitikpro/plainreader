@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1790993638229,
+  "lastUpdated": 1790993745540,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -98,7 +98,9 @@
       "currentTime": 48,
       "duration": 5072,
       "percent": 1,
-      "updatedAt": 1790727471354
+      "updatedAt": 1790727471354,
+      "note": "Hiểu về con người",
+      "noteUpdatedAt": 1790993706310
     },
     "48-nguyen-tac-chu-chot-cua-quyen-luc": {
       "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
@@ -111,7 +113,9 @@
       "currentTime": 2116,
       "duration": 2266,
       "percent": 93,
-      "updatedAt": 1790710319626
+      "updatedAt": 1790710319626,
+      "note": "Ghi chú khi đi làm",
+      "noteUpdatedAt": 1790993671331
     },
     "di-tim-le-song.sna": {
       "identifier": "di-tim-le-song.sna",
@@ -134,10 +138,10 @@
       "cover": "https://archive.org/services/img/4a26f9254024abe6a7fb3dbda27709a3",
       "trackIndex": 5,
       "trackTitle": "track 6 chuong thu sau quan niem ve ai tinh cua nguoi dan ong va nguoi dan ba",
-      "currentTime": 1246,
+      "currentTime": 1380,
       "duration": 1975,
-      "percent": 63,
-      "updatedAt": 1790993637790
+      "percent": 70,
+      "updatedAt": 1790993744848
     },
     "yt_QCzY-rJJhGE": {
       "identifier": "yt_QCzY-rJJhGE",
@@ -181,13 +185,30 @@
       "createdAt": 1790665644124
     }
   ],
-  "audioNotes": {},
+  "audioNotes": {
+    "48-nguyen-tac-chu-chot-cua-quyen-luc": {
+      "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
+      "text": "Ghi chú khi đi làm",
+      "title": "48 nguyên tắc chủ chốt của quyền lực",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/48-nguyen-tac-chu-chot-cua-quyen-luc",
+      "updatedAt": 1790993671331
+    },
+    "yt_6wbQme0JZkQ": {
+      "identifier": "yt_6wbQme0JZkQ",
+      "text": "Hiểu về con người",
+      "title": "Sách Nói: Những Quy Luật Của Bản Chất Con Người - Robert Greene",
+      "author": "Hải Đăng BED",
+      "cover": "https://i.ytimg.com/vi/6wbQme0JZkQ/hqdefault.jpg",
+      "updatedAt": 1790993706310
+    }
+  },
   "lastPlayedId": "4a26f9254024abe6a7fb3dbda27709a3",
   "audioState": {
     "identifier": "4a26f9254024abe6a7fb3dbda27709a3",
     "type": "archive",
     "trackIndex": 5,
-    "time": 1246,
+    "time": 1380,
     "volume": 1,
     "speedIndex": 1
   },
