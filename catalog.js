@@ -5512,12 +5512,27 @@
     // Keyboard Shortcuts for Audio Player
     document.addEventListener('keydown', (e) => {
         if (audioPlayerModal && audioPlayerModal.style.display === 'flex') {
+            const isEditing = e.target && (
+                e.target.tagName === 'INPUT' ||
+                e.target.tagName === 'TEXTAREA' ||
+                e.target.isContentEditable
+            );
+
             if (e.key === 'Escape') {
-                minimizeAudioPlayerModal();
-            } else if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                if (isEditing) {
+                    e.target.blur();
+                } else {
+                    minimizeAudioPlayerModal();
+                }
+                return;
+            }
+
+            if (isEditing) return;
+
+            if (e.code === 'Space') {
                 e.preventDefault();
                 toggleAudioPlay();
-            } else if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT') {
+            } else if (e.key === 'ArrowLeft') {
                 e.preventDefault();
                 if (currentAudioType === 'youtube') {
                     if (ytPlayer && ytPlayer.getCurrentTime) {
@@ -5527,7 +5542,7 @@
                 } else {
                     audioElement.currentTime = Math.max(0, audioElement.currentTime - 15);
                 }
-            } else if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT') {
+            } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 if (currentAudioType === 'youtube') {
                     if (ytPlayer && ytPlayer.getCurrentTime) {
