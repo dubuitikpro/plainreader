@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1791020260111,
+  "lastUpdated": 1791085390754,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -202,7 +202,7 @@
       "isBookmarked": true,
       "note": "cách tư duy để thay đổi thói quen",
       "noteUpdatedAt": 1791017523196,
-      "updatedAt": 1791020260111
+      "updatedAt": 1791085387749
     }
   },
   "audioBookmarks": [
@@ -312,8 +312,8 @@
     "type": "archive",
     "trackIndex": 2,
     "time": 1110,
-    "volume": 0.5,
-    "speedIndex": 1
+    "volume": 1,
+    "speedIndex": 0
   },
   "searchHistory": [
     "Control (Psychology)",
