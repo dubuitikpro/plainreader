@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1791306109110,
+  "lastUpdated": 1791307009603,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -212,11 +212,11 @@
       "cover": "https://archive.org/services/img/7670131803e640327f698418271ca555",
       "trackIndex": 2,
       "trackTitle": "06 12 chuong 1 hoi chung nice guy trai hen",
-      "currentTime": 66,
+      "currentTime": 963,
       "duration": 1916,
-      "percent": 3,
+      "percent": 50,
       "isBookmarked": true,
-      "updatedAt": 1791306109044
+      "updatedAt": 1791307006598
     }
   },
   "audioBookmarks": [
@@ -333,7 +333,7 @@
     "identifier": "7670131803e640327f698418271ca555",
     "type": "archive",
     "trackIndex": 2,
-    "time": 66,
+    "time": 963,
     "volume": 1,
     "speedIndex": 0
   },
