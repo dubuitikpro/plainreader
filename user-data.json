@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792053423833,
+  "lastUpdated": 1792053499824,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -196,13 +196,13 @@
       "cover": "https://archive.org/services/img/tdthhqbn",
       "trackIndex": 8,
       "trackTitle": "[Audiobook] ATOMIC HABITS THÓI QUEN NGUYÊN TỬ (P9) James Clear Sách kỹ năng cực hay",
-      "currentTime": 1290,
+      "currentTime": 1366,
       "duration": 1517,
-      "percent": 85,
+      "percent": 90,
       "isBookmarked": true,
       "note": "cách tư duy để thay đổi thói quen",
       "noteUpdatedAt": 1791017523196,
-      "updatedAt": 1792053423764
+      "updatedAt": 1792053499792
     },
     "7670131803e640327f698418271ca555": {
       "identifier": "7670131803e640327f698418271ca555",
@@ -333,7 +333,7 @@
     "identifier": "tdthhqbn",
     "type": "archive",
     "trackIndex": 8,
-    "time": 1290,
+    "time": 1366,
     "volume": 1,
     "speedIndex": 0
   },
