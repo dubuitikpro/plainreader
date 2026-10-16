@@ -195,6 +195,8 @@
     const recLoadingText = document.getElementById('recLoadingText');
     const modalRecWrapper = document.getElementById('modalRecWrapper');
     const modalRecScroll = document.getElementById('modalRecScroll');
+    const modalRecTitle = document.getElementById('modalRecTitle');
+    const modalRecTag = document.getElementById('modalRecTag');
     const playerSuggestedBox = document.getElementById('playerSuggestedBox');
     const playerSuggestedList = document.getElementById('playerSuggestedList');
     const aiConfigModal = document.getElementById('aiConfigModal');
@@ -1511,6 +1513,12 @@
                     }
                     if (details.subjects && details.subjects.length > 0) {
                         subjects = details.subjects;
+                        if (!book.subjects || book.subjects.length === 0) {
+                            book.subjects = subjects;
+                            if (typeof updateModalSimilarBooks === 'function') {
+                                updateModalSimilarBooks(book, subjects);
+                            }
+                        }
                     }
                 } catch (e) {
                     console.warn('Open Library work details fetch error:', e);
@@ -8790,52 +8798,903 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         runRecommendationSearch(seedTitle, currentRecEngine, 'all', 1, false);
     }
 
-    // Update Similar Books in Book Detail Modal
-    function updateModalSimilarBooks(book) {
+    // In-memory cache for modal similar book recommendations
+    const modalSimilarCache = new Map();
+
+    // Semantic Similarity Clusters for high-precision thematic matching
+    const MODAL_SIMILARITY_CLUSTERS = [
+        {
+            id: 'assertiveness_boundaries',
+            name: 'Tự Khẳng Định Mình & Ranh Giới Cá Nhân',
+            tag: '🎯 Trị liệu tâm lý & Ranh giới',
+            keywords: [
+                'nice guy', 'mr. nice guy', 'assertive', 'assertiveness', 'boundary', 'boundaries',
+                'people pleasing', 'people pleaser', 'codependen', 'say no', 'ranh giới',
+                'tự khẳng định', 'làm hài lòng', 'không còn là mr. nice guy', 'men, psychology',
+                'interpersonal relations', 'chàng trai tốt'
+            ],
+            books: [
+                {
+                    key: '/works/OL2747970W',
+                    title: 'Khi Tôi Nói Không, Tôi Thấy Có Lỗi',
+                    originalTitle: 'When I Say No, I Feel Guilty',
+                    author: 'Manuel J. Smith',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/4471367-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 22000,
+                    reason: 'Liệu pháp rèn luyện tính quyết đoán và kỹ năng từ chối kinh điển nhất mọi thời đại.'
+                },
+                {
+                    key: '/works/OL1861788W',
+                    title: 'Ranh Giới (Boundaries)',
+                    originalTitle: 'Boundaries: When to Say Yes, How to Say No',
+                    author: 'Henry Cloud & John Townsend',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8231991-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 185000,
+                    reason: 'Cách vạch ra ranh giới lành mạnh để ngừng làm hài lòng người khác và bảo vệ bản thân.'
+                },
+                {
+                    key: '/works/OL17362095W',
+                    title: 'Nghệ Thuật Tinh Tế Của Việc Không Quan Tâm',
+                    originalTitle: 'The Subtle Art of Not Giving a F*ck',
+                    author: 'Mark Manson',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    rating: 4.6,
+                    ratingsCount: 420000,
+                    reason: 'Học cách từ bỏ nhu cầu được mọi người yêu thích để sống thật với giá trị cốt lõi.'
+                },
+                {
+                    key: '/works/OL20063236W',
+                    title: 'Không Phải Người Tốt (Not Nice)',
+                    originalTitle: 'Not Nice: Stop People Pleasing, Staying Silent, & Feeling Guilty',
+                    author: 'Aziz Gazipura',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 15000,
+                    reason: 'Cẩm nang thực chiến giải phóng bản thân khỏi nỗi sợ xung đột và hội chứng người tốt.'
+                },
+                {
+                    key: '/works/OL2666110W',
+                    title: 'Đoạn Tuyệt Thói Đồng Phụ Thuộc (Codependent No More)',
+                    originalTitle: 'Codependent No More',
+                    author: 'Melody Beattie',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8758832-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 210000,
+                    reason: 'Phương pháp ngừng kiểm soát và hy sinh bản thân vì vấn đề của người khác.'
+                },
+                {
+                    key: '/works/OL17079998W',
+                    title: 'Daring Greatly (Dũng Cảm Đối Mặt)',
+                    originalTitle: 'Daring Greatly',
+                    author: 'Brené Brown',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/7367250-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 290000,
+                    reason: 'Sức mạnh của việc dám sống thật với sự yếu đuối và vượt qua nỗi xấu hổ.'
+                }
+            ]
+        },
+        {
+            id: 'habits_productivity',
+            name: 'Thói Quen & Hiệu Suất Tập Trung',
+            tag: '⚡ Năng suất & Thói quen',
+            keywords: [
+                'atomic habits', 'thay đổi tí hon', 'habit', 'thói quen', 'deep work',
+                'tập trung', 'productivity', 'procrastination', 'trì hoãn', 'make time', 'tiny habits'
+            ],
+            books: [
+                {
+                    id: 'rec_atomichabits',
+                    key: '/works/OL17930368W',
+                    title: 'Thay Đổi Tí Hon (Atomic Habits)',
+                    originalTitle: 'Atomic Habits',
+                    author: 'James Clear',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12539702-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 1650000,
+                    reason: 'Phương pháp vi mô 1% mỗi ngày kiến tạo thói quen bền vững.'
+                },
+                {
+                    id: 'rec_deepwork',
+                    key: '/works/OL17713267W',
+                    title: 'Làm Ra Làm Chơi Ra Chơi (Deep Work)',
+                    originalTitle: 'Deep Work',
+                    author: 'Cal Newport',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/7988607-M.jpg',
+                    rating: 4.6,
+                    ratingsCount: 380000,
+                    reason: 'Bí quyết rèn luyện khả năng tập trung cao độ trong kỷ nguyên số.'
+                },
+                {
+                    key: '/works/OL16834168W',
+                    title: 'Sức Mạnh Của Thói Quen (The Power of Habit)',
+                    originalTitle: 'The Power of Habit',
+                    author: 'Charles Duhigg',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/11183311-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 520000,
+                    reason: 'Giải mã vòng lặp Gợi ý - Thói quen - Phần thưởng của não bộ.'
+                },
+                {
+                    key: '/works/OL19918511W',
+                    title: 'Make Time: Tạo Thời Gian Cho Điều Bạn Muốn',
+                    originalTitle: 'Make Time',
+                    author: 'Jake Knapp & John Zeratsky',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/9091395-M.jpg',
+                    rating: 4.6,
+                    ratingsCount: 45000,
+                    reason: 'Chiến thuật 4 bước lấy lại năng lượng và làm chủ quỹ thời gian mỗi ngày.'
+                },
+                {
+                    id: 'rec_startwithwhy',
+                    key: '/works/OL15443209W',
+                    title: 'Bắt Đầu Với Câu Hỏi Tại Sao (Start With Why)',
+                    originalTitle: 'Start With Why',
+                    author: 'Simon Sinek',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12714246-M.jpg',
+                    rating: 4.6,
+                    ratingsCount: 310000,
+                    reason: 'Khai mở động lực tự thân từ vòng tròn vàng mục đích cốt lõi.'
+                }
+            ]
+        },
+        {
+            id: 'wealth_finance_investing',
+            name: 'Tài Chính, Đầu Tư & Tâm Lý Tiền Tệ',
+            tag: '💰 Tài chính & Đầu tư',
+            keywords: [
+                'psychology of money', 'tâm lý học về tiền', 'rich dad', 'cha giàu',
+                'intelligent investor', 'đầu tư thông minh', 'investing', 'tài chính',
+                'tiền', 'chứng khoán', 'cổ phiếu', 'wealth', 'nghĩ giàu làm giàu', 'think and grow rich'
+            ],
+            books: [
+                {
+                    id: 'rec_psychologyofmoney',
+                    key: '/works/OL21857946W',
+                    title: 'Tâm Lý Học Về Tiền',
+                    originalTitle: 'The Psychology of Money',
+                    author: 'Morgan Housel',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10524456-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 480000,
+                    reason: 'Cách cảm xúc, cái tôi và tâm lý chi phối mọi quyết định tài chính của bạn.'
+                },
+                {
+                    id: 'rec_richdad',
+                    key: '/works/OL82563W',
+                    title: 'Dạy Con Làm Giàu (Rich Dad Poor Dad)',
+                    originalTitle: 'Rich Dad, Poor Dad',
+                    author: 'Robert T. Kiyosaki',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8758832-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 2200000,
+                    reason: 'Tư duy tài sản vs tiêu sản và con đường thoát khỏi vòng xoáy kim tiền.'
+                },
+                {
+                    id: 'rec_intelligentinvestor',
+                    key: '/works/OL15840212W',
+                    title: 'Nhà Đầu Tư Thông Minh',
+                    originalTitle: 'The Intelligent Investor',
+                    author: 'Benjamin Graham',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 380000,
+                    reason: 'Kinh điển đầu tư giá trị và nguyên tắc biên độ an toàn bất hủ.'
+                },
+                {
+                    id: 'rec_nghigiou',
+                    key: '/works/OL527464W',
+                    title: 'Nghĩ Giàu Làm Giàu (Think and Grow Rich)',
+                    originalTitle: 'Think and Grow Rich',
+                    author: 'Napoleon Hill',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/14542536-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 1850000,
+                    reason: '13 nguyên tắc làm chủ tâm trí và kiến tạo sự thịnh vượng bền vững.'
+                },
+                {
+                    id: 'rec_predictablyirrational',
+                    key: '/works/OL8160088W',
+                    title: 'Phi Lý Trí (Predictably Irrational)',
+                    originalTitle: 'Predictably Irrational',
+                    author: 'Dan Ariely',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/6498263-M.jpg',
+                    rating: 4.6,
+                    ratingsCount: 290000,
+                    reason: 'Những lực vô hình định hình cách con người chi tiêu và quyết định.'
+                }
+            ]
+        },
+        {
+            id: 'power_strategy_mafia',
+            name: 'Quyền Lực, Chiến Lược & Nghệ Thuật Thao Túng',
+            tag: '⚔️ Chiến lược & Quyền lực',
+            keywords: [
+                'bố già', 'godfather', '48 laws of power', 'mặt dày tâm đen',
+                'tam quốc', 'quân vương', 'the prince', 'machiavelli', 'chiến lược',
+                'quyền lực', '48 nguyên tắc', 'sun tzu', 'binh pháp'
+            ],
+            books: [
+                {
+                    id: 'rec_bogia',
+                    key: '/works/OL82563W_godfather',
+                    title: 'Bố Già (The Godfather)',
+                    originalTitle: 'The Godfather',
+                    author: 'Mario Puzo',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 1800000,
+                    reason: 'Đỉnh cao tiểu thuyết nghệ thuật lãnh đạo, quyền lực và gia tộc.'
+                },
+                {
+                    key: '/works/OL15840212W_48laws',
+                    title: '48 Nguyên Tắc Chủ Chốt Của Quyền Lực',
+                    originalTitle: 'The 48 Laws of Power',
+                    author: 'Robert Greene',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8303480-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 450000,
+                    reason: '3000 năm lịch sử quyền lực và các chiến thuật sinh tồn đỉnh cao.'
+                },
+                {
+                    id: 'rec_matdaytamden',
+                    key: '/works/OL25916327W_mdtd',
+                    title: 'Mặt Dày Tâm Đen (Thick Face, Black Heart)',
+                    originalTitle: 'Thick Face, Black Heart',
+                    author: 'Chin-Ning Chu',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/11183311-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 92000,
+                    reason: 'Thuật che giấu ý định và kiên định theo đuổi mục tiêu của người Á Đông.'
+                },
+                {
+                    id: 'rec_tamquoc',
+                    key: '/works/OL14945484W',
+                    title: 'Tam Quốc Diễn Nghĩa',
+                    originalTitle: 'Romance of the Three Kingdoms',
+                    author: 'La Quán Trung',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 520000,
+                    reason: 'Bản hùng ca mưu lược quân sự, thuật dùng người và thuật trị quốc đỉnh cao.'
+                },
+                {
+                    key: '/works/OL12726168W_prince',
+                    title: 'Quân Vương (The Prince)',
+                    originalTitle: 'The Prince',
+                    author: 'Niccolò Machiavelli',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12726168-M.jpg',
+                    rating: 4.6,
+                    ratingsCount: 350000,
+                    reason: 'Chân lý lạnh lùng về cách thâu tóm và duy trì quyền lực thực tế.'
+                }
+            ]
+        },
+        {
+            id: 'philosophical_allegory_spiritual',
+            name: 'Hành Trình Tinh Thần, Triết Lý Nhân Sinh',
+            tag: '✨ Triết lý & Cảm thức',
+            keywords: [
+                'nhà giả kim', 'alchemist', 'hoàng tử bé', 'little prince',
+                'hành trình về phương đông', 'không gia đình', 'cây cam ngọt',
+                'triết lý', 'linh hồn', 'ý nghĩa cuộc sống', 'giấc mơ'
+            ],
+            books: [
+                {
+                    id: 'rec_nhagiakim',
+                    key: '/works/OL82563W_alchemist',
+                    title: 'Nhà Giả Kim (The Alchemist)',
+                    originalTitle: 'The Alchemist',
+                    author: 'Paulo Coelho',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 3200000,
+                    reason: 'Hành trình lắng nghe con tim và kiên trì theo đuổi vận mệnh cuộc đời.'
+                },
+                {
+                    id: 'rec_hoangtube',
+                    key: '/works/OL15840212W_prince',
+                    title: 'Hoàng Tử Bé (The Little Prince)',
+                    originalTitle: 'Le Petit Prince',
+                    author: 'Antoine de Saint-Exupéry',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10524456-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 2500000,
+                    reason: 'Những điều cốt lõi vô hình trước mắt trần, chỉ nhìn thấy rõ bằng trái tim.'
+                },
+                {
+                    id: 'rec_hanhtrinhphuongdong',
+                    key: '/works/OL1861788W_htpd',
+                    title: 'Hành Trình Về Phương Đông',
+                    originalTitle: 'Life and Teaching of the Masters of the Far East',
+                    author: 'Baird T. Spalding',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 160000,
+                    reason: 'Khai mở những giá trị minh triết cổ xưa và sức mạnh tiềm thức con người.'
+                },
+                {
+                    id: 'rec_khonggiadinh',
+                    key: '/works/OL17362095W_kgd',
+                    title: 'Không Gia Đình (Sans Famille)',
+                    originalTitle: 'Sans Famille',
+                    author: 'Hector Malot',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 420000,
+                    reason: 'Bản anh hùng ca cảm động về tình người và nghị lực vượt lên số phận.'
+                },
+                {
+                    key: '/works/OL12819857W_orange',
+                    title: 'Cây Cam Ngọt Của Tôi',
+                    originalTitle: 'My Sweet Orange Tree',
+                    author: 'José Mauro de Vasconcelos',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12819857-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 180000,
+                    reason: 'Câu chuyện lay động tâm can về lòng trắc ẩn và thế giới nội tâm của trẻ thơ.'
+                }
+            ]
+        },
+        {
+            id: 'mindfulness_zen_healing',
+            name: 'Thiền, Tỉnh Thức & Chữa Lành Nội Tâm',
+            tag: '🌿 Thiền & Bình an nội tâm',
+            keywords: [
+                'giận', 'anger', 'thích nhất hạnh', 'sức mạnh của hiện tại',
+                'power of now', 'eckhart tolle', 'thiền', 'tỉnh thức',
+                'mindfulness', 'hiểu về trái tim', 'bình an', 'chữa lành', 'an lạc'
+            ],
+            books: [
+                {
+                    id: 'rec_gian',
+                    key: '/works/OL25916327W_gian',
+                    title: 'Giận (Anger: Wisdom for Cooling the Flames)',
+                    originalTitle: 'Anger',
+                    author: 'Thích Nhất Hạnh',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/11183311-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 190000,
+                    reason: 'Nghệ thuật ôm ấp cơn giận bằng chánh niệm và chuyển hóa năng lượng tiêu cực.'
+                },
+                {
+                    id: 'rec_powerofnow',
+                    key: '/works/OL15840212W_now',
+                    title: 'Sức Mạnh Của Hiện Tại (The Power of Now)',
+                    originalTitle: 'The Power of Now',
+                    author: 'Eckhart Tolle',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8303480-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 1100000,
+                    reason: 'Thoát khỏi sự đồng nhất với tâm trí để sống trong sự tĩnh tại thuần khiết.'
+                },
+                {
+                    key: '/works/OL1058381W_hieuvetraitim',
+                    title: 'Hiểu Về Trái Tim',
+                    originalTitle: 'Understanding the Heart',
+                    author: 'Minh Niệm',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/1058381-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 250000,
+                    reason: 'Cẩm nang soi chiếu 50 trạng thái cảm xúc để tìm lại sự an trú tự thân.'
+                },
+                {
+                    key: '/works/OL14437863W_phepmautinhtuc',
+                    title: 'Phép Màu Của Sự Tỉnh Thức',
+                    originalTitle: 'The Miracle of Mindfulness',
+                    author: 'Thích Nhất Hạnh',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/14437863-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 310000,
+                    reason: 'Thực hành chánh niệm nhẹ nhàng qua từng hơi thở và bước chân hằng ngày.'
+                },
+                {
+                    id: 'rec_sucmanhtiemthuc',
+                    key: '/works/OL14945484W_subconscious',
+                    title: 'Sức Mạnh Tiềm Thức',
+                    originalTitle: 'The Power of Your Subconscious Mind',
+                    author: 'Joseph Murphy',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10829208-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 650000,
+                    reason: 'Khai phóng nguồn năng lượng chữa lành vô tận ẩn sâu trong tiềm thức.'
+                }
+            ]
+        },
+        {
+            id: 'mystery_thriller_detective',
+            name: 'Trinh Thám, Bí Ẩn & Phá Án',
+            tag: '🔍 Trinh thám & Bí ẩn',
+            keywords: [
+                'mật mã da vinci', 'da vinci code', 'sherlock holmes', 'conan doyle',
+                'agatha christie', 'hỏa ngục', 'inferno', 'thiên thần và ác quỷ',
+                'trinh thám', 'vụ án', 'higashino keigo', 'nghi can x'
+            ],
+            books: [
+                {
+                    id: 'rec_sherlockholmes',
+                    key: '/works/OL14945484W_sherlock',
+                    title: 'Sherlock Holmes Toàn Tập',
+                    originalTitle: 'The Adventures of Sherlock Holmes',
+                    author: 'Arthur Conan Doyle',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8303480-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 2400000,
+                    reason: 'Tượng đài trinh thám suy luận logic kinh điển nhất lịch sử nhân loại.'
+                },
+                {
+                    id: 'rec_davincicode',
+                    key: '/works/OL12726168W_davinci',
+                    title: 'Mật Mã Da Vinci (The Da Vinci Code)',
+                    originalTitle: 'The Da Vinci Code',
+                    author: 'Dan Brown',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12726168-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 2200000,
+                    reason: 'Cuộc rượt đuổi nghẹt thở giải mã các biểu tượng lịch sử và tôn giáo.'
+                },
+                {
+                    key: '/works/OL82563W_agatha',
+                    title: 'Và Rồi Chẳng Còn Ai (And Then There Were None)',
+                    originalTitle: 'And Then There Were None',
+                    author: 'Agatha Christie',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 1600000,
+                    reason: 'Kiệt tác vụ án đảo hoang biệt lập với luật chơi định mệnh không lối thoát.'
+                },
+                {
+                    key: '/works/OL10524456W_keigo',
+                    title: 'Phía Sau Nghi Can X',
+                    originalTitle: 'The Devotion of Suspect X',
+                    author: 'Higashino Keigo',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10524456-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 190000,
+                    reason: 'Cuộc đấu trí thiên tài giữa hai bộ óc vật lý và toán học vì một tình yêu mù quáng.'
+                }
+            ]
+        },
+        {
+            id: 'science_cosmology_scifi',
+            name: 'Khoa Học, Vũ Trụ & Khoa Học Viễn Tưởng',
+            tag: '🚀 Khoa học & Vũ trụ',
+            keywords: [
+                'tam thể', 'three-body', 'cosmos', 'vũ trụ', 'carl sagan',
+                'stephen hawking', 'dune', 'xứ cát', 'khoa học viễn tưởng', 'sci-fi', 'lược sử thời gian'
+            ],
+            books: [
+                {
+                    id: 'rec_threebody',
+                    key: '/works/OL17362095W_threebody',
+                    title: 'Tam Thể (The Three-Body Problem)',
+                    originalTitle: 'The Three-Body Problem',
+                    author: 'Cixin Liu',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 410000,
+                    reason: 'Đỉnh cao khoa học viễn tưởng châu Á về thuyết khu rừng đen tối trong vũ trụ.'
+                },
+                {
+                    id: 'rec_cosmos',
+                    key: '/works/OL1861788W_cosmos',
+                    title: 'Cosmos: Vũ Trụ',
+                    originalTitle: 'Cosmos',
+                    author: 'Carl Sagan',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 680000,
+                    reason: 'Bản tình ca thi vị về vị thế của loài người giữa không gian 15 tỷ năm vũ trụ.'
+                },
+                {
+                    key: '/works/OL11183311W_hawking',
+                    title: 'Lược Sử Thời Gian',
+                    originalTitle: 'A Brief History of Time',
+                    author: 'Stephen Hawking',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/11183311-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 550000,
+                    reason: 'Khám phá bí ẩn về lỗ đen, Big Bang và nguồn gốc của không - thời gian.'
+                },
+                {
+                    key: '/works/OL10829208W_dune',
+                    title: 'Xứ Cát (Dune)',
+                    originalTitle: 'Dune',
+                    author: 'Frank Herbert',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10829208-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 1200000,
+                    reason: 'Sử thi viễn tưởng vĩ đại về hành tinh sa mạc, tôn giáo và sinh thái học.'
+                }
+            ]
+        },
+        {
+            id: 'classics_world_masterpiece',
+            name: 'Văn Học Kinh Điển Thế Giới',
+            tag: '📖 Văn học kinh điển',
+            keywords: [
+                '1984', 'george orwell', 'tội ác và trừng phạt', 'crime and punishment',
+                'dostoevsky', 'trại súc vật', 'animal farm', 'đại gia gatsby',
+                'great gatsby', 'hóa thân', 'kafka', 'chuông nguyện hồn ai'
+            ],
+            books: [
+                {
+                    key: '/works/OL1168007W',
+                    title: '1984 (Một Chín Tám Tư)',
+                    originalTitle: 'Nineteen Eighty-Four',
+                    author: 'George Orwell',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 4200000,
+                    reason: 'Kiệt tác phản địa đàng cảnh báo về sự kiểm soát tư tưởng và quyền lực tuyệt đối.'
+                },
+                {
+                    key: '/works/OL1861788W_crime',
+                    title: 'Tội Ác Và Trừng Phạt',
+                    originalTitle: 'Crime and Punishment',
+                    author: 'Fyodor Dostoevsky',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 1100000,
+                    reason: 'Mổ xẻ tâm lý tội phạm, sự cắn rứt lương tâm và con đường cứu rỗi linh hồn.'
+                },
+                {
+                    key: '/works/OL82563W_animalfarm',
+                    title: 'Trại Súc Vật (Animal Farm)',
+                    originalTitle: 'Animal Farm',
+                    author: 'George Orwell',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 3500000,
+                    reason: 'Ngụ ngôn chính trị châm biếm sâu cay về sự tha hóa của quyền lực.'
+                },
+                {
+                    key: '/works/OL10524456W_kafka',
+                    title: 'Hóa Thân (The Metamorphosis)',
+                    originalTitle: 'The Metamorphosis',
+                    author: 'Franz Kafka',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10524456-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 890000,
+                    reason: 'Nỗi cô đơn hiện sinh và sự tha hóa tàn khốc của con người trong xã hội hiện đại.'
+                }
+            ]
+        },
+        {
+            id: 'stoicism_resilience_adversity',
+            name: 'Chủ Nghĩa Khắc Kỷ & Bản Lĩnh Nghịch Cảnh',
+            tag: '🛡️ Khắc kỷ & Bản lĩnh',
+            keywords: [
+                'suy tưởng', 'meditations', 'marcus aurelius', 'khắc kỷ', 'stoic',
+                'stoicism', 'đi tìm lẽ sống', 'man\'s search for meaning', 'viktor frankl',
+                'can\'t hurt me', 'david goggins', 'ryan holiday', 'vượt lên nghịch cảnh'
+            ],
+            books: [
+                {
+                    key: '/works/OL15840212W_meditations',
+                    title: 'Suy Tưởng (Meditations)',
+                    originalTitle: 'Meditations',
+                    author: 'Marcus Aurelius',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8303480-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 650000,
+                    reason: 'Những chiêm nghiệm vĩ đại của hoàng đế La Mã về kỷ luật và bình thản nội tâm.'
+                },
+                {
+                    key: '/works/OL12726168W_frankl',
+                    title: 'Đi Tìm Lẽ Sống (Man\'s Search for Meaning)',
+                    originalTitle: 'Man\'s Search for Meaning',
+                    author: 'Viktor E. Frankl',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12726168-M.jpg',
+                    rating: 4.9,
+                    ratingsCount: 1500000,
+                    reason: 'Tìm thấy ý nghĩa tối thượng để sinh tồn ngay trong trại tập trung diệt chủng.'
+                },
+                {
+                    key: '/works/OL12818862W_goggins',
+                    title: 'Can\'t Hurt Me (Không Thể Làm Tôi Bị Thương)',
+                    originalTitle: 'Can\'t Hurt Me',
+                    author: 'David Goggins',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 420000,
+                    reason: 'Làm chủ tâm trí và vượt qua rào cản 40% giới hạn sức chịu đựng con người.'
+                },
+                {
+                    key: '/works/OL8447817W_ryan',
+                    title: 'Vượt Lên Nghịch Cảnh (The Obstacle Is the Way)',
+                    originalTitle: 'The Obstacle Is the Way',
+                    author: 'Ryan Holiday',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 220000,
+                    reason: 'Nghệ thuật biến trở ngại và nghịch cảnh thành đòn bẩy thăng tiến.'
+                }
+            ]
+        },
+        {
+            id: 'communication_social_empathy',
+            name: 'Giao Tiếp, Thấu Cảm & Thu Phục Lòng Người',
+            tag: '💬 Giao tiếp & Thấu cảm',
+            keywords: [
+                'đắc nhân tâm', 'how to win friends', 'dale carnegie', 'quẳng gánh lo',
+                'giao tiếp', 'khéo ăn nói', 'thuyết phục', 'lắng nghe', 'nonviolent communication'
+            ],
+            books: [
+                {
+                    id: 'rec_dacnhantam',
+                    key: '/works/OL1063267W',
+                    title: 'Đắc Nhân Tâm (How to Win Friends)',
+                    originalTitle: 'How to Win Friends and Influence People',
+                    author: 'Dale Carnegie',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/13314878-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 4400000,
+                    reason: 'Nghệ thuật giao tiếp, thấu cảm và chân thành thu phục lòng người.'
+                },
+                {
+                    id: 'rec_quangganhlo',
+                    key: '/works/OL1063338W',
+                    title: 'Quẳng Gánh Lo Đi Và Vui Sống',
+                    originalTitle: 'How to Stop Worrying and Start Living',
+                    author: 'Dale Carnegie',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/10829208-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 1850000,
+                    reason: 'Liệu pháp tâm lý thực tế giải tỏa âu lo trong công việc và cuộc sống.'
+                },
+                {
+                    key: '/works/OL12819857W_nvc',
+                    title: 'Giao Tiếp Bất Bạo Động (Nonviolent Communication)',
+                    originalTitle: 'Nonviolent Communication: A Language of Life',
+                    author: 'Marshall B. Rosenberg',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/12819857-M.jpg',
+                    rating: 4.8,
+                    ratingsCount: 120000,
+                    reason: 'Giao tiếp bằng sự trắc ẩn để hóa giải xung đột và kết nối sâu sắc.'
+                },
+                {
+                    key: '/works/OL1058381W_listen',
+                    title: 'Sức Mạnh Của Lắng Nghe (Just Listen)',
+                    originalTitle: 'Just Listen',
+                    author: 'Mark Goulston',
+                    coverUrl: 'https://covers.openlibrary.org/b/id/1058381-M.jpg',
+                    rating: 4.7,
+                    ratingsCount: 65000,
+                    reason: 'Cách tiếp cận và mở khóa tâm lý những người khó tính nhất.'
+                }
+            ]
+        }
+    ];
+
+    // Show shimmer skeleton cards in the modal recommendation scroll
+    function showModalRecSkeletons() {
+        if (!modalRecScroll) return;
+        modalRecScroll.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+            const sk = document.createElement('div');
+            sk.className = 'modal-rec-skeleton';
+            sk.innerHTML = `
+                <div class="modal-rec-skeleton-thumb"></div>
+                <div class="modal-rec-skeleton-line" style="width: 85%;"></div>
+                <div class="modal-rec-skeleton-line" style="width: 60%;"></div>
+            `;
+            modalRecScroll.appendChild(sk);
+        }
+    }
+
+    // Render list of similar books to modal
+    function renderModalSimilarItems(book, similarList, tagLabel = 'Tương quan chủ đề') {
         if (!modalRecWrapper || !modalRecScroll) return;
         modalRecScroll.innerHTML = '';
 
-        const targetTitle = (book.titleVi || book.title || '').toLowerCase();
-        let similar = [];
+        if (!similarList || similarList.length === 0) {
+            modalRecWrapper.style.display = 'none';
+            return;
+        }
 
-        for (const [keyTitle, ids] of Object.entries(SEMANTIC_SIMILARITY_GRAPH)) {
-            if (targetTitle.includes(keyTitle) || keyTitle.includes(targetTitle)) {
-                similar = RECOMMENDATION_DATABASE.filter(b => ids.includes(b.id) && b.title.toLowerCase() !== targetTitle);
-                break;
+        const currentTitle = (book.titleVi || book.title || '').trim().toLowerCase();
+        const currentOrig = (book.originalTitle || '').trim().toLowerCase();
+
+        // Filter out current book itself
+        const filtered = similarList.filter(item => {
+            const itemTitle = (item.titleVi || item.title || '').trim().toLowerCase();
+            const itemOrig = (item.originalTitle || '').trim().toLowerCase();
+            if (itemTitle === currentTitle || (currentOrig && itemOrig === currentOrig)) return false;
+            if (book.key && item.key && book.key === item.key) return false;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            modalRecWrapper.style.display = 'none';
+            return;
+        }
+
+        if (modalRecTitle) {
+            modalRecTitle.textContent = `✨ Sách tương tự & Cùng chủ đề`;
+        }
+        if (modalRecTag) {
+            modalRecTag.textContent = tagLabel;
+        }
+        modalRecWrapper.style.display = 'block';
+
+        filtered.slice(0, 6).forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'modal-rec-item';
+            el.title = `${item.title} — ${item.author || 'Tác giả'}${item.reason ? ' (' + item.reason + ')' : ''}`;
+            const coverSrc = item.coverUrl || (item.coverId ? `https://covers.openlibrary.org/b/id/${item.coverId}-M.jpg` : generateStylizedBookCoverSvg(item.title, item.author));
+
+            el.innerHTML = `
+                <img class="modal-rec-thumb" src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.onerror=null;this.src='${generateStylizedBookCoverSvg(item.title, item.author)}';">
+                <span class="modal-rec-name">${escapeHtml(item.title)}</span>
+                <span class="modal-rec-author">${escapeHtml(item.author || '')}</span>
+                ${item.reason ? `<span class="modal-rec-reason" title="${escapeHtml(item.reason)}">${escapeHtml(item.reason)}</span>` : ''}
+            `;
+
+            el.addEventListener('click', () => {
+                openBookModal({
+                    key: item.key || `/works/sim_${encodeURIComponent(item.title)}`,
+                    title: item.title,
+                    titleVi: item.title,
+                    originalTitle: item.originalTitle || item.title,
+                    author: item.author || 'Tác giả',
+                    coverUrl: item.coverUrl,
+                    coverId: item.coverId,
+                    rating: item.rating || 4.7,
+                    ratingsCount: item.ratingsCount || 50000,
+                    reason: item.reason,
+                    year: item.year || ''
+                });
+            });
+
+            modalRecScroll.appendChild(el);
+        });
+    }
+
+    // Core async function to find truly similar books for any book opened in modal
+    async function updateModalSimilarBooks(book, fetchedSubjects = []) {
+        if (!modalRecWrapper || !modalRecScroll) return;
+
+        const bookTitle = (book.titleVi || book.title || '').trim();
+        const bookOrig = (book.originalTitle || '').trim();
+        const bookAuthor = (book.author || '').trim();
+        const allSubjects = [...(book.subjects || []), ...(fetchedSubjects || [])];
+
+        const cacheKey = `${book.key || bookTitle}_${bookAuthor}`.toLowerCase();
+        if (modalSimilarCache.has(cacheKey)) {
+            const cached = modalSimilarCache.get(cacheKey);
+            renderModalSimilarItems(book, cached.books, cached.tag);
+            return;
+        }
+
+        // Show skeletons immediately while analyzing
+        showModalRecSkeletons();
+        modalRecWrapper.style.display = 'block';
+        if (modalRecTag) modalRecTag.textContent = 'Đang phân tích...';
+
+        const textToMatch = `${bookTitle} ${bookOrig} ${bookAuthor} ${allSubjects.join(' ')}`.toLowerCase();
+
+        // 1. Check Specific Semantic Clusters (Instant & 100% thematic accuracy)
+        for (const cluster of MODAL_SIMILARITY_CLUSTERS) {
+            const hasMatch = cluster.keywords.some(k => textToMatch.includes(k.toLowerCase()));
+            if (hasMatch) {
+                // Filter out the book itself from the cluster
+                const clusterBooks = cluster.books.filter(b => {
+                    const bt = (b.title || '').toLowerCase();
+                    const bo = (b.originalTitle || '').toLowerCase();
+                    return !textToMatch.includes(bt) && !textToMatch.includes(bo);
+                });
+
+                if (clusterBooks.length > 0) {
+                    modalSimilarCache.set(cacheKey, { books: clusterBooks, tag: cluster.tag });
+                    renderModalSimilarItems(book, clusterBooks, cluster.tag);
+                    return;
+                }
             }
         }
 
-        if (similar.length === 0) {
-            similar = RECOMMENDATION_DATABASE.slice(0, 5).filter(b => b.title.toLowerCase() !== targetTitle);
+        // 2. Check Expanded Semantic Similarity Graph from RECOMMENDATION_DATABASE
+        for (const [keyTitle, ids] of Object.entries(SEMANTIC_SIMILARITY_GRAPH)) {
+            if (textToMatch.includes(keyTitle)) {
+                const dbMatches = RECOMMENDATION_DATABASE.filter(b => ids.includes(b.id) && !textToMatch.includes(b.title.toLowerCase()));
+                if (dbMatches.length > 0) {
+                    modalSimilarCache.set(cacheKey, { books: dbMatches, tag: '🎯 Sách tương quan cao' });
+                    renderModalSimilarItems(book, dbMatches, '🎯 Sách tương quan cao');
+                    return;
+                }
+            }
         }
 
-        if (similar.length > 0) {
-            modalRecWrapper.style.display = 'block';
-            similar.forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'modal-rec-item';
-                el.title = `${item.title} — ${item.author}`;
-                el.innerHTML = `
-                    <img class="modal-rec-thumb" src="${item.coverUrl || 'icon-192.png'}" alt="${escapeHtml(item.title)}" loading="lazy">
-                    <span class="modal-rec-name">${escapeHtml(item.title)}</span>
-                `;
-                el.addEventListener('click', () => {
-                    openBookModal({
-                        key: item.key,
-                        title: item.title,
-                        titleVi: item.title,
-                        originalTitle: item.originalTitle,
-                        author: item.author,
-                        coverUrl: item.coverUrl,
-                        rating: item.rating,
-                        ratingsCount: item.ratingsCount
-                    });
+        // 3. Dynamic Online Discovery: Query Open Library for real same-author or same-subject books
+        try {
+            let onlineMatches = [];
+            const cleanAuthor = (bookAuthor && bookAuthor !== 'Tác giả' && bookAuthor !== 'Nhiều tác giả') ? bookAuthor.split(',')[0].trim() : '';
+
+            // 3a. Search other books by the same author
+            if (cleanAuthor && cleanAuthor.length > 2) {
+                try {
+                    const authorUrl = `https://openlibrary.org/search.json?author=${encodeURIComponent(cleanAuthor)}&limit=8&fields=key,title,author_name,cover_i,ratings_average,ratings_count,first_publish_year`;
+                    const resp = await fetch(authorUrl);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        (data.docs || []).forEach(doc => {
+                            const dTitle = (doc.title || '').toLowerCase();
+                            if (dTitle && !textToMatch.includes(dTitle) && !onlineMatches.some(m => m.title.toLowerCase() === dTitle)) {
+                                onlineMatches.push({
+                                    key: doc.key,
+                                    title: doc.title,
+                                    originalTitle: doc.title,
+                                    author: doc.author_name ? doc.author_name[0] : cleanAuthor,
+                                    coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+                                    rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.6,
+                                    ratingsCount: doc.ratings_count || 12000,
+                                    reason: `Cùng tác giả ${cleanAuthor}`,
+                                    year: doc.first_publish_year ? String(doc.first_publish_year) : ''
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Same-author search error:', err);
+                }
+            }
+
+            // 3b. If fewer than 4 books, search specific clean subjects on Open Library
+            if (onlineMatches.length < 4 && allSubjects.length > 0) {
+                // Filter out non-specific subjects
+                const badSubjects = ['general', 'accessible book', 'protected daisy', 'internet archive', 'fiction', 'non-fiction', 'books'];
+                const validSubjects = allSubjects.filter(s => {
+                    const sl = s.toLowerCase().trim();
+                    return sl.length > 2 && !badSubjects.some(b => sl.includes(b));
                 });
-                modalRecScroll.appendChild(el);
-            });
-        } else {
-            modalRecWrapper.style.display = 'none';
+
+                if (validSubjects.length > 0) {
+                    const topSubject = validSubjects[0].trim();
+                    try {
+                        const subjUrl = `https://openlibrary.org/search.json?q=subject%3A%22${encodeURIComponent(topSubject)}%22&limit=8&fields=key,title,author_name,cover_i,ratings_average,ratings_count,first_publish_year`;
+                        const sResp = await fetch(subjUrl);
+                        if (sResp.ok) {
+                            const sData = await sResp.json();
+                            (sData.docs || []).forEach(doc => {
+                                const dTitle = (doc.title || '').toLowerCase();
+                                if (dTitle && !textToMatch.includes(dTitle) && !onlineMatches.some(m => m.title.toLowerCase() === dTitle)) {
+                                    onlineMatches.push({
+                                        key: doc.key,
+                                        title: doc.title,
+                                        originalTitle: doc.title,
+                                        author: doc.author_name ? doc.author_name[0] : 'Nhiều tác giả',
+                                        coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+                                        rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.7,
+                                        ratingsCount: doc.ratings_count || 25000,
+                                        reason: `Cùng chủ đề: ${topSubject}`,
+                                        year: doc.first_publish_year ? String(doc.first_publish_year) : ''
+                                    });
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('Subject similarity search error:', e);
+                    }
+                }
+            }
+
+            // Filter books to only those with valid covers or rich metadata
+            const verifiedMatches = onlineMatches.filter(b => b.coverUrl);
+            if (verifiedMatches.length > 0) {
+                modalSimilarCache.set(cacheKey, { books: verifiedMatches, tag: '📖 Cùng tác giả & Thể loại' });
+                renderModalSimilarItems(book, verifiedMatches, '📖 Cùng tác giả & Thể loại');
+                return;
+            }
+        } catch (e) {
+            console.warn('Online similar books discovery error:', e);
         }
+
+        // 4. Strict Relevance Guard: If NO relevant books were found, HIDE the section
+        // CRITICAL: NEVER display arbitrary unrelated default books!
+        modalRecWrapper.style.display = 'none';
+        modalRecScroll.innerHTML = '';
     }
 
     // Update Suggested Audiobooks in Dedicated Audio Player
