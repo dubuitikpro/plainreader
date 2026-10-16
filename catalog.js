@@ -1021,14 +1021,10 @@
         return card;
     }
 
-    function showSkeletons(container, count = 6, isScroll = false) {
+    function showSkeletons(container, count = 10, isScroll = false) {
         container.innerHTML = '';
         for (let i = 0; i < count; i++) {
             const skel = createSkeletonCard();
-            if (isScroll) {
-                skel.style.minWidth = '160px';
-                skel.style.maxWidth = '160px';
-            }
             container.appendChild(skel);
         }
     }
@@ -1891,7 +1887,7 @@
             catalogSectionsContainer.appendChild(section);
 
             const grid = section.querySelector('.books-scroll');
-            showSkeletons(grid, 6, true);
+            showSkeletons(grid, 10, true);
         });
     }
 
@@ -1935,7 +1931,7 @@
         }
 
         recommendationsSection.style.display = 'block';
-        showSkeletons(recommendationsGrid, 8, true);
+        showSkeletons(recommendationsGrid, 10, true);
 
         try {
             // Gather subjects from favorites
@@ -1985,7 +1981,7 @@
             }
 
             // Shuffle and limit
-            const recs = allBooks.sort(() => 0.5 - Math.random()).slice(0, 15);
+            const recs = allBooks.sort(() => 0.5 - Math.random()).slice(0, 20);
             recs.forEach(book => {
                 recommendationsGrid.appendChild(createBookCard(book));
             });
