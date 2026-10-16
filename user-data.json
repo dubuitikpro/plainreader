@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792122770585,
+  "lastUpdated": 1792122790588,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -21,7 +21,9 @@
       "language": "eng",
       "editionCount": 7,
       "pages": 617,
-      "searchQuery": "bản chất con người"
+      "searchQuery": "bản chất con người",
+      "rating": 4,
+      "ratingsCount": 122
     },
     {
       "key": "/works/OL1968368W",
@@ -35,21 +37,9 @@
       "subjects": [],
       "language": null,
       "editionCount": 51,
-      "pages": null
-    },
-    {
-      "key": "/works/OL21640039W",
-      "title": "The Psychology of Money",
-      "originalTitle": "The Psychology of Money",
-      "titleVi": "Tâm lý tiền bạc",
-      "author": "Morgan Housel",
-      "coverId": 10389354,
-      "coverEditionKey": "OL29412746M",
-      "year": 2020,
-      "subjects": [],
-      "language": null,
-      "editionCount": 27,
-      "pages": null
+      "pages": null,
+      "rating": 4,
+      "ratingsCount": 1221
     },
     {
       "key": "/works/No%20More%20Mr.%20Nice%20Guy!",
@@ -593,11 +583,11 @@
       "cover": "https://archive.org/services/img/7670131803e640327f698418271ca555",
       "trackIndex": 5,
       "trackTitle": "53 47 chuong 4 nhu cau cua ban la tren het",
-      "currentTime": 1004,
+      "currentTime": 1024,
       "duration": 2293,
-      "percent": 44,
+      "percent": 45,
       "isBookmarked": true,
-      "updatedAt": 1792122770027
+      "updatedAt": 1792122790009
     }
   },
   "audioBookmarks": [
@@ -714,7 +704,7 @@
     "identifier": "7670131803e640327f698418271ca555",
     "type": "archive",
     "trackIndex": 5,
-    "time": 1004,
+    "time": 1024,
     "volume": 1,
     "speedIndex": 0
   },
