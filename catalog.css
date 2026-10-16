@@ -6038,7 +6038,17 @@ a { color: inherit; text-decoration: none; }
     width: 100%;
     height: 100%;
     object-fit: cover;
+    color: transparent;
     transition: transform 0.3s ease;
+}
+
+.rec-actions-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 16px 0 24px;
+    flex-wrap: wrap;
 }
 
 .rec-card:hover .rec-card-cover {

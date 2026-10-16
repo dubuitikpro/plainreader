@@ -11,10 +11,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    <meta name="referrer" content="no-referrer">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=15.3">
+    <link rel="stylesheet" href="catalog.css?v=15.4">
     <script>
         (function() {
             try {
@@ -505,35 +506,19 @@
                     </button>
                 </div>
 
-                <!-- Interactive Search & AI Bar -->
-                <div class="rec-search-container">
-                    <form class="rec-search-form" id="recSearchForm" action="javascript:void(0);">
-                        <svg class="rec-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <circle cx="11" cy="11" r="8"/>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <!-- Quick AI & Audiobook Action Toolbar (Search is removed as requested) -->
+                <div class="rec-actions-toolbar">
+                    <button type="button" class="rec-quick-btn" id="btnRecFromCurrent" title="Gợi ý các cuốn sách liên quan trực tiếp đến cuốn bạn đang nghe/đọc dở">
+                        <span class="rec-quick-icon">🎧</span>
+                        <span>Gợi ý theo sách đang nghe/đọc dở</span>
+                    </button>
+                    <button type="button" class="rec-quick-btn btn-rec-settings" id="btnRecSettings" title="Cài đặt API Key Gemini (tuỳ chọn)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                         </svg>
-                        <input type="text" id="recSearchInput" placeholder="Tìm kiếm kết hợp (Thư viện tự nhiên + Trợ lý AI gợi ý)..." autocomplete="off">
-                        <button type="submit" id="btnRecSearch" class="rec-search-submit-btn" title="Tìm kiếm kết hợp">
-                            <span>Tìm & Gợi ý</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                                <polyline points="12 5 19 12 12 19"/>
-                            </svg>
-                        </button>
-                    </form>
-                    <div class="rec-quick-actions">
-                        <button type="button" class="rec-quick-btn" id="btnRecFromCurrent" title="Gợi ý các cuốn sách liên quan trực tiếp đến cuốn bạn đang nghe/đọc dở">
-                            <span class="rec-quick-icon">🎧</span>
-                            <span>Gợi ý theo sách đang nghe/đọc dở</span>
-                        </button>
-                        <button type="button" class="rec-quick-btn btn-rec-settings" id="btnRecSettings" title="Cài đặt API Key Gemini (tuỳ chọn)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                                <circle cx="12" cy="12" r="3"/>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                            </svg>
-                            <span>Cài đặt AI Key</span>
-                        </button>
-                    </div>
+                        <span>Cài đặt AI Key</span>
+                    </button>
                 </div>
 
                 <!-- Moods & Goal Pills -->
@@ -574,6 +559,9 @@
                 </div>
                 <div class="rec-books-grid" id="recBooksGrid">
                     <!-- Recommended book cards injected dynamically -->
+                </div>
+                <div class="load-more-container" id="recLoadMoreContainer" style="display:none; justify-content:center; margin-top:28px;">
+                    <button id="btnRecLoadMore" class="btn-load-more">Xem thêm đề xuất</button>
                 </div>
                 <div class="catalog-loading" id="recLoading" style="display:none;">
                     <div class="catalog-spinner"></div>
@@ -1265,7 +1253,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=15.3"></script>
-    <script src="catalog.js?v=15.3"></script>
+    <script src="sync.js?v=15.4"></script>
+    <script src="catalog.js?v=15.4"></script>
 </body>
 </html>
