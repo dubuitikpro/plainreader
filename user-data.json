@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792122750575,
+  "lastUpdated": 1792122770585,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -207,6 +207,37 @@
         "Manuel J. Smith"
       ],
       "first_publish_year": 1975
+    },
+    {
+      "id": "ai_zhgvuv4dtu",
+      "title": "Sức Mạnh Của Sự Bất Toàn",
+      "originalTitle": "Daring Greatly",
+      "author": "Brené Brown",
+      "year": 2012,
+      "rating": 3.8,
+      "ratingsCount": 31,
+      "genre": "all",
+      "source": "ai",
+      "sourceLabel": "🤖 Gemini AI Trực Tiếp",
+      "coverUrl": "https://covers.openlibrary.org/b/id/7367250-M.jpg",
+      "summary": "Dựa trên hơn một thập kỷ nghiên cứu chuyên sâu, tác giả khám phá mối liên hệ giữa tổn thương, sự xấu hổ và lòng dũng cảm sống là chính mình. Cuốn sách giúp người đọc nhận ra rằng việc gỡ bỏ lớp mặt nạ hoàn hảo và chấp nhận sự yếu đuối chính là nguồn gốc của sức mạnh chân thật. Từ đó, bạn có thể xây dựng niềm tin vào giá trị bản thân mà không cần đến sự công nhận ảo từ người khác.",
+      "description": "Dựa trên hơn một thập kỷ nghiên cứu chuyên sâu, tác giả khám phá mối liên hệ giữa tổn thương, sự xấu hổ và lòng dũng cảm sống là chính mình. Cuốn sách giúp người đọc nhận ra rằng việc gỡ bỏ lớp mặt nạ hoàn hảo và chấp nhận sự yếu đuối chính là nguồn gốc của sức mạnh chân thật. Từ đó, bạn có thể xây dựng niềm tin vào giá trị bản thân mà không cần đến sự công nhận ảo từ người khác.",
+      "reason": "Giúp Nice Guy chữa lành nỗi sợ bị phán xét, chấp nhận sự không hoàn hảo và xây dựng lòng tự trọng vững chắc từ bên trong.",
+      "key": "/works/OL16664399W",
+      "subjects": [
+        "Risk",
+        "Courage",
+        "Assertiveness (Psychology)",
+        "nyt:hardcover-advice=2012-09-30",
+        "New York Times bestseller",
+        "Assertiveness"
+      ],
+      "audioIdentifier": null,
+      "titleVi": "Sức Mạnh Của Sự Bất Toàn",
+      "author_name": [
+        "Brené Brown"
+      ],
+      "first_publish_year": 2012
     }
   ],
   "favorites": [
@@ -391,6 +422,37 @@
         "Manuel J. Smith"
       ],
       "first_publish_year": 1975
+    },
+    {
+      "id": "ai_zhgvuv4dtu",
+      "title": "Sức Mạnh Của Sự Bất Toàn",
+      "originalTitle": "Daring Greatly",
+      "author": "Brené Brown",
+      "year": 2012,
+      "rating": 3.8,
+      "ratingsCount": 31,
+      "genre": "all",
+      "source": "ai",
+      "sourceLabel": "🤖 Gemini AI Trực Tiếp",
+      "coverUrl": "https://covers.openlibrary.org/b/id/7367250-M.jpg",
+      "summary": "Dựa trên hơn một thập kỷ nghiên cứu chuyên sâu, tác giả khám phá mối liên hệ giữa tổn thương, sự xấu hổ và lòng dũng cảm sống là chính mình. Cuốn sách giúp người đọc nhận ra rằng việc gỡ bỏ lớp mặt nạ hoàn hảo và chấp nhận sự yếu đuối chính là nguồn gốc của sức mạnh chân thật. Từ đó, bạn có thể xây dựng niềm tin vào giá trị bản thân mà không cần đến sự công nhận ảo từ người khác.",
+      "description": "Dựa trên hơn một thập kỷ nghiên cứu chuyên sâu, tác giả khám phá mối liên hệ giữa tổn thương, sự xấu hổ và lòng dũng cảm sống là chính mình. Cuốn sách giúp người đọc nhận ra rằng việc gỡ bỏ lớp mặt nạ hoàn hảo và chấp nhận sự yếu đuối chính là nguồn gốc của sức mạnh chân thật. Từ đó, bạn có thể xây dựng niềm tin vào giá trị bản thân mà không cần đến sự công nhận ảo từ người khác.",
+      "reason": "Giúp Nice Guy chữa lành nỗi sợ bị phán xét, chấp nhận sự không hoàn hảo và xây dựng lòng tự trọng vững chắc từ bên trong.",
+      "key": "/works/OL16664399W",
+      "subjects": [
+        "Risk",
+        "Courage",
+        "Assertiveness (Psychology)",
+        "nyt:hardcover-advice=2012-09-30",
+        "New York Times bestseller",
+        "Assertiveness"
+      ],
+      "audioIdentifier": null,
+      "titleVi": "Sức Mạnh Của Sự Bất Toàn",
+      "author_name": [
+        "Brené Brown"
+      ],
+      "first_publish_year": 2012
     }
   ],
   "finished": [],
@@ -531,11 +593,11 @@
       "cover": "https://archive.org/services/img/7670131803e640327f698418271ca555",
       "trackIndex": 5,
       "trackTitle": "53 47 chuong 4 nhu cau cua ban la tren het",
-      "currentTime": 984,
+      "currentTime": 1004,
       "duration": 2293,
-      "percent": 43,
+      "percent": 44,
       "isBookmarked": true,
-      "updatedAt": 1792122750102
+      "updatedAt": 1792122770027
     }
   },
   "audioBookmarks": [
@@ -652,7 +714,7 @@
     "identifier": "7670131803e640327f698418271ca555",
     "type": "archive",
     "trackIndex": 5,
-    "time": 984,
+    "time": 1004,
     "volume": 1,
     "speedIndex": 0
   },
