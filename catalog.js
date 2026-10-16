@@ -7521,7 +7521,7 @@
             genre: 'self-help',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/12843477-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/12539702-M.jpg',
             reason: 'Tác phẩm xuất sắc nhất về phương pháp xây dựng thói quen vi mô (1% mỗi ngày) để tạo chuyển hóa lớn.',
             key: '/works/OL17930368W',
             audioIdentifier: 'atomic-habits'
@@ -7537,9 +7537,9 @@
             genre: 'self-help',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8231856-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/13314878-M.jpg',
             reason: 'Kinh điển sống mãi về nghệ thuật giao tiếp, thấu cảm và thu phục lòng người trong mọi hoàn cảnh.',
-            key: '/works/OL18159196W',
+            key: '/works/OL1063267W',
             audioIdentifier: 'dac-nhan-tam'
         },
         {
@@ -7553,9 +7553,9 @@
             genre: 'self-help',
             source: 'similar',
             sourceLabel: '🎯 TasteDive Tương Đồng',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8231990-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/10829208-M.jpg',
             reason: 'Giải pháp thực tế và tâm lý giúp bạn giải tỏa âu lo, sống trọn vẹn trong "ngăn kín của ngày hôm nay".',
-            key: '/works/OL18159197W',
+            key: '/works/OL1063338W',
             audioIdentifier: 'quang-ganh-lo-di-va-vui-song'
         },
         {
@@ -7569,9 +7569,9 @@
             genre: 'self-help',
             source: 'google',
             sourceLabel: '📚 Google Books',
-            coverUrl: 'https://covers.openlibrary.org/b/id/10524458-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/14542536-M.jpg',
             reason: '13 nguyên tắc thành công kinh điển được đúc kết từ 500 người giàu nhất nước Mỹ.',
-            key: '/works/OL18159198W',
+            key: '/works/OL527464W',
             audioIdentifier: 'nghi-giau-lam-giau'
         },
         {
@@ -7585,9 +7585,9 @@
             genre: 'self-help',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8228691-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/7988607-M.jpg',
             reason: 'Kim chỉ nam rèn luyện sự tập trung sâu trong một thế giới tràn ngập phiền nhiễu và thông báo.',
-            key: '/works/OL17374092W'
+            key: '/works/OL17713267W'
         },
         {
             id: 'rec_startwithwhy',
@@ -7600,9 +7600,9 @@
             genre: 'leadership',
             source: 'similar',
             sourceLabel: '🎯 TasteDive Tương Đồng',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8235113-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/6395237-M.jpg',
             reason: 'Lý giải vì sao những nhà lãnh đạo và doanh nghiệp truyền cảm hứng nhất thế giới luôn hành động từ chữ "Tại sao".',
-            key: '/works/OL15183307W'
+            key: '/works/OL13806374W'
         },
 
         // Finance / Tài chính & Kinh doanh
@@ -7617,9 +7617,9 @@
             genre: 'finance',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/10543666-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/10389354-M.jpg',
             reason: 'Tiền bạc không chỉ là toán học mà là cảm xúc và hành vi con người. Tác phẩm tài chính hay nhất thập kỷ.',
-            key: '/works/OL21590308W',
+            key: '/works/OL21640039W',
             audioIdentifier: 'tam-ly-hoc-ve-tien'
         },
         {
@@ -7633,9 +7633,9 @@
             genre: 'finance',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8739161-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/8315603-M.jpg',
             reason: 'Thay đổi hoàn toàn tư duy về tài sản, tiêu sản và cách bắt đồng tiền làm việc chăm chỉ cho bạn.',
-            key: '/works/OL15367672W',
+            key: '/works/OL2010879W',
             audioIdentifier: 'cha-giau-cha-ngheo'
         },
         {
@@ -7649,9 +7649,9 @@
             genre: 'finance',
             source: 'google',
             sourceLabel: '📚 Google Books',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8272895-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/36434-M.jpg',
             reason: 'Cuốn sách gối đầu giường của Warren Buffett về triết lý đầu tư giá trị và kiểm soát rủi ro thị trường.',
-            key: '/works/OL18159199W'
+            key: '/works/OL273184W'
         },
         {
             id: 'rec_predictablyirrational',
@@ -7664,9 +7664,9 @@
             genre: 'finance',
             source: 'similar',
             sourceLabel: '🎯 TasteDive Tương Đồng',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8231776-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/2314080-M.jpg',
             reason: 'Khám phá những cái bẫy tâm lý vô thức khiến chúng ta liên tục đưa ra các quyết định chi tiêu sai lầm.',
-            key: '/works/OL14959146W'
+            key: '/works/OL9302660W'
         },
 
         // Psychology / Tâm lý học & Thấu hiểu con người
@@ -7681,9 +7681,9 @@
             genre: 'psychology',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/7266577-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/13290711-M.jpg',
             reason: 'Giải thích 2 hệ thống tư duy chi phối mọi quyết định: Hệ thống 1 (trực giác) và Hệ thống 2 (logic).',
-            key: '/works/OL16164282W'
+            key: '/works/OL15992072W'
         },
         {
             id: 'rec_matdaytamden',
@@ -7696,9 +7696,9 @@
             genre: 'psychology',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/6498305-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/287770-M.jpg',
             reason: 'Triết lý thực dụng phương Đông về sự kiên định (mặt dày) và bản lĩnh quyết đoán (tâm đen) để sinh tồn.',
-            key: '/works/OL18159200W',
+            key: '/works/OL2258565W',
             audioIdentifier: 'mat-day-tam-den'
         },
         {
@@ -7712,9 +7712,9 @@
             genre: 'psychology',
             source: 'google',
             sourceLabel: '📚 Google Books',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8786522-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/6553019-M.jpg',
             reason: 'Khai phá nguồn năng lượng vô tận của tiềm thức để chữa lành, đạt được sự giàu có và an lạc.',
-            key: '/works/OL18159201W',
+            key: '/works/OL55806W',
             audioIdentifier: 'suc-manh-tiem-thuc'
         },
         {
@@ -7728,9 +7728,9 @@
             genre: 'psychology',
             source: 'similar',
             sourceLabel: '🎯 TasteDive Tương Đồng',
-            coverUrl: 'https://covers.openlibrary.org/b/id/7421111-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/788435-M.jpg',
             reason: 'Tác phẩm tiên phong phân tích cơ chế hành vi tập thể, sự lây lan cảm xúc và cách thao túng đám đông.',
-            key: '/works/OL18159202W'
+            key: '/works/OL301829W'
         },
 
         // Mindfulness / Bình an & Chữa lành
@@ -7745,9 +7745,9 @@
             genre: 'mindfulness',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/296541-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/824062-M.jpg',
             reason: 'Nghệ thuật thắp sáng chánh niệm để ôm ấp và chuyển hóa cơn giận dữ thành sự thấu hiểu và tình thương.',
-            key: '/works/OL18159203W',
+            key: '/works/OL263657W',
             audioIdentifier: 'gian'
         },
         {
@@ -7761,9 +7761,9 @@
             genre: 'mindfulness',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8235284-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/551262-M.jpg',
             reason: 'Tỉnh thức thoát khỏi những vướng mắc của quá khứ và lo lắng của tương lai để tìm thấy bình yên thực tại.',
-            key: '/works/OL14948831W'
+            key: '/works/OL5727686W'
         },
         {
             id: 'rec_hanhtrinhphuongdong',
@@ -7776,9 +7776,9 @@
             genre: 'mindfulness',
             source: 'google',
             sourceLabel: '📚 Google Books',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8754122-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/1626611-M.jpg',
             reason: 'Chuyến thám hiểm tâm linh kỳ vĩ đến Ấn Độ, hé mở những bí truyền về đạo học, yoga và luật nhân quả.',
-            key: '/works/OL18159204W'
+            key: '/works/OL3375373W'
         },
 
         // Classics / Văn học kinh điển bất hủ
@@ -7793,9 +7793,9 @@
             genre: 'classic',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/11187425-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/7414780-M.jpg',
             reason: 'Khi bạn thực sự khao khát một điều gì, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó. Cuốn sách gối đầu giường.',
-            key: '/works/OL15846187W',
+            key: '/works/OL796465W',
             audioIdentifier: 'nha-gia-kim'
         },
         {
@@ -7809,9 +7809,9 @@
             genre: 'classic',
             source: 'similar',
             sourceLabel: '🎯 TasteDive Tương Đồng',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8931211-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/6507069-M.jpg',
             reason: 'Kiệt tác văn học thế giới về danh dự, gia đình, quyền lực và sự khốc liệt của thế giới ngầm.',
-            key: '/works/OL18159205W',
+            key: '/works/OL1673205W',
             audioIdentifier: 'bo-gia'
         },
         {
@@ -7825,9 +7825,9 @@
             genre: 'classic',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8235113-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/10708272-M.jpg',
             reason: 'Người ta chỉ thấy rõ bằng trái tim, điều cốt lõi thì mắt trần không thể nhìn thấy được. Tác phẩm chữa lành tuyệt mỹ.',
-            key: '/works/OL15846188W',
+            key: '/works/OL10263W',
             audioIdentifier: 'hoang-tu-be'
         },
         {
@@ -7841,9 +7841,9 @@
             genre: 'classic',
             source: 'google',
             sourceLabel: '📚 Google Books',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8225674-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/5754078-M.jpg',
             reason: 'Bản anh hùng ca về lòng dũng cảm, tình bạn và ý chí vượt qua nghịch cảnh của cậu bé Rémi mồ côi.',
-            key: '/works/OL18159206W',
+            key: '/works/OL242658W',
             audioIdentifier: 'khong-gia-dinh'
         },
         {
@@ -7857,9 +7857,9 @@
             genre: 'classic',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/7488921-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/5445126-M.jpg',
             reason: 'Bức tranh lịch sử hào hùng, mưu lược đỉnh cao và bài học muôn đời về thuật dùng người và quản trị.',
-            key: '/works/OL18159207W',
+            key: '/works/OL1961811W',
             audioIdentifier: 'tam-quoc-dien-nghia'
         },
 
@@ -7875,9 +7875,9 @@
             genre: 'thriller',
             source: 'ai',
             sourceLabel: '🤖 AI Khuyên Đọc',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8231856-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/9255229-M.jpg',
             reason: 'Cuộc rượt đuổi nghẹt thở khắp châu Âu giải mã bí mật lịch sử ngàn năm bị phong kín.',
-            key: '/works/OL18159208W',
+            key: '/works/OL76837W',
             audioIdentifier: 'mat-ma-da-vinci'
         },
         {
@@ -7891,9 +7891,9 @@
             genre: 'thriller',
             source: 'community',
             sourceLabel: '🌟 Hardcover Top 1%',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8315256-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/6717853-M.jpg',
             reason: 'Đỉnh cao trinh thám thế giới với phương pháp suy luận logic diễn dịch phi phàm của thám tử số một.',
-            key: '/works/OL18159209W'
+            key: '/works/OL262421W'
         },
 
         // Sci-Fi / Khoa học & Vũ trụ
@@ -7908,9 +7908,9 @@
             genre: 'scifi',
             source: 'google',
             sourceLabel: '📚 Google Books',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8231991-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/id/8283901-M.jpg',
             reason: 'Chuyến du hành thơ mộng khám phá 15 tỷ năm lịch sử vũ trụ và vị thế của con người giữa đại dương tinh tú.',
-            key: '/works/OL18159210W'
+            key: '/works/OL15829966W'
         },
         {
             id: 'rec_threebody',
@@ -7923,9 +7923,9 @@
             genre: 'scifi',
             source: 'similar',
             sourceLabel: '🎯 TasteDive Tương Đồng',
-            coverUrl: 'https://covers.openlibrary.org/b/id/8235122-M.jpg',
+            coverUrl: 'https://covers.openlibrary.org/b/isbn/9780765377067-M.jpg',
             reason: 'Đỉnh cao khoa học viễn tưởng châu Á đạt giải Hugo, khắc họa cuộc chạm trán định mệnh giữa Trái Đất và nền văn minh ngoài hành tinh.',
-            key: '/works/OL18159211W'
+            key: '/works/OL17610507W'
         }
     ];
 
@@ -7947,50 +7947,126 @@
         'sức mạnh tiềm thức': ['rec_sucmanhtiemthuc', 'rec_gian', 'rec_powerofnow', 'rec_psychologyofmoney']
     };
 
-    // Google Books API Fetcher
-    async function fetchGoogleBooksRecommendations(query, maxResults = 28, startIndex = 0) {
+    // Google Books API Fetcher with High-Resilient Open Library Fallback
+    async function fetchGoogleBooksRecommendations(query, maxResults = 24, startIndex = 0) {
         try {
             const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&startIndex=${startIndex}&orderBy=relevance`;
             const resp = await fetch(url);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                    return data.items.map(item => {
+                        const info = item.volumeInfo || {};
+                        const title = info.title || 'Không có tiêu đề';
+                        const authors = (info.authors && info.authors.length > 0) ? info.authors.join(', ') : 'Nhiều tác giả';
+                        let coverUrl = null;
+                        if (info.imageLinks) {
+                            coverUrl = (info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || '').replace('http:', 'https:').replace('&edge=curl', '');
+                        }
+                        const rating = info.averageRating || (4.2 + (Math.random() * 0.6)).toFixed(1);
+                        const ratingsCount = info.ratingsCount || Math.floor(1000 + Math.random() * 50000);
+                        const year = info.publishedDate ? info.publishedDate.substring(0, 4) : '';
+                        const descSnippet = info.description || item.searchInfo?.textSnippet || '';
+
+                        const audioMatch = findMatchingAudiobookInCatalog(title);
+
+                        return {
+                            id: 'gb_' + (item.id || Math.random().toString(36).substring(2)),
+                            title: title,
+                            originalTitle: title,
+                            author: authors,
+                            year: year,
+                            rating: parseFloat(rating),
+                            ratingsCount: ratingsCount,
+                            genre: 'all',
+                            source: 'google',
+                            sourceLabel: '📚 Google Books',
+                            coverUrl: coverUrl,
+                            reason: descSnippet ? descSnippet.substring(0, 110) + '...' : 'Tác phẩm nổi tiếng được tuyển chọn từ thư viện Google Books.',
+                            key: '/works/' + (item.id || ''),
+                            audioIdentifier: audioMatch ? audioMatch.identifier : null
+                        };
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn('Google Books API fetch error, switching to Open Library search fallback:', e);
+        }
+
+        // Resilient Fallback: If Google Books API quota (429) is exceeded or returns empty,
+        // fetch directly from Open Library Search API with sort=rating so users ALWAYS get rich books!
+        try {
+            const cleanQ = (query || 'bestseller').replace(/subject:|["']|OR|bestseller/gi, '').trim() || 'popular books';
+            const pageNum = Math.floor(startIndex / maxResults) + 1;
+            const olSearchUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQ)}&sort=rating&limit=${maxResults}&page=${pageNum}&fields=key,title,author_name,cover_i,first_publish_year,ratings_average,ratings_count`;
+            const olResp = await fetch(olSearchUrl);
+            if (olResp.ok) {
+                const olData = await olResp.json();
+                if (olData.docs && Array.isArray(olData.docs)) {
+                    return olData.docs.filter(d => d.title).map(doc => {
+                        const title = doc.title;
+                        const author = (doc.author_name && doc.author_name[0]) || 'Nhiều tác giả';
+                        const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : generateStylizedBookCoverSvg(title, author);
+                        const audioMatch = findMatchingAudiobookInCatalog(title);
+                        return {
+                            id: 'ol_gb_' + (doc.key ? doc.key.replace('/works/', '') : Math.random().toString(36).substring(2)),
+                            title: title,
+                            originalTitle: title,
+                            author: author,
+                            year: doc.first_publish_year || '',
+                            rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.6,
+                            ratingsCount: doc.ratings_count || 35000,
+                            genre: 'all',
+                            source: 'google',
+                            sourceLabel: '📚 Google Books',
+                            coverUrl: coverUrl,
+                            reason: 'Tác phẩm đánh giá cao được đề xuất trong danh mục tuyển chọn.',
+                            key: doc.key || ('/works/' + encodeURIComponent(title)),
+                            audioIdentifier: audioMatch ? audioMatch.identifier : null
+                        };
+                    });
+                }
+            }
+        } catch (err) {
+            console.warn('Open Library fallback search failed:', err);
+        }
+
+        return [];
+    }
+
+    // Helper: Fetch rich, highly-rated books from Open Library Search for discovery channels
+    async function fetchOpenLibraryDiscovery(searchQuery, limit = 24, page = 1, source = 'community', sourceLabel = '🌟 Hardcover Top 1%', reasonTemplate = 'Tác phẩm được hàng triệu độc giả quốc tế bình chọn xuất sắc.') {
+        try {
+            const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery)}&sort=rating&limit=${limit}&page=${page}&fields=key,title,author_name,cover_i,first_publish_year,ratings_average,ratings_count`;
+            const resp = await fetch(url);
             if (!resp.ok) return [];
             const data = await resp.json();
-            if (!data.items || !Array.isArray(data.items)) return [];
+            if (!data.docs || !Array.isArray(data.docs)) return [];
 
-            return data.items.map(item => {
-                const info = item.volumeInfo || {};
-                const title = info.title || 'Không có tiêu đề';
-                const authors = (info.authors && info.authors.length > 0) ? info.authors.join(', ') : 'Nhiều tác giả';
-                let coverUrl = null;
-                if (info.imageLinks) {
-                    coverUrl = (info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || '').replace('http:', 'https:').replace('&edge=curl', '');
-                }
-                const rating = info.averageRating || (4.2 + (Math.random() * 0.6)).toFixed(1);
-                const ratingsCount = info.ratingsCount || Math.floor(1000 + Math.random() * 50000);
-                const year = info.publishedDate ? info.publishedDate.substring(0, 4) : '';
-                const descSnippet = info.description || item.searchInfo?.textSnippet || '';
-
-                // Check if matching audiobook exists
+            return data.docs.filter(d => d.title).map(doc => {
+                const title = doc.title;
+                const author = (doc.author_name && doc.author_name[0]) || 'Nhiều tác giả';
+                const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : generateStylizedBookCoverSvg(title, author);
                 const audioMatch = findMatchingAudiobookInCatalog(title);
-
                 return {
-                    id: 'gb_' + (item.id || Math.random().toString(36).substring(2)),
+                    id: 'ol_disc_' + (doc.key ? doc.key.replace('/works/', '') : Math.random().toString(36).substring(2)),
                     title: title,
                     originalTitle: title,
-                    author: authors,
-                    year: year,
-                    rating: parseFloat(rating),
-                    ratingsCount: ratingsCount,
+                    author: author,
+                    year: doc.first_publish_year || '',
+                    rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.7,
+                    ratingsCount: doc.ratings_count || 45000,
                     genre: 'all',
-                    source: 'google',
-                    sourceLabel: '📚 Google Books',
+                    source: source,
+                    sourceLabel: sourceLabel,
                     coverUrl: coverUrl,
-                    reason: descSnippet ? descSnippet.substring(0, 110) + '...' : 'Tác phẩm nổi tiếng được tìm thấy trên thư viện Google Books.',
-                    key: '/works/' + (item.id || ''),
+                    reason: reasonTemplate,
+                    key: doc.key || ('/works/' + encodeURIComponent(title)),
                     audioIdentifier: audioMatch ? audioMatch.identifier : null
                 };
             });
         } catch (e) {
-            console.warn('Google Books API fetch error:', e);
+            console.warn('fetchOpenLibraryDiscovery error:', e);
             return [];
         }
     }
@@ -8190,49 +8266,49 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         const MOOD_CONFIG = {
             'all': {
                 name: 'Tất cả chủ đề',
-                olSubject: 'popular',
+                searchQ: 'bestseller award winning popular novels',
                 gbQuery: 'bestseller world popular classics',
                 aiInsight: 'Tổng hợp các tác phẩm xuất sắc nhất thế giới được độc giả quốc tế và hệ thống AI đánh giá cao.'
             },
             'self-help': {
                 name: 'Phát triển bản thân & Tư duy',
-                olSubject: 'self-help',
+                searchQ: 'self-help personal development habits mindset',
                 gbQuery: 'subject:"self-help" OR "personal development" bestseller',
                 aiInsight: 'Tuyển tập những tác phẩm khai phóng tiềm năng, kiến tạo thói quen và tối ưu hóa năng lực tư duy.'
             },
             'finance': {
                 name: 'Tài chính & Đầu tư',
-                olSubject: 'finance',
+                searchQ: 'finance investing wealth money economics',
                 gbQuery: 'subject:"finance" OR subject:"business" OR subject:"investing" bestseller',
                 aiInsight: 'Những kiệt tác về dòng tiền, quản trị tài chính cá nhân và triết lý đầu tư giá trị bền vững.'
             },
             'psychology': {
                 name: 'Tâm lý học hành vi',
-                olSubject: 'psychology',
+                searchQ: 'psychology human behavior thinking mind',
                 gbQuery: 'subject:"psychology" OR "human behavior" bestseller',
                 aiInsight: 'Thấu hiểu cơ chế tâm lý vô thức, sự tương tác xã hội và nghệ thuật làm chủ cảm xúc của bản thân.'
             },
             'mindfulness': {
                 name: 'Bình an & Chữa lành',
-                olSubject: 'mindfulness',
+                searchQ: 'mindfulness meditation peace spiritual healing',
                 gbQuery: 'subject:"mindfulness" OR subject:"meditation" OR "peace of mind" bestseller',
                 aiInsight: 'Hành trình quay về bên trong, xoa dịu những âu lo và thiết lập trạng thái an lạc vững chãi trong hiện tại.'
             },
             'classic': {
                 name: 'Văn học kinh điển bất hủ',
-                olSubject: 'classic_literature',
+                searchQ: 'classic literature classics masterpiece novel',
                 gbQuery: 'subject:"classic literature" bestseller masterpiece',
                 aiInsight: 'Những tượng đài văn chương trường tồn cùng thời gian, chứa đựng chiều sâu nhân văn sâu sắc.'
             },
             'thriller': {
                 name: 'Trinh thám & Kịch tính',
-                olSubject: 'thriller',
+                searchQ: 'thriller detective mystery crime suspense',
                 gbQuery: 'subject:"thriller" OR subject:"mystery" OR subject:"detective" bestseller',
                 aiInsight: 'Những câu chuyện trinh thám ly kỳ, suy luận sắc bén và nút thắt bất ngờ đến trang cuối cùng.'
             },
             'scifi': {
                 name: 'Khoa học & Viễn tưởng',
-                olSubject: 'science_fiction',
+                searchQ: 'science fiction space future galaxy',
                 gbQuery: 'subject:"science fiction" OR subject:"space exploration" bestseller',
                 aiInsight: 'Mở rộng chân trời tưởng tượng với những viễn cảnh tương lai, vũ trụ và bước nhảy vọt của khoa học.'
             }
@@ -8240,7 +8316,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
 
         const moodInfo = MOOD_CONFIG[mood] || MOOD_CONFIG['all'];
         const savedApiKey = localStorage.getItem(STORAGE_GEMINI_KEY) || DEFAULT_GEMINI_KEY;
-        const offset = (page - 1) * 20;
+        const pageNum = Math.max(1, page);
+        const offset = (pageNum - 1) * 20;
 
         try {
             // Case A: Query provided (e.g. from "Gợi ý theo sách đang đọc dở" or seed book)
@@ -8276,27 +8353,29 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
 
                 if (engine === 'google') {
                     if (recLoadingText) recLoadingText.textContent = `Đang lấy tuyển tập sách phong phú từ Google Books (${moodInfo.name})...`;
-                    liveBatch = await fetchGoogleBooksRecommendations(moodInfo.gbQuery, 28, offset);
+                    liveBatch = await fetchGoogleBooksRecommendations(moodInfo.gbQuery, 24, offset);
                 } else if (engine === 'community') {
                     if (recLoadingText) recLoadingText.textContent = `Đang tổng hợp sách được cộng đồng bình chọn cao nhất (${moodInfo.name})...`;
-                    const ol = await fetchSubjectBooks(moodInfo.olSubject, 24, offset);
-                    liveBatch = ol.map(b => ({
-                        ...b,
-                        source: 'community',
-                        sourceLabel: '🌟 Hardcover Top 1%',
-                        reason: `Tác phẩm được hàng triệu độc giả quốc tế bình chọn xuất sắc trong danh mục ${moodInfo.name}.`
-                    }));
+                    liveBatch = await fetchOpenLibraryDiscovery(
+                        moodInfo.searchQ,
+                        24,
+                        pageNum,
+                        'community',
+                        '🌟 Hardcover Top 1%',
+                        `Tác phẩm được hàng triệu độc giả quốc tế bình chọn xuất sắc trong danh mục ${moodInfo.name}.`
+                    );
                 } else if (engine === 'similar') {
                     if (recLoadingText) recLoadingText.textContent = `Đang kết nối mạng lưới sách tương đồng (${moodInfo.name})...`;
-                    const ol = await fetchSubjectBooks(moodInfo.olSubject, 24, offset);
-                    liveBatch = ol.map(b => ({
-                        ...b,
-                        source: 'similar',
-                        sourceLabel: '🎯 TasteDive Tương Đồng',
-                        reason: `Gợi ý theo thuật toán tương quan phong cách viết và tác giả của ${moodInfo.name}.`
-                    }));
+                    liveBatch = await fetchOpenLibraryDiscovery(
+                        moodInfo.searchQ,
+                        24,
+                        pageNum,
+                        'similar',
+                        '🎯 TasteDive Tương Đồng',
+                        `Gợi ý theo thuật toán tương quan phong cách viết và tác giả của ${moodInfo.name}.`
+                    );
                 } else if (engine === 'ai') {
-                    if (page === 1 && savedApiKey) {
+                    if (pageNum === 1 && savedApiKey) {
                         if (recLoadingText) recLoadingText.textContent = 'Trợ lý Gemini AI đang tuyển chọn danh mục sách hay nhất...';
                         try {
                             const aiData = await fetchLiveGeminiRecommendations(`Top sách hay nhất thuộc chủ đề: ${moodInfo.name}`, savedApiKey);
@@ -8309,33 +8388,27 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                         }
                     }
                     if (liveBatch.length === 0) {
-                        const ol = await fetchSubjectBooks(moodInfo.olSubject, 24, offset);
-                        liveBatch = ol.map(b => ({
-                            ...b,
-                            source: 'ai',
-                            sourceLabel: '🤖 Gemini AI Tuyển Chọn',
-                            reason: `Tác phẩm được Trợ lý AI chọn lọc vì giá trị tư tưởng sâu sắc và tính ứng dụng cao.`
-                        }));
+                        liveBatch = await fetchOpenLibraryDiscovery(
+                            moodInfo.searchQ,
+                            24,
+                            pageNum,
+                            'ai',
+                            '🤖 Gemini AI Tuyển Chọn',
+                            `Tác phẩm được Trợ lý AI chọn lọc vì giá trị tư tưởng sâu sắc và tính ứng dụng cao.`
+                        );
                     }
                 } else {
                     // 'all': Plentiful multi-source aggregation (Google Books + Open Library + Curated)
                     if (recLoadingText) recLoadingText.textContent = `Đang kết hợp tuyển tập sách phong phú từ AI, Google Books và Open Library...`;
                     const [gbItems, olItems] = await Promise.all([
-                        fetchGoogleBooksRecommendations(moodInfo.gbQuery, 16, offset).catch(() => []),
-                        fetchSubjectBooks(moodInfo.olSubject, 16, offset).catch(() => [])
+                        fetchGoogleBooksRecommendations(moodInfo.gbQuery, 12, offset).catch(() => []),
+                        fetchOpenLibraryDiscovery(moodInfo.searchQ, 16, pageNum, 'openlibrary', '📖 Open Library', `Sách được đánh giá cao trên thư viện mở toàn cầu.`).catch(() => [])
                     ]);
 
-                    const olFormatted = (olItems || []).map(b => ({
-                        ...b,
-                        source: 'openlibrary',
-                        sourceLabel: '📖 Open Library',
-                        reason: b.reason || `Sách được đánh giá cao trên thư viện mở toàn cầu.`
-                    }));
-
-                    liveBatch = [...gbItems, ...olFormatted];
+                    liveBatch = [...gbItems, ...olItems];
                 }
 
-                if (page === 1) {
+                if (pageNum === 1) {
                     results = [...curatedBase, ...liveBatch];
                 } else {
                     results = liveBatch;
@@ -8355,6 +8428,13 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 seen.add(norm);
                 return true;
             });
+
+            // If in append mode and no more new books could be loaded
+            if (append && results.length === 0) {
+                showToast('Đã tải hết tất cả các sách đề xuất trong danh mục này.');
+                if (recLoadMoreContainer) recLoadMoreContainer.style.display = 'none';
+                return;
+            }
 
             // Render to Grid
             renderRecommendationsToGrid(results, insightText, append);
