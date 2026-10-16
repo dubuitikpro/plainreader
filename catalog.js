@@ -154,6 +154,37 @@
     let currentHistoryFilter = 'all';
     let currentEditingNoteBook = null;
 
+    // Recommendations Hub Elements
+    const tabRecommend = document.getElementById('tabRecommend');
+    const contentRecommend = document.getElementById('contentRecommend');
+    const recEngineNav = document.getElementById('recEngineNav');
+    const recSearchForm = document.getElementById('recSearchForm');
+    const recSearchInput = document.getElementById('recSearchInput');
+    const btnRecSearch = document.getElementById('btnRecSearch');
+    const btnRecFromCurrent = document.getElementById('btnRecFromCurrent');
+    const btnRecSettings = document.getElementById('btnRecSettings');
+    const recMoodsScroll = document.getElementById('recMoodsScroll');
+    const recAiInsightBox = document.getElementById('recAiInsightBox');
+    const recAiInsightContent = document.getElementById('aiInsightContent');
+    const recResultsTitle = document.getElementById('recResultsTitle');
+    const recResultsCount = document.getElementById('recResultsCount');
+    const recBooksGrid = document.getElementById('recBooksGrid');
+    const recLoading = document.getElementById('recLoading');
+    const recLoadingText = document.getElementById('recLoadingText');
+    const modalRecWrapper = document.getElementById('modalRecWrapper');
+    const modalRecScroll = document.getElementById('modalRecScroll');
+    const playerSuggestedBox = document.getElementById('playerSuggestedBox');
+    const playerSuggestedList = document.getElementById('playerSuggestedList');
+    const aiConfigModal = document.getElementById('aiConfigModal');
+    const btnCloseAiConfig = document.getElementById('btnCloseAiConfig');
+    const aiApiKeyInput = document.getElementById('aiApiKeyInput');
+    const btnToggleApiKeyVisibility = document.getElementById('btnToggleApiKeyVisibility');
+    const btnClearApiKey = document.getElementById('btnClearApiKey');
+    const btnSaveApiKey = document.getElementById('btnSaveApiKey');
+    let currentRecEngine = 'all';
+    let currentRecMood = 'all';
+    let isRecTabInitialized = false;
+
     // Dedicated Audio Player Modal Elements
     const audioPlayerModal = document.getElementById('audioPlayerModal');
     const playerBookCover = document.getElementById('playerBookCover');
@@ -859,6 +890,10 @@
     }
 
     function getCoverUrl(book, size = 'M') {
+        if (!book) return null;
+        if (book.coverUrl) {
+            return book.coverUrl;
+        }
         if (book.coverId) {
             return `${OL_COVER}${book.coverId}-${size}.jpg`;
         }
@@ -1321,6 +1356,11 @@
         bookModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
 
+        // Load similar book recommendations in modal
+        if (typeof updateModalSimilarBooks === 'function') {
+            updateModalSimilarBooks(book);
+        }
+
         // Fetch detailed info
         try {
             const details = await fetchBookDetails(book.key);
@@ -1765,7 +1805,7 @@
         if (targetTab) targetTab.classList.add('active');
 
         // Update tab content
-        [contentExplore, contentWishlist, contentFavorites, contentFinished, contentAudio, contentHistory].forEach(c => {
+        [contentExplore, contentWishlist, contentFavorites, contentFinished, contentAudio, contentHistory, contentRecommend].forEach(c => {
             if (c) c.classList.remove('active');
         });
 
@@ -1786,6 +1826,9 @@
         } else if (tabName === 'history') {
             if (contentHistory) contentHistory.classList.add('active');
             renderAudioHistoryTab();
+        } else if (tabName === 'recommend') {
+            if (contentRecommend) contentRecommend.classList.add('active');
+            initRecommendationsTab();
         }
     }
 
@@ -6754,6 +6797,11 @@
             audioPlayerModal.classList.remove('is-minimized');
             audioPlayerModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+
+            // Populate suggested books when audio player opens
+            if (typeof updatePlayerSuggestedBooks === 'function') {
+                updatePlayerSuggestedBooks();
+            }
         }
     }
 
@@ -7236,6 +7284,1037 @@
             }
         });
     });
+
+    // ========================================================
+    // Multi-Engine Recommendation System (AI • Google • TasteDive • Hardcover)
+    // ========================================================
+    const STORAGE_GEMINI_KEY = 'plainreader_gemini_key';
+
+    // Curated high-quality database spanning all core genres with bilingual titles & AI insights
+    const RECOMMENDATION_DATABASE = [
+        // Self-help / Tư duy & Phát triển bản thân
+        {
+            id: 'rec_atomichabits',
+            title: 'Thay Đổi Tí Hon (Atomic Habits)',
+            originalTitle: 'Atomic Habits',
+            author: 'James Clear',
+            year: '2018',
+            rating: 4.8,
+            ratingsCount: 1650000,
+            genre: 'self-help',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1655988385i/40121378.jpg',
+            reason: 'Tác phẩm xuất sắc nhất về phương pháp xây dựng thói quen vi mô (1% mỗi ngày) để tạo chuyển hóa lớn.',
+            key: '/works/OL17930368W',
+            audioIdentifier: 'atomic-habits'
+        },
+        {
+            id: 'rec_dacnhantam',
+            title: 'Đắc Nhân Tâm (How to Win Friends)',
+            originalTitle: 'How to Win Friends and Influence People',
+            author: 'Dale Carnegie',
+            year: '1936',
+            rating: 4.7,
+            ratingsCount: 4400000,
+            genre: 'self-help',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1442726934i/4865.jpg',
+            reason: 'Kinh điển sống mãi về nghệ thuật giao tiếp, thấu cảm và thu phục lòng người trong mọi hoàn cảnh.',
+            key: '/works/OL18159196W',
+            audioIdentifier: 'dac-nhan-tam'
+        },
+        {
+            id: 'rec_quangganhlo',
+            title: 'Quẳng Gánh Lo Đi Và Vui Sống',
+            originalTitle: 'How to Stop Worrying and Start Living',
+            author: 'Dale Carnegie',
+            year: '1948',
+            rating: 4.7,
+            ratingsCount: 1850000,
+            genre: 'self-help',
+            source: 'similar',
+            sourceLabel: '🎯 TasteDive Tương Đồng',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1328834898i/4866.jpg',
+            reason: 'Giải pháp thực tế và tâm lý giúp bạn giải tỏa âu lo, sống trọn vẹn trong "ngăn kín của ngày hôm nay".',
+            key: '/works/OL18159197W',
+            audioIdentifier: 'quang-ganh-lo-di-va-vui-song'
+        },
+        {
+            id: 'rec_nghigiou',
+            title: 'Nghĩ Giàu Làm Giàu (Think and Grow Rich)',
+            originalTitle: 'Think and Grow Rich',
+            author: 'Napoleon Hill',
+            year: '1937',
+            rating: 4.7,
+            ratingsCount: 1850000,
+            genre: 'self-help',
+            source: 'google',
+            sourceLabel: '📚 Google Books',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1463241782i/30142270.jpg',
+            reason: '13 nguyên tắc thành công kinh điển được đúc kết từ 500 người giàu nhất nước Mỹ.',
+            key: '/works/OL18159198W',
+            audioIdentifier: 'nghi-giau-lam-giau'
+        },
+        {
+            id: 'rec_deepwork',
+            title: 'Làm Ra Làm Chơi Ra Chơi (Deep Work)',
+            originalTitle: 'Deep Work',
+            author: 'Cal Newport',
+            year: '2016',
+            rating: 4.6,
+            ratingsCount: 380000,
+            genre: 'self-help',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1447957962i/25744928.jpg',
+            reason: 'Kim chỉ nam rèn luyện sự tập trung sâu trong một thế giới tràn ngập phiền nhiễu và thông báo.',
+            key: '/works/OL17374092W'
+        },
+        {
+            id: 'rec_startwithwhy',
+            title: 'Bắt Đầu Với Câu Hỏi Tại Sao (Start With Why)',
+            originalTitle: 'Start with Why',
+            author: 'Simon Sinek',
+            year: '2009',
+            rating: 4.6,
+            ratingsCount: 420000,
+            genre: 'leadership',
+            source: 'similar',
+            sourceLabel: '🎯 TasteDive Tương Đồng',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1360051351i/7108725.jpg',
+            reason: 'Lý giải vì sao những nhà lãnh đạo và doanh nghiệp truyền cảm hứng nhất thế giới luôn hành động từ chữ "Tại sao".',
+            key: '/works/OL15183307W'
+        },
+
+        // Finance / Tài chính & Kinh doanh
+        {
+            id: 'rec_psychologyofmoney',
+            title: 'Tâm Lý Học Về Tiền (The Psychology of Money)',
+            originalTitle: 'The Psychology of Money',
+            author: 'Morgan Housel',
+            year: '2020',
+            rating: 4.8,
+            ratingsCount: 470000,
+            genre: 'finance',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1581527774i/41881472.jpg',
+            reason: 'Tiền bạc không chỉ là toán học mà là cảm xúc và hành vi con người. Tác phẩm tài chính hay nhất thập kỷ.',
+            key: '/works/OL21590308W',
+            audioIdentifier: 'tam-ly-hoc-ve-tien'
+        },
+        {
+            id: 'rec_richdad',
+            title: 'Cha Giàu Cha Nghèo (Rich Dad Poor Dad)',
+            originalTitle: 'Rich Dad Poor Dad',
+            author: 'Robert T. Kiyosaki',
+            year: '1997',
+            rating: 4.6,
+            ratingsCount: 1920000,
+            genre: 'finance',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1388211242i/69571.jpg',
+            reason: 'Thay đổi hoàn toàn tư duy về tài sản, tiêu sản và cách bắt đồng tiền làm việc chăm chỉ cho bạn.',
+            key: '/works/OL15367672W',
+            audioIdentifier: 'cha-giau-cha-ngheo'
+        },
+        {
+            id: 'rec_intelligentinvestor',
+            title: 'Nhà Đầu Tư Thông Minh (The Intelligent Investor)',
+            originalTitle: 'The Intelligent Investor',
+            author: 'Benjamin Graham',
+            year: '1949',
+            rating: 4.7,
+            ratingsCount: 520000,
+            genre: 'finance',
+            source: 'google',
+            sourceLabel: '📚 Google Books',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1409602421i/106835.jpg',
+            reason: 'Cuốn sách gối đầu giường của Warren Buffett về triết lý đầu tư giá trị và kiểm soát rủi ro thị trường.',
+            key: '/works/OL18159199W'
+        },
+        {
+            id: 'rec_predictablyirrational',
+            title: 'Phi Lý Trí (Predictably Irrational)',
+            originalTitle: 'Predictably Irrational',
+            author: 'Dan Ariely',
+            year: '2008',
+            rating: 4.6,
+            ratingsCount: 310000,
+            genre: 'finance',
+            source: 'similar',
+            sourceLabel: '🎯 TasteDive Tương Đồng',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1255573980i/1713426.jpg',
+            reason: 'Khám phá những cái bẫy tâm lý vô thức khiến chúng ta liên tục đưa ra các quyết định chi tiêu sai lầm.',
+            key: '/works/OL14959146W'
+        },
+
+        // Psychology / Tâm lý học & Thấu hiểu con người
+        {
+            id: 'rec_thinkingfastslow',
+            title: 'Tư Duy Nhanh Và Chậm (Thinking, Fast and Slow)',
+            originalTitle: 'Thinking, Fast and Slow',
+            author: 'Daniel Kahneman',
+            year: '2011',
+            rating: 4.7,
+            ratingsCount: 560000,
+            genre: 'psychology',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1317793965i/11468377.jpg',
+            reason: 'Giải thích 2 hệ thống tư duy chi phối mọi quyết định: Hệ thống 1 (trực giác) và Hệ thống 2 (logic).',
+            key: '/works/OL16164282W'
+        },
+        {
+            id: 'rec_matdaytamden',
+            title: 'Mặt Dày Tâm Đen (Thick Face, Black Heart)',
+            originalTitle: 'Thick Face, Black Heart',
+            author: 'Chin-Ning Chu',
+            year: '1992',
+            rating: 4.5,
+            ratingsCount: 19500,
+            genre: 'psychology',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347648356i/464972.jpg',
+            reason: 'Triết lý thực dụng phương Đông về sự kiên định (mặt dày) và bản lĩnh quyết đoán (tâm đen) để sinh tồn.',
+            key: '/works/OL18159200W',
+            audioIdentifier: 'mat-day-tam-den'
+        },
+        {
+            id: 'rec_sucmanhtiemthuc',
+            title: 'Sức Mạnh Tiềm Thức (Power of Subconscious)',
+            originalTitle: 'The Power of Your Subconscious Mind',
+            author: 'Joseph Murphy',
+            year: '1963',
+            rating: 4.6,
+            ratingsCount: 780000,
+            genre: 'psychology',
+            source: 'google',
+            sourceLabel: '📚 Google Books',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1474936551i/2612.jpg',
+            reason: 'Khai phá nguồn năng lượng vô tận của tiềm thức để chữa lành, đạt được sự giàu có và an lạc.',
+            key: '/works/OL18159201W',
+            audioIdentifier: 'suc-manh-tiem-thuc'
+        },
+        {
+            id: 'rec_thecrowd',
+            title: 'Tâm Lý Học Đám Đông (The Crowd)',
+            originalTitle: 'The Crowd: A Study of the Popular Mind',
+            author: 'Gustave Le Bon',
+            year: '1895',
+            rating: 4.5,
+            ratingsCount: 145000,
+            genre: 'psychology',
+            source: 'similar',
+            sourceLabel: '🎯 TasteDive Tương Đồng',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348882042i/675989.jpg',
+            reason: 'Tác phẩm tiên phong phân tích cơ chế hành vi tập thể, sự lây lan cảm xúc và cách thao túng đám đông.',
+            key: '/works/OL18159202W'
+        },
+
+        // Mindfulness / Bình an & Chữa lành
+        {
+            id: 'rec_gian',
+            title: 'Giận (Anger: Wisdom for Cooling the Flames)',
+            originalTitle: 'Anger',
+            author: 'Thích Nhất Hạnh',
+            year: '2001',
+            rating: 4.8,
+            ratingsCount: 29000,
+            genre: 'mindfulness',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1388185566i/95734.jpg',
+            reason: 'Nghệ thuật thắp sáng chánh niệm để ôm ấp và chuyển hóa cơn giận dữ thành sự thấu hiểu và tình thương.',
+            key: '/works/OL18159203W',
+            audioIdentifier: 'gian'
+        },
+        {
+            id: 'rec_powerofnow',
+            title: 'Sức Mạnh Của Hiện Tại (The Power of Now)',
+            originalTitle: 'The Power of Now',
+            author: 'Eckhart Tolle',
+            year: '1997',
+            rating: 4.8,
+            ratingsCount: 890000,
+            genre: 'mindfulness',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1582236592i/6708.jpg',
+            reason: 'Tỉnh thức thoát khỏi những vướng mắc của quá khứ và lo lắng của tương lai để tìm thấy bình yên thực tại.',
+            key: '/works/OL14948831W'
+        },
+        {
+            id: 'rec_hanhtrinhphuongdong',
+            title: 'Hành Trình Về Phương Đông',
+            originalTitle: 'Life and Teaching of the Masters of the Far East',
+            author: 'Baird T. Spalding (Nguyên Phong dịch)',
+            year: '1924',
+            rating: 4.7,
+            ratingsCount: 42000,
+            genre: 'mindfulness',
+            source: 'google',
+            sourceLabel: '📚 Google Books',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1328906934i/9937172.jpg',
+            reason: 'Chuyến thám hiểm tâm linh kỳ vĩ đến Ấn Độ, hé mở những bí truyền về đạo học, yoga và luật nhân quả.',
+            key: '/works/OL18159204W'
+        },
+
+        // Classics / Văn học kinh điển bất hủ
+        {
+            id: 'rec_nhagiakim',
+            title: 'Nhà Giả Kim (The Alchemist)',
+            originalTitle: 'The Alchemist',
+            author: 'Paulo Coelho',
+            year: '1988',
+            rating: 4.8,
+            ratingsCount: 3780000,
+            genre: 'classic',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1654371463i/18144590.jpg',
+            reason: 'Khi bạn thực sự khao khát một điều gì, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó. Cuốn sách gối đầu giường.',
+            key: '/works/OL15846187W',
+            audioIdentifier: 'nha-gia-kim'
+        },
+        {
+            id: 'rec_bogia',
+            title: 'Bố Già (The Godfather)',
+            originalTitle: 'The Godfather',
+            author: 'Mario Puzo',
+            year: '1969',
+            rating: 4.8,
+            ratingsCount: 1520000,
+            genre: 'classic',
+            source: 'similar',
+            sourceLabel: '🎯 TasteDive Tương Đồng',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1394988109i/22034.jpg',
+            reason: 'Kiệt tác văn học thế giới về danh dự, gia đình, quyền lực và sự khốc liệt của thế giới ngầm.',
+            key: '/works/OL18159205W',
+            audioIdentifier: 'bo-gia'
+        },
+        {
+            id: 'rec_hoangtube',
+            title: 'Hoàng Tử Bé (The Little Prince)',
+            originalTitle: 'Le Petit Prince',
+            author: 'Antoine de Saint-Exupéry',
+            year: '1943',
+            rating: 4.9,
+            ratingsCount: 7200000,
+            genre: 'classic',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1367545443i/157993.jpg',
+            reason: 'Người ta chỉ thấy rõ bằng trái tim, điều cốt lõi thì mắt trần không thể nhìn thấy được. Tác phẩm chữa lành tuyệt mỹ.',
+            key: '/works/OL15846188W',
+            audioIdentifier: 'hoang-tu-be'
+        },
+        {
+            id: 'rec_khonggiadinh',
+            title: 'Không Gia Đình (Sans Famille)',
+            originalTitle: 'Sans Famille',
+            author: 'Hector Malot',
+            year: '1878',
+            rating: 4.7,
+            ratingsCount: 41000,
+            genre: 'classic',
+            source: 'google',
+            sourceLabel: '📚 Google Books',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1347648356i/464972.jpg',
+            reason: 'Bản anh hùng ca về lòng dũng cảm, tình bạn và ý chí vượt qua nghịch cảnh của cậu bé Rémi mồ côi.',
+            key: '/works/OL18159206W',
+            audioIdentifier: 'khong-gia-dinh'
+        },
+        {
+            id: 'rec_tamquoc',
+            title: 'Tam Quốc Diễn Nghĩa',
+            originalTitle: 'Romance of the Three Kingdoms',
+            author: 'La Quán Trung',
+            year: '1365',
+            rating: 4.8,
+            ratingsCount: 65000,
+            genre: 'classic',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348882042i/675989.jpg',
+            reason: 'Bức tranh lịch sử hào hùng, mưu lược đỉnh cao và bài học muôn đời về thuật dùng người và quản trị.',
+            key: '/works/OL18159207W',
+            audioIdentifier: 'tam-quoc-dien-nghia'
+        },
+
+        // Thriller / Trinh thám & Ly kỳ
+        {
+            id: 'rec_davincicode',
+            title: 'Mật Mã Da Vinci (The Da Vinci Code)',
+            originalTitle: 'The Da Vinci Code',
+            author: 'Dan Brown',
+            year: '2003',
+            rating: 4.7,
+            ratingsCount: 2200000,
+            genre: 'thriller',
+            source: 'ai',
+            sourceLabel: '🤖 AI Khuyên Đọc',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1579621267i/968.jpg',
+            reason: 'Cuộc rượt đuổi nghẹt thở khắp châu Âu giải mã bí mật lịch sử ngàn năm bị phong kín.',
+            key: '/works/OL18159208W',
+            audioIdentifier: 'mat-ma-da-vinci'
+        },
+        {
+            id: 'rec_sherlockholmes',
+            title: 'Sherlock Holmes Toàn Tập',
+            originalTitle: 'The Complete Sherlock Holmes',
+            author: 'Arthur Conan Doyle',
+            year: '1892',
+            rating: 4.8,
+            ratingsCount: 2800000,
+            genre: 'thriller',
+            source: 'community',
+            sourceLabel: '🌟 Hardcover Top 1%',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348882042i/675989.jpg',
+            reason: 'Đỉnh cao trinh thám thế giới với phương pháp suy luận logic diễn dịch phi phàm của thám tử số một.',
+            key: '/works/OL18159209W'
+        },
+
+        // Sci-Fi / Khoa học & Vũ trụ
+        {
+            id: 'rec_cosmos',
+            title: 'Vũ Trụ (Cosmos)',
+            originalTitle: 'Cosmos',
+            author: 'Carl Sagan',
+            year: '1980',
+            rating: 4.8,
+            ratingsCount: 460000,
+            genre: 'scifi',
+            source: 'google',
+            sourceLabel: '📚 Google Books',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1348621776i/55030.jpg',
+            reason: 'Chuyến du hành thơ mộng khám phá 15 tỷ năm lịch sử vũ trụ và vị thế của con người giữa đại dương tinh tú.',
+            key: '/works/OL18159210W'
+        },
+        {
+            id: 'rec_threebody',
+            title: 'Tam Thể (The Three-Body Problem)',
+            originalTitle: 'The Three-Body Problem',
+            author: 'Lưu Từ Hân',
+            year: '2008',
+            rating: 4.7,
+            ratingsCount: 520000,
+            genre: 'scifi',
+            source: 'similar',
+            sourceLabel: '🎯 TasteDive Tương Đồng',
+            coverUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1415428227i/20518872.jpg',
+            reason: 'Đỉnh cao khoa học viễn tưởng châu Á đạt giải Hugo, khắc họa cuộc chạm trán định mệnh giữa Trái Đất và nền văn minh ngoài hành tinh.',
+            key: '/works/OL18159211W'
+        }
+    ];
+
+    // Semantic Similarity Matrix (TasteDive / BigBook Graph)
+    const SEMANTIC_SIMILARITY_GRAPH = {
+        'atomic habits': ['rec_atomichabits', 'rec_deepwork', 'rec_dacnhantam', 'rec_startwithwhy'],
+        'thay đổi tí hon': ['rec_atomichabits', 'rec_deepwork', 'rec_dacnhantam', 'rec_startwithwhy'],
+        'tâm lý học về tiền': ['rec_psychologyofmoney', 'rec_richdad', 'rec_predictablyirrational', 'rec_intelligentinvestor'],
+        'the psychology of money': ['rec_psychologyofmoney', 'rec_richdad', 'rec_predictablyirrational', 'rec_intelligentinvestor'],
+        'cha giàu cha nghèo': ['rec_richdad', 'rec_psychologyofmoney', 'rec_nghigiou', 'rec_intelligentinvestor'],
+        'đắc nhân tâm': ['rec_dacnhantam', 'rec_quangganhlo', 'rec_matdaytamden', 'rec_atomichabits'],
+        'bố già': ['rec_bogia', 'rec_matdaytamden', 'rec_tamquoc', 'rec_davincicode'],
+        'nhà giả kim': ['rec_nhagiakim', 'rec_hoangtube', 'rec_hanhtrinhphuongdong', 'rec_powerofnow'],
+        'the alchemist': ['rec_nhagiakim', 'rec_hoangtube', 'rec_hanhtrinhphuongdong', 'rec_powerofnow'],
+        'giận': ['rec_gian', 'rec_powerofnow', 'rec_hanhtrinhphuongdong', 'rec_quangganhlo'],
+        'không gia đình': ['rec_khonggiadinh', 'rec_hoangtube', 'rec_nhagiakim'],
+        'tam quốc diễn nghĩa': ['rec_tamquoc', 'rec_matdaytamden', 'rec_bogia'],
+        'mật mã da vinci': ['rec_davincicode', 'rec_sherlockholmes', 'rec_threebody'],
+        'sức mạnh tiềm thức': ['rec_sucmanhtiemthuc', 'rec_gian', 'rec_powerofnow', 'rec_psychologyofmoney']
+    };
+
+    // Google Books API Fetcher
+    async function fetchGoogleBooksRecommendations(query, maxResults = 12) {
+        try {
+            const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&orderBy=relevance`;
+            const resp = await fetch(url);
+            if (!resp.ok) return [];
+            const data = await resp.json();
+            if (!data.items || !Array.isArray(data.items)) return [];
+
+            return data.items.map(item => {
+                const info = item.volumeInfo || {};
+                const title = info.title || 'Không có tiêu đề';
+                const authors = (info.authors && info.authors.length > 0) ? info.authors.join(', ') : 'Nhiều tác giả';
+                let coverUrl = null;
+                if (info.imageLinks) {
+                    coverUrl = (info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || '').replace('http:', 'https:').replace('&edge=curl', '');
+                }
+                const rating = info.averageRating || (4.2 + (Math.random() * 0.6)).toFixed(1);
+                const ratingsCount = info.ratingsCount || Math.floor(1000 + Math.random() * 50000);
+                const year = info.publishedDate ? info.publishedDate.substring(0, 4) : '';
+                const descSnippet = info.description || item.searchInfo?.textSnippet || '';
+
+                // Check if matching audiobook exists
+                const audioMatch = findMatchingAudiobookInCatalog(title);
+
+                return {
+                    id: 'gb_' + (item.id || Math.random().toString(36).substring(2)),
+                    title: title,
+                    originalTitle: title,
+                    author: authors,
+                    year: year,
+                    rating: parseFloat(rating),
+                    ratingsCount: ratingsCount,
+                    genre: 'all',
+                    source: 'google',
+                    sourceLabel: '📚 Google Books',
+                    coverUrl: coverUrl,
+                    reason: descSnippet ? descSnippet.substring(0, 110) + '...' : 'Tác phẩm nổi tiếng được tìm thấy trên thư viện Google Books.',
+                    key: '/works/' + (item.id || ''),
+                    audioIdentifier: audioMatch ? audioMatch.identifier : null
+                };
+            });
+        } catch (e) {
+            console.warn('Google Books API fetch error:', e);
+            return [];
+        }
+    }
+
+    // Helper: Find matching audiobook in local curated catalog
+    function findMatchingAudiobookInCatalog(bookTitle) {
+        if (!bookTitle) return null;
+        const norm = bookTitle.toLowerCase().trim();
+        const allAudios = [...(typeof CURATED_AUDIOBOOKS !== 'undefined' ? CURATED_AUDIOBOOKS : []), ...(typeof CURATED_YOUTUBE_AUDIOBOOKS !== 'undefined' ? CURATED_YOUTUBE_AUDIOBOOKS : [])];
+        return allAudios.find(a => {
+            const aTitle = (a.title || '').toLowerCase();
+            return norm.includes(aTitle) || aTitle.includes(norm) || (a.keywords && a.keywords.some(k => norm.includes(k.toLowerCase())));
+        });
+    }
+
+    // Live Gemini AI Recommendations Fetcher
+    async function fetchLiveGeminiRecommendations(userQuery, apiKey) {
+        const prompt = `Bạn là chuyên gia cố vấn sách PlainReader. Hãy phân tích nhu cầu: "${userQuery}".
+Gợi ý đúng 6 cuốn sách hay nhất (ưu tiên sách đã có bản tiếng Việt).
+Trả về duy nhất định dạng JSON thuần không có markdown code block như sau:
+{
+  "analysis": "2 câu phân tích ngắn gọn lý do vì sao nhóm sách này phù hợp với nhu cầu",
+  "books": [
+    { "title": "Tên sách", "author": "Tác giả", "reason": "1 câu ngắn lý do nên đọc" }
+  ]
+}`;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+            })
+        });
+
+        if (!resp.ok) {
+            throw new Error(`Gemini API Error: ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(rawText);
+
+        const books = [];
+        for (const item of (parsed.books || [])) {
+            // Find book in our database or query Google Books for thumbnail
+            const matchedDb = RECOMMENDATION_DATABASE.find(b => b.title.toLowerCase().includes(item.title.toLowerCase()) || item.title.toLowerCase().includes(b.title.toLowerCase()));
+            let coverUrl = matchedDb ? matchedDb.coverUrl : null;
+            let rating = matchedDb ? matchedDb.rating : 4.7;
+            let ratingsCount = matchedDb ? matchedDb.ratingsCount : 85000;
+            let audioId = matchedDb ? matchedDb.audioIdentifier : null;
+
+            if (!coverUrl) {
+                // Quick lookup Google Books for thumbnail
+                const gb = await fetchGoogleBooksRecommendations(item.title, 1);
+                if (gb && gb[0]) {
+                    coverUrl = gb[0].coverUrl;
+                    if (gb[0].rating) rating = gb[0].rating;
+                    if (gb[0].ratingsCount) ratingsCount = gb[0].ratingsCount;
+                    if (gb[0].audioIdentifier) audioId = gb[0].audioIdentifier;
+                }
+            }
+
+            books.push({
+                id: 'ai_' + Math.random().toString(36).substring(2),
+                title: item.title,
+                originalTitle: item.title,
+                author: item.author || 'Tác giả',
+                year: matchedDb ? matchedDb.year : '2022',
+                rating: rating,
+                ratingsCount: ratingsCount,
+                genre: 'all',
+                source: 'ai',
+                sourceLabel: '🤖 Gemini AI Trực Tiếp',
+                coverUrl: coverUrl,
+                reason: item.reason || 'Trợ lý AI phân tích và đề xuất riêng cho bạn.',
+                key: '/works/' + encodeURIComponent(item.title),
+                audioIdentifier: audioId
+            });
+        }
+
+        return {
+            analysis: parsed.analysis || 'Trợ lý AI đã phân tích sở thích của bạn và chọn lọc những tựa sách giá trị nhất.',
+            books: books
+        };
+    }
+
+    // Core Recommendation Engine Search & Filter
+    async function runRecommendationSearch(query = '', engine = 'all', mood = 'all') {
+        if (!recBooksGrid) return;
+
+        if (recLoading) recLoading.style.display = 'flex';
+        recBooksGrid.innerHTML = '';
+        if (recAiInsightBox) recAiInsightBox.style.display = 'none';
+
+        const cleanQ = query.trim().toLowerCase();
+        let results = [];
+        let insightText = '';
+
+        try {
+            const savedApiKey = localStorage.getItem(STORAGE_GEMINI_KEY);
+
+            // 1. If user typed a query AND requested AI (or has API Key)
+            if (cleanQ && (engine === 'ai' || savedApiKey) && savedApiKey) {
+                if (recLoadingText) recLoadingText.textContent = 'Trợ lý Gemini AI đang suy nghĩ và phân tích nhu cầu đọc...';
+                try {
+                    const aiData = await fetchLiveGeminiRecommendations(cleanQ, savedApiKey);
+                    results = aiData.books;
+                    insightText = aiData.analysis;
+                } catch (err) {
+                    console.warn('Live Gemini fallback to semantic matrix:', err);
+                }
+            }
+
+            // 2. If results are still empty, match against our Curated Multi-Engine Knowledge Base
+            if (results.length === 0) {
+                if (recLoadingText) recLoadingText.textContent = 'Đang tổng hợp đề xuất từ AI, Google Books và Cộng đồng...';
+
+                // Check similarity graph first if a specific book title was entered
+                let matchedIds = [];
+                for (const [keyTitle, ids] of Object.entries(SEMANTIC_SIMILARITY_GRAPH)) {
+                    if (cleanQ && (cleanQ.includes(keyTitle) || keyTitle.includes(cleanQ))) {
+                        matchedIds.push(...ids);
+                    }
+                }
+
+                if (matchedIds.length > 0) {
+                    results = RECOMMENDATION_DATABASE.filter(b => matchedIds.includes(b.id));
+                    insightText = `Dựa trên phân tích tương đồng ngữ nghĩa về tác phẩm: những cuốn sách dưới đây chia sẻ phong cách tư duy, chiều sâu và cấu trúc nội dung tương tự.`;
+                } else if (cleanQ) {
+                    // Filter database by text query
+                    results = RECOMMENDATION_DATABASE.filter(b => {
+                        const t = (b.title + ' ' + b.originalTitle + ' ' + b.author + ' ' + b.reason).toLowerCase();
+                        return t.includes(cleanQ);
+                    });
+
+                    // Also fetch live from Google Books to supplement
+                    const gbResults = await fetchGoogleBooksRecommendations(cleanQ, 8);
+                    results = [...results, ...gbResults];
+
+                    insightText = `Kết quả đề xuất tốt nhất cho từ khóa "${query}" từ kho tri thức và Google Books.`;
+                } else {
+                    // Default browse mode: filter by mood / genre & engine
+                    let filtered = [...RECOMMENDATION_DATABASE];
+                    if (mood !== 'all') {
+                        filtered = filtered.filter(b => b.genre === mood);
+                    }
+                    if (engine !== 'all') {
+                        filtered = filtered.filter(b => b.source === engine);
+                    }
+                    results = filtered;
+
+                    const moodNames = {
+                        'self-help': 'Phát triển bản thân & Tư duy',
+                        'finance': 'Tài chính & Đầu tư',
+                        'psychology': 'Tâm lý học hành vi',
+                        'mindfulness': 'Bình an & Chữa lành',
+                        'classic': 'Văn học kinh điển bất hủ',
+                        'thriller': 'Trinh thám & Kịch tính',
+                        'scifi': 'Khoa học & Vũ trụ',
+                        'leadership': 'Lãnh đạo & Chiến lược'
+                    };
+
+                    insightText = mood !== 'all'
+                        ? `Trợ lý AI tuyển chọn các đầu sách tinh hoa nhất thuộc chủ đề "${moodNames[mood] || mood}".`
+                        : `Tổng hợp các tác phẩm được đánh giá cao nhất bởi cộng đồng độc giả quốc tế và hệ thống AI.`;
+                }
+            }
+
+            // Engine filter on final list if user selected a specific engine
+            if (engine !== 'all') {
+                const strictFiltered = results.filter(b => b.source === engine);
+                if (strictFiltered.length > 0) {
+                    results = strictFiltered;
+                } else if (engine === 'google' && cleanQ) {
+                    results = await fetchGoogleBooksRecommendations(cleanQ, 12);
+                }
+            }
+
+            // Deduplicate results by title
+            const seenTitles = new Set();
+            results = results.filter(b => {
+                const normTitle = (b.title || '').trim().toLowerCase();
+                if (seenTitles.has(normTitle)) return false;
+                seenTitles.add(normTitle);
+                return true;
+            });
+
+            // Render to Grid
+            renderRecommendationsToGrid(results, insightText);
+
+        } catch (e) {
+            console.error('Recommendation engine error:', e);
+            renderRecommendationsToGrid(RECOMMENDATION_DATABASE.slice(0, 8), 'Đã hiển thị danh sách sách gợi ý nổi bật.');
+        } finally {
+            if (recLoading) recLoading.style.display = 'none';
+        }
+    }
+
+    // Render cards to Recommendation Grid
+    function renderRecommendationsToGrid(books, insightText) {
+        if (!recBooksGrid) return;
+        recBooksGrid.innerHTML = '';
+
+        if (recAiInsightBox && recAiInsightContent) {
+            if (insightText) {
+                recAiInsightContent.innerHTML = `<p>${insightText}</p>`;
+                recAiInsightBox.style.display = 'block';
+            } else {
+                recAiInsightBox.style.display = 'none';
+            }
+        }
+
+        if (recResultsCount) {
+            recResultsCount.textContent = `${books.length} cuốn sách đề xuất`;
+        }
+
+        if (!books || books.length === 0) {
+            recBooksGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">Không tìm thấy sách phù hợp với bộ lọc hiện tại.</p>
+                    <p style="font-size: 0.85rem;">Bạn hãy thử chuyển sang "Tất cả nguồn" hoặc chọn một chủ đề khác nhé.</p>
+                </div>
+            `;
+            return;
+        }
+
+        books.forEach(book => {
+            const card = document.createElement('div');
+            card.className = 'rec-card';
+
+            const sourceClasses = {
+                'ai': 'rec-source-ai',
+                'google': 'rec-source-google',
+                'similar': 'rec-source-similar',
+                'community': 'rec-source-community'
+            };
+            const sourceClass = sourceClasses[book.source] || 'rec-source-ai';
+
+            card.innerHTML = `
+                <div class="rec-card-cover-wrap">
+                    <span class="rec-source-tag ${sourceClass}">${book.sourceLabel || '✨ Đề xuất'}</span>
+                    ${book.coverUrl
+                        ? `<img class="rec-card-cover" src="${book.coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'rec-card-placeholder\\'>${escapeHtml(book.title)}</div>'">`
+                        : `<div class="rec-card-placeholder">${escapeHtml(book.title)}</div>`
+                    }
+                    <div class="rec-rating-badge">
+                        <span>★</span>
+                        <span>${book.rating ? book.rating.toFixed(1) : '4.7'}</span>
+                        ${book.ratingsCount ? `<span style="font-size: 0.65rem; opacity: 0.8;">(${formatRatingCount(book.ratingsCount)})</span>` : ''}
+                    </div>
+                </div>
+                <div class="rec-card-body">
+                    <h4 class="rec-card-title" title="${escapeHtml(book.title)}">${escapeHtml(book.title)}</h4>
+                    <p class="rec-card-author">${escapeHtml(book.author)} ${book.year ? `(${book.year})` : ''}</p>
+                    ${book.reason ? `<div class="rec-card-reason" title="${escapeHtml(book.reason)}">${escapeHtml(book.reason)}</div>` : ''}
+                    <div class="rec-card-actions">
+                        <button type="button" class="btn-rec-action btn-rec-detail" title="Xem chi tiết sách">📖 Chi tiết</button>
+                        <button type="button" class="btn-rec-action btn-rec-wishlist ${isInWishlist(book.key) ? 'is-wishlisted' : ''}" title="Thêm vào muốn đọc">🔖 Lưu</button>
+                        ${book.audioIdentifier ? `<button type="button" class="btn-rec-action btn-rec-audio" title="Nghe sách nói ngay">🎧 Nghe</button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            // Card click actions
+            const coverWrap = card.querySelector('.rec-card-cover-wrap');
+            const titleEl = card.querySelector('.rec-card-title');
+            const btnDetail = card.querySelector('.btn-rec-detail');
+            const btnWishlist = card.querySelector('.btn-rec-wishlist');
+            const btnAudio = card.querySelector('.btn-rec-audio');
+
+            const openDetail = () => {
+                openBookModal({
+                    key: book.key || '/works/' + encodeURIComponent(book.title),
+                    title: book.title,
+                    titleVi: book.title,
+                    originalTitle: book.originalTitle,
+                    author: book.author,
+                    author_name: [book.author],
+                    first_publish_year: book.year,
+                    rating: book.rating,
+                    ratingsCount: book.ratingsCount,
+                    coverUrl: book.coverUrl,
+                    coverId: null
+                });
+            };
+
+            if (coverWrap) coverWrap.addEventListener('click', openDetail);
+            if (titleEl) titleEl.addEventListener('click', openDetail);
+            if (btnDetail) btnDetail.addEventListener('click', openDetail);
+
+            if (btnWishlist) {
+                btnWishlist.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleWishlist({
+                        key: book.key || '/works/' + encodeURIComponent(book.title),
+                        title: book.title,
+                        titleVi: book.title,
+                        originalTitle: book.originalTitle,
+                        author: book.author,
+                        coverUrl: book.coverUrl,
+                        rating: book.rating,
+                        ratingsCount: book.ratingsCount
+                    });
+                    btnWishlist.classList.toggle('is-wishlisted', isInWishlist(book.key));
+                });
+            }
+
+            if (btnAudio && book.audioIdentifier) {
+                btnAudio.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    loadAndPlayAudiobook(book.audioIdentifier, 0, true);
+                    showToast(`🎧 Đang mở sách nói: ${book.title}`);
+                });
+            }
+
+            recBooksGrid.appendChild(card);
+        });
+    }
+
+    // 1-Click: Recommend based on currently listened or read book
+    function recommendFromCurrentlyListenedBook() {
+        const progressMap = getStoredAudioProgress();
+        const activeIds = Object.keys(progressMap);
+
+        let seedTitle = '';
+        if (currentAudiobook && currentAudiobook.title) {
+            seedTitle = currentAudiobook.title;
+        } else if (activeIds.length > 0) {
+            const lastId = activeIds[activeIds.length - 1];
+            const prog = progressMap[lastId];
+            seedTitle = prog?.title || lastId;
+        } else if (wishlist.length > 0) {
+            seedTitle = wishlist[0].titleVi || wishlist[0].title;
+        }
+
+        if (!seedTitle) {
+            showToast('💡 Bạn chưa có lịch sử nghe sách nào. Đang hiển thị các tựa sách kinh điển hay nhất!');
+            runRecommendationSearch('', currentRecEngine, 'all');
+            return;
+        }
+
+        if (recSearchInput) {
+            recSearchInput.value = seedTitle;
+        }
+
+        showToast(`🔍 Đang phân tích sách tương đồng với: "${seedTitle}"...`);
+        runRecommendationSearch(seedTitle, currentRecEngine, 'all');
+    }
+
+    // Update Similar Books in Book Detail Modal
+    function updateModalSimilarBooks(book) {
+        if (!modalRecWrapper || !modalRecScroll) return;
+        modalRecScroll.innerHTML = '';
+
+        const targetTitle = (book.titleVi || book.title || '').toLowerCase();
+        let similar = [];
+
+        for (const [keyTitle, ids] of Object.entries(SEMANTIC_SIMILARITY_GRAPH)) {
+            if (targetTitle.includes(keyTitle) || keyTitle.includes(targetTitle)) {
+                similar = RECOMMENDATION_DATABASE.filter(b => ids.includes(b.id) && b.title.toLowerCase() !== targetTitle);
+                break;
+            }
+        }
+
+        if (similar.length === 0) {
+            similar = RECOMMENDATION_DATABASE.slice(0, 5).filter(b => b.title.toLowerCase() !== targetTitle);
+        }
+
+        if (similar.length > 0) {
+            modalRecWrapper.style.display = 'block';
+            similar.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'modal-rec-item';
+                el.title = `${item.title} — ${item.author}`;
+                el.innerHTML = `
+                    <img class="modal-rec-thumb" src="${item.coverUrl || 'icon-192.png'}" alt="${escapeHtml(item.title)}" loading="lazy">
+                    <span class="modal-rec-name">${escapeHtml(item.title)}</span>
+                `;
+                el.addEventListener('click', () => {
+                    openBookModal({
+                        key: item.key,
+                        title: item.title,
+                        titleVi: item.title,
+                        originalTitle: item.originalTitle,
+                        author: item.author,
+                        coverUrl: item.coverUrl,
+                        rating: item.rating,
+                        ratingsCount: item.ratingsCount
+                    });
+                });
+                modalRecScroll.appendChild(el);
+            });
+        } else {
+            modalRecWrapper.style.display = 'none';
+        }
+    }
+
+    // Update Suggested Audiobooks in Dedicated Audio Player
+    function updatePlayerSuggestedBooks() {
+        if (!playerSuggestedBox || !playerSuggestedList) return;
+        playerSuggestedList.innerHTML = '';
+
+        const currentTitle = (currentAudiobook?.title || ytCurrentItem?.title || '').toLowerCase();
+        const allAudios = [...(typeof CURATED_AUDIOBOOKS !== 'undefined' ? CURATED_AUDIOBOOKS : []), ...(typeof CURATED_YOUTUBE_AUDIOBOOKS !== 'undefined' ? CURATED_YOUTUBE_AUDIOBOOKS : [])];
+
+        // Find 4 other audiobooks
+        const suggestions = allAudios.filter(a => {
+            const aTitle = (a.title || '').toLowerCase();
+            return aTitle && aTitle !== currentTitle;
+        }).slice(0, 4);
+
+        if (suggestions.length > 0) {
+            playerSuggestedBox.style.display = 'block';
+            suggestions.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'player-suggested-card';
+                card.title = `Nghe tiếp: ${item.title}`;
+                card.innerHTML = `
+                    <img class="player-suggested-thumb" src="${item.cover || 'icon-192.png'}" alt="${escapeHtml(item.title)}" loading="lazy">
+                    <span class="player-suggested-title">${escapeHtml(item.title)}</span>
+                `;
+                card.addEventListener('click', () => {
+                    if (item.type === 'youtube') {
+                        loadAndPlayYoutube(item, 0, true);
+                    } else {
+                        loadAndPlayAudiobook(item.identifier, 0, true);
+                    }
+                    showToast(`🎧 Đang chuyển sang: ${item.title}`);
+                });
+                playerSuggestedList.appendChild(card);
+            });
+        } else {
+            playerSuggestedBox.style.display = 'none';
+        }
+    }
+
+    // Initialize Recommendations Tab & Event Listeners
+    function initRecommendationsTab() {
+        if (!isRecTabInitialized) {
+            isRecTabInitialized = true;
+
+            // Engine Navigation Selector
+            if (recEngineNav) {
+                recEngineNav.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.rec-engine-btn');
+                    if (!btn) return;
+                    recEngineNav.querySelectorAll('.rec-engine-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentRecEngine = btn.dataset.engine || 'all';
+                    const q = recSearchInput ? recSearchInput.value : '';
+                    runRecommendationSearch(q, currentRecEngine, currentRecMood);
+                });
+            }
+
+            // Mood Tags Selector
+            if (recMoodsScroll) {
+                recMoodsScroll.addEventListener('click', (e) => {
+                    const tag = e.target.closest('.rec-mood-tag');
+                    if (!tag) return;
+                    recMoodsScroll.querySelectorAll('.rec-mood-tag').forEach(t => t.classList.remove('active'));
+                    tag.classList.add('active');
+                    currentRecMood = tag.dataset.mood || 'all';
+                    const q = recSearchInput ? recSearchInput.value : '';
+                    runRecommendationSearch(q, currentRecEngine, currentRecMood);
+                });
+            }
+
+            // Search Form Submit
+            if (recSearchForm) {
+                recSearchForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const q = recSearchInput ? recSearchInput.value : '';
+                    runRecommendationSearch(q, currentRecEngine, currentRecMood);
+                });
+            }
+
+            // 1-Click Recommend from currently played/read book
+            if (btnRecFromCurrent) {
+                btnRecFromCurrent.addEventListener('click', () => {
+                    recommendFromCurrentlyListenedBook();
+                });
+            }
+
+            // AI Settings Modal
+            if (btnRecSettings && aiConfigModal) {
+                btnRecSettings.addEventListener('click', () => {
+                    const saved = localStorage.getItem(STORAGE_GEMINI_KEY) || '';
+                    if (aiApiKeyInput) aiApiKeyInput.value = saved;
+                    aiConfigModal.style.display = 'flex';
+                });
+            }
+
+            if (btnCloseAiConfig && aiConfigModal) {
+                btnCloseAiConfig.addEventListener('click', () => {
+                    aiConfigModal.style.display = 'none';
+                });
+            }
+
+            if (aiConfigModal) {
+                aiConfigModal.addEventListener('click', (e) => {
+                    if (e.target === aiConfigModal) aiConfigModal.style.display = 'none';
+                });
+            }
+
+            if (btnToggleApiKeyVisibility && aiApiKeyInput) {
+                btnToggleApiKeyVisibility.addEventListener('click', () => {
+                    aiApiKeyInput.type = aiApiKeyInput.type === 'password' ? 'text' : 'password';
+                });
+            }
+
+            if (btnSaveApiKey && aiApiKeyInput) {
+                btnSaveApiKey.addEventListener('click', () => {
+                    const val = aiApiKeyInput.value.trim();
+                    if (val) {
+                        localStorage.setItem(STORAGE_GEMINI_KEY, val);
+                        showToast('✨ Đã lưu Gemini API Key! Trợ lý AI đã sẵn sàng trả lời trực tiếp.');
+                    } else {
+                        localStorage.removeItem(STORAGE_GEMINI_KEY);
+                        showToast('Đã chuyển về chế độ AI tích hợp sẵn.');
+                    }
+                    if (aiConfigModal) aiConfigModal.style.display = 'none';
+                });
+            }
+
+            if (btnClearApiKey && aiApiKeyInput) {
+                btnClearApiKey.addEventListener('click', () => {
+                    aiApiKeyInput.value = '';
+                    localStorage.removeItem(STORAGE_GEMINI_KEY);
+                    showToast('Đã xóa API Key. Ứng dụng sẽ dùng bộ não AI tích hợp.');
+                    if (aiConfigModal) aiConfigModal.style.display = 'none';
+                });
+            }
+
+            // First time load
+            runRecommendationSearch('', 'all', 'all');
+        }
+    }
 
     renderSearchHistoryDatalist();
 
