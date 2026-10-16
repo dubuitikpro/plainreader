@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792111445311,
+  "lastUpdated": 1792111449529,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -89,6 +89,7 @@
       "pages": null
     }
   ],
+  "finished": [],
   "audioProgress": {
     "tam-ly-hoc-ve-tien": {
       "trackIndex": 0,
@@ -377,5 +378,6 @@
     "bản chất con người",
     "tâm lý học về tiền",
     "48 nguyên tắc của quyền lực"
-  ]
+  ],
+  "theme": "dark"
 }
