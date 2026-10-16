@@ -3392,12 +3392,18 @@
             isVideoMode = !isVideoMode;
             const playerModal = document.getElementById('audioPlayerModal');
             if (isVideoMode) {
-                if (ytScreen) ytScreen.style.display = 'block';
+                if (ytScreen) {
+                    ytScreen.classList.add('video-mode');
+                    ytScreen.classList.remove('audio-mode');
+                }
                 if (coverBox) coverBox.style.display = 'none';
                 if (toggleText) toggleText.textContent = '🎵 Chế độ Audio';
                 if (playerModal) playerModal.classList.add('video-mode-active');
             } else {
-                if (ytScreen) ytScreen.style.display = 'none';
+                if (ytScreen) {
+                    ytScreen.classList.add('audio-mode');
+                    ytScreen.classList.remove('video-mode');
+                }
                 if (coverBox) coverBox.style.display = 'block';
                 if (toggleText) toggleText.textContent = '📺 Xem Video';
                 if (playerModal) playerModal.classList.remove('video-mode-active');
@@ -4564,9 +4570,12 @@
             }
         }
 
-        // Hide video screen (preview is static info)
+        // Hide video screen (preview is static info, but keep iframe rendering in background)
         const ytScreen = document.getElementById('playerYoutubeScreen');
-        if (ytScreen) ytScreen.style.display = 'none';
+        if (ytScreen) {
+            ytScreen.classList.add('audio-mode');
+            ytScreen.classList.remove('video-mode');
+        }
         const coverBox = document.getElementById('playerCoverBox');
         if (coverBox) coverBox.style.display = 'block';
         const btnToggleVideo = document.getElementById('btnToggleVideoMode');
@@ -4836,11 +4845,23 @@
         }
 
         const ytScreen = document.getElementById('playerYoutubeScreen');
-        if (ytScreen) ytScreen.style.display = 'none';
+        if (ytScreen) {
+            if (currentAudioType === 'youtube' && isVideoMode) {
+                ytScreen.classList.add('video-mode');
+                ytScreen.classList.remove('audio-mode');
+            } else {
+                ytScreen.classList.add('audio-mode');
+                ytScreen.classList.remove('video-mode');
+            }
+        }
         const coverBox = document.getElementById('playerCoverBox');
-        if (coverBox) coverBox.style.display = 'block';
+        if (coverBox) {
+            coverBox.style.display = (currentAudioType === 'youtube' && isVideoMode) ? 'none' : 'block';
+        }
         const btnToggleVideo = document.getElementById('btnToggleVideoMode');
-        if (btnToggleVideo) btnToggleVideo.style.display = 'none';
+        if (btnToggleVideo) {
+            btnToggleVideo.style.display = currentAudioType === 'youtube' ? 'inline-flex' : 'none';
+        }
 
         if (playerBookCover) playerBookCover.src = book.cover;
         if (playerBookTitle) playerBookTitle.textContent = book.title;
@@ -5033,6 +5054,20 @@
         const btnToggleVideo = document.getElementById('btnToggleVideoMode');
         if (btnToggleVideo) {
             btnToggleVideo.style.display = 'inline-flex';
+        }
+        const ytScreen = document.getElementById('playerYoutubeScreen');
+        if (ytScreen) {
+            if (isVideoMode) {
+                ytScreen.classList.add('video-mode');
+                ytScreen.classList.remove('audio-mode');
+            } else {
+                ytScreen.classList.add('audio-mode');
+                ytScreen.classList.remove('video-mode');
+            }
+        }
+        const coverBox = document.getElementById('playerCoverBox');
+        if (coverBox) {
+            coverBox.style.display = isVideoMode ? 'none' : 'block';
         }
 
         // Duration badges
@@ -5371,7 +5406,10 @@
 
             // Reset video / cover box
             const ytScreen = document.getElementById('playerYoutubeScreen');
-            if (ytScreen) ytScreen.style.display = 'none';
+            if (ytScreen) {
+                ytScreen.classList.add('audio-mode');
+                ytScreen.classList.remove('video-mode');
+            }
             const coverBox = document.getElementById('playerCoverBox');
             if (coverBox) coverBox.style.display = 'block';
             const btnToggleVideo = document.getElementById('btnToggleVideoMode');
@@ -6609,6 +6647,7 @@
                 const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
                 if (dialog) dialog.classList.remove('is-youtube');
             }
+            audioPlayerModal.classList.remove('is-minimized');
             audioPlayerModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -6616,7 +6655,7 @@
 
     function minimizeAudioPlayerModal() {
         if (audioPlayerModal) {
-            audioPlayerModal.style.display = 'none';
+            audioPlayerModal.classList.add('is-minimized');
             document.body.style.overflow = '';
         }
         if (miniAudioPlayer && (currentAudiobook || ytCurrentItem)) {
@@ -6649,6 +6688,7 @@
             }, 300);
         }
         if (audioPlayerModal) {
+            audioPlayerModal.classList.remove('is-minimized');
             audioPlayerModal.style.display = 'none';
             document.body.style.overflow = '';
         }
@@ -6659,10 +6699,16 @@
             if (isViewingPreview) {
                 isViewingPreview = false;
                 previewViewingBook = null;
-            }
-            minimizeAudioPlayerModal();
-            if (isAudioActiveAndPlaying()) {
-                showToast('Đã thu nhỏ. Sách nói vẫn đang tiếp tục phát.');
+                if (isAudioActiveAndPlaying() || hasActiveAudioSession()) {
+                    restoreActiveAudiobookModal();
+                } else {
+                    minimizeAudioPlayerModal();
+                }
+            } else {
+                minimizeAudioPlayerModal();
+                if (isAudioActiveAndPlaying()) {
+                    showToast('🎧 Sách nói vẫn đang tiếp tục phát ở thanh mini bên dưới.');
+                }
             }
         });
     }
@@ -6671,13 +6717,17 @@
             if (isViewingPreview) {
                 isViewingPreview = false;
                 previewViewingBook = null;
-                closeAudioPlayer(false);
-                if (isAudioActiveAndPlaying() && miniAudioPlayer) {
-                    miniAudioPlayer.style.display = 'block';
+                if (isAudioActiveAndPlaying() || hasActiveAudioSession()) {
+                    restoreActiveAudiobookModal();
+                } else {
+                    minimizeAudioPlayerModal();
                 }
             } else {
-                closeAudioPlayer(true);
-                showToast('Đã dừng phát và đóng sách nói.');
+                // Keep playing in background mini-player
+                minimizeAudioPlayerModal();
+                if (isAudioActiveAndPlaying()) {
+                    showToast('🎧 Sách nói vẫn đang tiếp tục phát ở thanh mini bên dưới.');
+                }
             }
         });
     }
@@ -6688,8 +6738,14 @@
                 if (isViewingPreview) {
                     isViewingPreview = false;
                     previewViewingBook = null;
+                    if (isAudioActiveAndPlaying() || hasActiveAudioSession()) {
+                        restoreActiveAudiobookModal();
+                    } else {
+                        minimizeAudioPlayerModal();
+                    }
+                } else {
+                    minimizeAudioPlayerModal();
                 }
-                minimizeAudioPlayerModal();
             }
         });
     }
@@ -6744,7 +6800,7 @@
 
     // Keyboard Shortcuts for Audio Player
     document.addEventListener('keydown', (e) => {
-        if (audioPlayerModal && audioPlayerModal.style.display === 'flex') {
+        if (audioPlayerModal && audioPlayerModal.style.display === 'flex' && !audioPlayerModal.classList.contains('is-minimized')) {
             const isEditing = e.target && (
                 e.target.tagName === 'INPUT' ||
                 e.target.tagName === 'TEXTAREA' ||
@@ -7047,6 +7103,26 @@
             renderSearchHistoryDatalist();
         });
     }
+    // Intercept in-page logo & home navigation to prevent page reload (which would stop audio)
+    document.querySelectorAll('a[href="index.html"], a[href="./"], a.logo').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab('explore');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // Intercept "Đọc sách" (reader.html) when audio is active to open in a new tab without interrupting sound
+    document.querySelectorAll('a[href="reader.html"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (isAudioActiveAndPlaying() || hasActiveAudioSession()) {
+                e.preventDefault();
+                window.open('reader.html', '_blank');
+                showToast('📖 Đã mở trang Đọc sách trong tab mới để giữ sách nói tiếp tục phát.');
+            }
+        });
+    });
+
     renderSearchHistoryDatalist();
 
 })();
