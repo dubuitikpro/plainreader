@@ -104,6 +104,9 @@
     const modalYear = document.getElementById('modalYear');
     const modalPages = document.getElementById('modalPages');
     const modalLanguage = document.getElementById('modalLanguage');
+    const modalRatingBadge = document.getElementById('modalRatingBadge');
+    const modalRatingBadgeText = document.getElementById('modalRatingBadgeText');
+    const modalGoodreadsQuickLink = document.getElementById('modalGoodreadsQuickLink');
     const modalSubjects = document.getElementById('modalSubjects');
     const modalDescription = document.getElementById('modalDescription');
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
@@ -814,6 +817,8 @@
             language: doc.language ? doc.language[0] : null,
             editionCount: doc.edition_count || 0,
             pages: doc.number_of_pages_median || null,
+            rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : null,
+            ratingsCount: doc.ratings_count || 0,
         };
     }
 
@@ -868,7 +873,7 @@
     // =========================================
     async function searchBooks(query, page = 1) {
         const offset = (page - 1) * PAGE_SIZE;
-        const url = `${OL_SEARCH}?q=${encodeURIComponent(query)}&limit=${PAGE_SIZE}&offset=${offset}&fields=key,title,author_name,cover_i,cover_edition_key,first_publish_year,subject,language,edition_count,number_of_pages_median`;
+        const url = `${OL_SEARCH}?q=${encodeURIComponent(query)}&limit=${PAGE_SIZE}&offset=${offset}&fields=key,title,author_name,cover_i,cover_edition_key,first_publish_year,subject,language,edition_count,number_of_pages_median,ratings_average,ratings_count`;
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Search failed');
         const data = await resp.json();
@@ -916,6 +921,51 @@
     }
 
     // =========================================
+    // Book Ratings Cache & Loader
+    // =========================================
+    const bookRatingsCache = new Map();
+
+    async function getBookRating(workKey) {
+        if (!workKey || typeof workKey !== 'string') return null;
+        const cleanKey = workKey.startsWith('/works/') ? workKey : `/works/${workKey}`;
+        if (bookRatingsCache.has(cleanKey)) {
+            return bookRatingsCache.get(cleanKey);
+        }
+
+        try {
+            const stored = sessionStorage.getItem(`ol_rating_${cleanKey}`);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                bookRatingsCache.set(cleanKey, parsed);
+                return parsed;
+            }
+        } catch (e) {}
+
+        try {
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 6500) : null;
+            const resp = await fetch(`https://openlibrary.org${cleanKey}/ratings.json`, {
+                signal: controller ? controller.signal : undefined
+            });
+            if (timeoutId) clearTimeout(timeoutId);
+            if (!resp.ok) return null;
+            const data = await resp.json();
+            if (data && data.summary && typeof data.summary.average === 'number') {
+                const res = {
+                    rating: Number(data.summary.average.toFixed(1)),
+                    ratingsCount: data.summary.count || 0
+                };
+                bookRatingsCache.set(cleanKey, res);
+                try {
+                    sessionStorage.setItem(`ol_rating_${cleanKey}`, JSON.stringify(res));
+                } catch (e) {}
+                return res;
+            }
+        } catch (err) {}
+        return null;
+    }
+
+    // =========================================
     // Rendering
     // =========================================
     function createBookCard(book) {
@@ -927,6 +977,26 @@
         const wishlisted = isInWishlist(book.key);
         const favorited = isInFavorites(book.key);
         const isFinished = isInFinished(book.key);
+
+        if (!book.rating && book.key) {
+            const cleanK = book.key.startsWith('/works/') ? book.key : `/works/${book.key}`;
+            const cachedRate = bookRatingsCache.get(cleanK);
+            if (cachedRate && cachedRate.rating) {
+                book.rating = cachedRate.rating;
+                book.ratingsCount = cachedRate.ratingsCount || 0;
+            }
+        }
+
+        const ratingBadgeHtml = (book.rating && book.rating > 0)
+            ? `
+                <span class="book-badge-rating ${isFinished ? 'has-finished' : ''}" title="Đánh giá: ${book.rating}/5.0 ${book.ratingsCount ? '(' + book.ratingsCount.toLocaleString() + ' đánh giá)' : ''}">
+                    <svg viewBox="0 0 24 24" width="9" height="9" fill="#fbbf24">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                    <span>${book.rating} ★</span>
+                </span>
+              `
+            : '';
 
         const displayTitle = book.titleVi || book.title;
         const originalTitle = (book.originalTitle && book.originalTitle.toLowerCase() !== displayTitle.toLowerCase())
@@ -958,6 +1028,7 @@
                     </button>
                 </div>
                 ${isFinished ? '<div class="book-finished-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg> Đã đọc</div>' : ''}
+                ${ratingBadgeHtml}
             </div>
             <div class="book-info">
                 <div class="book-title" title="${escapeHtml(displayTitle)}">${escapeHtml(displayTitle)}</div>
@@ -966,6 +1037,29 @@
                 ${book.year ? `<div class="book-year">${book.year}</div>` : ''}
             </div>
         `;
+
+        if (!book.rating && book.key) {
+            getBookRating(book.key).then(rate => {
+                if (rate && rate.rating && rate.rating > 0) {
+                    book.rating = rate.rating;
+                    book.ratingsCount = rate.ratingsCount || 0;
+                    const coverWrap = card.querySelector('.book-cover-wrapper');
+                    if (coverWrap && !coverWrap.querySelector('.book-badge-rating')) {
+                        const isFin = card.querySelector('.book-finished-badge') !== null;
+                        const badge = document.createElement('span');
+                        badge.className = `book-badge-rating ${isFin ? 'has-finished' : ''}`;
+                        badge.title = `Đánh giá: ${rate.rating}/5.0 ${rate.ratingsCount ? '(' + rate.ratingsCount.toLocaleString() + ' đánh giá)' : ''}`;
+                        badge.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="#fbbf24">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                            </svg>
+                            <span>${rate.rating} ★</span>
+                        `;
+                        coverWrap.appendChild(badge);
+                    }
+                }
+            }).catch(() => {});
+        }
 
         card.setAttribute('role', 'button');
         card.setAttribute('tabindex', '0');
@@ -1068,9 +1162,53 @@
         }
 
         modalAuthor.textContent = book.author;
+
+        // Rating in modal
+        if (modalRatingBadge) {
+            if (book.rating && book.rating > 0) {
+                modalRatingBadge.style.display = 'inline-flex';
+                if (modalRatingBadgeText) {
+                    modalRatingBadgeText.textContent = book.ratingsCount > 0
+                        ? `${book.rating} ★ (${book.ratingsCount.toLocaleString()} đánh giá)`
+                        : `${book.rating} ★`;
+                }
+            } else {
+                modalRatingBadge.style.display = 'none';
+            }
+        }
+
+        if (modalGoodreadsQuickLink) {
+            const grQuery = originalTitle || displayTitle || book.title || '';
+            const grAuthor = book.author || '';
+            modalGoodreadsQuickLink.href = getGoodreadsSearchUrl(grQuery, grAuthor);
+            modalGoodreadsQuickLink.style.display = 'inline-flex';
+        }
+
         modalYear.textContent = book.year ? `📅 ${book.year}` : '';
         modalPages.textContent = book.pages ? `📄 ${book.pages} trang` : '';
         modalLanguage.textContent = book.language ? `🌐 ${book.language.toUpperCase()}` : '';
+
+        // Fetch rating if not already present
+        if (!book.rating && (book.key || book.title)) {
+            const ratingPromise = (book.key && book.key.startsWith('/works/'))
+                ? getBookRating(book.key)
+                : fetchOpenLibraryBookMeta(displayTitle || book.title, book.author);
+
+            ratingPromise.then(rateData => {
+                if (rateData && rateData.rating && rateData.rating > 0 && currentModalBook === book) {
+                    book.rating = rateData.rating;
+                    book.ratingsCount = rateData.ratingsCount || 0;
+                    if (modalRatingBadge) {
+                        modalRatingBadge.style.display = 'inline-flex';
+                        if (modalRatingBadgeText) {
+                            modalRatingBadgeText.textContent = rateData.ratingsCount > 0
+                                ? `${rateData.rating} ★ (${rateData.ratingsCount.toLocaleString()} đánh giá)`
+                                : `${rateData.rating} ★`;
+                        }
+                    }
+                }
+            }).catch(() => {});
+        }
 
         modalDescription.textContent = 'Đang tải và dịch mô tả...';
         btnToggleOrigDesc.style.display = 'none';
