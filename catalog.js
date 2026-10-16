@@ -7928,8 +7928,8 @@
                         if (info.imageLinks) {
                             coverUrl = (info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || '').replace('http:', 'https:').replace('&edge=curl', '');
                         }
-                        const rating = info.averageRating || (4.2 + (Math.random() * 0.6)).toFixed(1);
-                        const ratingsCount = info.ratingsCount || Math.floor(1000 + Math.random() * 50000);
+                        const rating = info.averageRating ? parseFloat(info.averageRating) : 0;
+                        const ratingsCount = info.ratingsCount || 0;
                         const year = info.publishedDate ? info.publishedDate.substring(0, 4) : '';
                         const descSnippet = info.description || item.searchInfo?.textSnippet || '';
 
@@ -7978,8 +7978,8 @@
                             originalTitle: title,
                             author: author,
                             year: doc.first_publish_year || '',
-                            rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.6,
-                            ratingsCount: doc.ratings_count || 35000,
+                            rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 0,
+                            ratingsCount: doc.ratings_count || 0,
                             genre: 'all',
                             source: 'google',
                             sourceLabel: '📚 Google Books',
@@ -8018,8 +8018,8 @@
                     originalTitle: title,
                     author: author,
                     year: doc.first_publish_year || '',
-                    rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.7,
-                    ratingsCount: doc.ratings_count || 45000,
+                    rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 0,
+                    ratingsCount: doc.ratings_count || 0,
                     genre: 'all',
                     source: source,
                     sourceLabel: sourceLabel,
@@ -8688,11 +8688,13 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                         ? `<img class="rec-card-cover" src="${book.coverUrl}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.onerror=null;this.removeAttribute('alt');this.src='${generateStylizedBookCoverSvg(book.title, book.author)}';">`
                         : `<img class="rec-card-cover" src="${generateStylizedBookCoverSvg(book.title, book.author)}" alt="" referrerpolicy="no-referrer" loading="lazy">`
                     }
+                    ${(book.rating && book.rating > 0) ? `
                     <div class="rec-rating-badge">
                         <span>★</span>
-                        <span>${book.rating ? book.rating.toFixed(1) : '4.7'}</span>
-                        ${book.ratingsCount ? `<span style="font-size: 0.65rem; opacity: 0.8;">(${formatRatingCount(book.ratingsCount)})</span>` : ''}
+                        <span>${book.rating.toFixed(1)}</span>
+                        ${book.ratingsCount > 0 ? `<span style="font-size: 0.65rem; opacity: 0.8;">(${formatRatingCount(book.ratingsCount)})</span>` : ''}
                     </div>
+                    ` : ''}
                 </div>
                 <div class="rec-card-body">
                     <h4 class="rec-card-title" title="${escapeHtml(book.title)}">${escapeHtml(book.title)}</h4>
