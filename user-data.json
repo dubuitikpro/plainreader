@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792110635751,
+  "lastUpdated": 1792110667897,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -35,6 +35,20 @@
       "subjects": [],
       "language": null,
       "editionCount": 51,
+      "pages": null
+    },
+    {
+      "key": "/works/OL21640039W",
+      "title": "The Psychology of Money",
+      "originalTitle": "The Psychology of Money",
+      "titleVi": "Tâm lý tiền bạc",
+      "author": "Morgan Housel",
+      "coverId": 10389354,
+      "coverEditionKey": "OL29412746M",
+      "year": 2020,
+      "subjects": [],
+      "language": null,
+      "editionCount": 27,
       "pages": null
     }
   ],
