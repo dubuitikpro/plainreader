@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792115562740,
+  "lastUpdated": 1792115644506,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -209,15 +209,15 @@
       "title": "Thay Đổi Tí Hon (Atomic Habits)",
       "author": "James Clear",
       "cover": "https://archive.org/services/img/tdthhqbn",
-      "trackIndex": 10,
-      "trackTitle": "[Audiobook] ATOMIC HABITS THÓI QUEN NGUYÊN TỬ (P11) James Clear Sách kỹ năng cực hay",
-      "currentTime": 578,
-      "duration": 1935,
-      "percent": 30,
+      "trackIndex": 0,
+      "trackTitle": "[Audiobook] ATOMIC HABITS THÓI QUEN NGUYÊN TỬ (P1) James Clear Sách kỹ năng cực hay",
+      "currentTime": 0,
+      "duration": 2832,
+      "percent": 0,
       "isBookmarked": true,
       "note": "cách tư duy để thay đổi thói quen",
       "noteUpdatedAt": 1791017523196,
-      "updatedAt": 1792113160751
+      "updatedAt": 1792115641499
     },
     "7670131803e640327f698418271ca555": {
       "identifier": "7670131803e640327f698418271ca555",
@@ -347,8 +347,8 @@
   "audioState": {
     "identifier": "tdthhqbn",
     "type": "archive",
-    "trackIndex": 10,
-    "time": 578,
+    "trackIndex": 0,
+    "time": 0,
     "volume": 1,
     "speedIndex": 0
   },
