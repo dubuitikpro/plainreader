@@ -31,9 +31,30 @@
     // =========================================
     // State
     // =========================================
-    let wishlist = loadFromStorage(STORAGE_WISHLIST);
-    let favorites = loadFromStorage(STORAGE_FAVORITES);
-    let finished = loadFromStorage(STORAGE_FINISHED);
+    let wishlist = loadFromStorage(STORAGE_WISHLIST, []);
+    let finished = loadFromStorage(STORAGE_FINISHED, []);
+
+    // Merge any existing favorites into wishlist so user keeps all saved books
+    try {
+        const oldFavs = loadFromStorage(STORAGE_FAVORITES, []);
+        if (Array.isArray(oldFavs) && oldFavs.length > 0) {
+            let changed = false;
+            oldFavs.forEach(fb => {
+                if (!fb) return;
+                const exists = wishlist.some(wb => wb && (wb.key === fb.key || (wb.title && fb.title && wb.title.toLowerCase().trim() === fb.title.toLowerCase().trim())));
+                if (!exists) {
+                    wishlist.push(fb);
+                    changed = true;
+                }
+            });
+            if (changed) {
+                saveToStorage(STORAGE_WISHLIST, wishlist);
+            }
+            localStorage.removeItem(STORAGE_FAVORITES);
+        }
+    } catch (e) {
+        console.warn('Favorites migration error:', e);
+    }
     let currentQuery = '';
     let currentSearchEnglishQuery = '';
     let currentPage = 1;
@@ -50,14 +71,11 @@
     const tabs = document.getElementById('tabs');
     const tabExplore = document.getElementById('tabExplore');
     const tabWishlist = document.getElementById('tabWishlist');
-    const tabFavorites = document.getElementById('tabFavorites');
     const tabFinished = document.getElementById('tabFinished');
     const contentExplore = document.getElementById('contentExplore');
     const contentWishlist = document.getElementById('contentWishlist');
-    const contentFavorites = document.getElementById('contentFavorites');
     const contentFinished = document.getElementById('contentFinished');
     const wishlistCount = document.getElementById('wishlistCount');
-    const favoritesCount = document.getElementById('favoritesCount');
     const trendingGrid = document.getElementById('trendingGrid');
     const recommendationsSection = document.getElementById('recommendationsSection');
     const recommendationsGrid = document.getElementById('recommendationsGrid');
@@ -71,10 +89,8 @@
     const btnBackToExplore = document.getElementById('btnBackToExplore');
     const catalogLoading = document.getElementById('catalogLoading');
     const wishlistGrid = document.getElementById('wishlistGrid');
-    const favoritesGrid = document.getElementById('favoritesGrid');
     const finishedGrid = document.getElementById('finishedGrid');
     const wishlistEmpty = document.getElementById('wishlistEmpty');
-    const favoritesEmpty = document.getElementById('favoritesEmpty');
     const finishedEmpty = document.getElementById('finishedEmpty');
     const finishedCount = document.getElementById('finishedCount');
 
@@ -110,7 +126,6 @@
     const modalSubjects = document.getElementById('modalSubjects');
     const modalDescription = document.getElementById('modalDescription');
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
-    const modalBtnFavorite = document.getElementById('modalBtnFavorite');
     const modalBtnFinished = document.getElementById('modalBtnFinished');
     const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
     const modalBtnGoodreads = document.getElementById('modalBtnGoodreads');
@@ -388,16 +403,13 @@
         return wishlist.some(b => b.key === bookKey);
     }
 
-    function isInFavorites(bookKey) {
-        return favorites.some(b => b.key === bookKey);
-    }
-
     function isInFinished(bookKey) {
         return finished.some(b => b.key === bookKey);
     }
 
     function toggleWishlist(book) {
-        if (isInWishlist(book.key)) {
+        const wasInWishlist = isInWishlist(book.key);
+        if (wasInWishlist) {
             wishlist = wishlist.filter(b => b.key !== book.key);
             showToast('Đã xóa khỏi danh sách muốn đọc');
         } else {
@@ -406,21 +418,7 @@
         }
         saveToStorage(STORAGE_WISHLIST, wishlist);
         updateCounts();
-    }
-
-    function toggleFavorite(book) {
-        const wasInFavorites = isInFavorites(book.key);
-        if (wasInFavorites) {
-            favorites = favorites.filter(b => b.key !== book.key);
-            showToast('Đã xóa khỏi ưa thích');
-        } else {
-            favorites.push(book);
-            showToast('Đã thêm vào ưa thích');
-        }
-        saveToStorage(STORAGE_FAVORITES, favorites);
-        updateCounts();
-        // Refresh recommendations when favorites change
-        if (!wasInFavorites) loadRecommendations();
+        if (!wasInWishlist) loadRecommendations();
     }
 
     function toggleFinished(book) {
@@ -443,7 +441,6 @@
 
     function updateCounts() {
         wishlistCount.textContent = wishlist.length;
-        favoritesCount.textContent = favorites.length;
         if (finishedCount) {
             finishedCount.textContent = finished.length;
             finishedCount.style.display = finished.length > 0 ? 'inline-block' : 'none';
@@ -1167,7 +1164,6 @@
 
         const coverUrl = getCoverUrl(book);
         const wishlisted = isInWishlist(book.key);
-        const favorited = isInFavorites(book.key);
         const isFinished = isInFinished(book.key);
 
         if (!book.rating && book.key) {
@@ -1217,11 +1213,6 @@
                     <button class="book-action-btn btn-wishlist ${wishlisted ? 'is-wishlisted' : ''}" title="${wishlisted ? 'Bỏ muốn đọc' : 'Muốn đọc'}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </button>
-                    <button class="book-action-btn btn-favorite ${favorited ? 'is-favorited' : ''}" title="${favorited ? 'Bỏ ưa thích' : 'Ưa thích'}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                         </svg>
                     </button>
                     <button class="book-action-btn btn-finished ${isFinished ? 'is-finished' : ''}" title="${isFinished ? 'Bỏ đánh dấu đọc xong' : 'Đánh dấu đã đọc'}">
@@ -1287,13 +1278,6 @@
         card.querySelector('.btn-wishlist').addEventListener('click', (e) => {
             e.stopPropagation();
             toggleWishlist(book);
-            refreshAllViews();
-        });
-
-        // Favorite button
-        card.querySelector('.btn-favorite').addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleFavorite(book);
             refreshAllViews();
         });
 
@@ -1610,14 +1594,10 @@
     function updateModalActions() {
         if (!currentModalBook) return;
         const wishlisted = isInWishlist(currentModalBook.key);
-        const favorited = isInFavorites(currentModalBook.key);
         const isFinishedBook = isInFinished(currentModalBook.key);
 
         modalBtnWishlist.classList.toggle('active', wishlisted);
         modalBtnWishlist.querySelector('span').textContent = wishlisted ? 'Đã thêm' : 'Muốn đọc';
-
-        modalBtnFavorite.classList.toggle('active', favorited);
-        modalBtnFavorite.querySelector('span').textContent = favorited ? 'Đã thích' : 'Ưa thích';
 
         if (modalBtnFinished) {
             modalBtnFinished.classList.toggle('active', isFinishedBook);
@@ -1636,13 +1616,6 @@
     modalBtnWishlist.addEventListener('click', () => {
         if (!currentModalBook) return;
         toggleWishlist(currentModalBook);
-        updateModalActions();
-        refreshAllViews();
-    });
-
-    modalBtnFavorite.addEventListener('click', () => {
-        if (!currentModalBook) return;
-        toggleFavorite(currentModalBook);
         updateModalActions();
         refreshAllViews();
     });
@@ -1993,7 +1966,7 @@
     btnBackFromCategory.addEventListener('click', () => {
         categoryDetailSection.style.display = 'none';
         catalogSectionsContainer.style.display = 'block';
-        if (favorites.length > 0) recommendationsSection.style.display = 'block';
+        if (wishlist.length > 0) recommendationsSection.style.display = 'block';
 
         if (currentActiveCategory) {
             const sec = document.getElementById(`section-${currentActiveCategory.id}`);
@@ -2026,7 +1999,7 @@
         if (targetTab) targetTab.classList.add('active');
 
         // Update tab content
-        [contentExplore, contentWishlist, contentFavorites, contentFinished, contentAudio, contentHistory, contentRecommend].forEach(c => {
+        [contentExplore, contentWishlist, contentFinished, contentAudio, contentHistory, contentRecommend].forEach(c => {
             if (c) c.classList.remove('active');
         });
 
@@ -2035,9 +2008,6 @@
         } else if (tabName === 'wishlist') {
             contentWishlist.classList.add('active');
             renderWishlist();
-        } else if (tabName === 'favorites') {
-            contentFavorites.classList.add('active');
-            renderFavorites();
         } else if (tabName === 'finished') {
             if (contentFinished) contentFinished.classList.add('active');
             renderFinished();
@@ -2060,7 +2030,7 @@
     });
 
     // =========================================
-    // Render Wishlist, Favorites & Finished
+    // Render Wishlist & Finished
     // =========================================
     function renderWishlist() {
         wishlistGrid.innerHTML = '';
@@ -2071,18 +2041,6 @@
         wishlistEmpty.style.display = 'none';
         wishlist.forEach(book => {
             wishlistGrid.appendChild(createBookCard(book));
-        });
-    }
-
-    function renderFavorites() {
-        favoritesGrid.innerHTML = '';
-        if (favorites.length === 0) {
-            favoritesEmpty.style.display = 'flex';
-            return;
-        }
-        favoritesEmpty.style.display = 'none';
-        favorites.forEach(book => {
-            favoritesGrid.appendChild(createBookCard(book));
         });
     }
 
@@ -2107,13 +2065,9 @@
         document.querySelectorAll('.book-card').forEach(card => {
             const key = card.getAttribute('data-key');
             const wBtn = card.querySelector('.btn-wishlist');
-            const fBtn = card.querySelector('.btn-favorite');
             const finBtn = card.querySelector('.btn-finished');
             if (wBtn) {
                 wBtn.classList.toggle('is-wishlisted', isInWishlist(key));
-            }
-            if (fBtn) {
-                fBtn.classList.toggle('is-favorited', isInFavorites(key));
             }
             if (finBtn) {
                 finBtn.classList.toggle('is-finished', isInFinished(key));
@@ -2131,11 +2085,10 @@
             }
         });
 
-        // Re-render if on wishlist, favorites, or finished tab
+        // Re-render if on wishlist or finished tab
         const activeTab = document.querySelector('.tab.active');
         if (activeTab) {
             if (activeTab.dataset.tab === 'wishlist') renderWishlist();
-            if (activeTab.dataset.tab === 'favorites') renderFavorites();
             if (activeTab.dataset.tab === 'finished') renderFinished();
         }
     }
@@ -2544,7 +2497,7 @@
     // Recommendations
     // =========================================
     async function loadRecommendations() {
-        if (favorites.length === 0) {
+        if (wishlist.length === 0) {
             recommendationsSection.style.display = 'none';
             return;
         }
@@ -2553,9 +2506,9 @@
         showSkeletons(recommendationsGrid, 10, true);
 
         try {
-            // Gather subjects from favorites
+            // Gather subjects from wishlist
             const allSubjects = [];
-            favorites.forEach(b => {
+            wishlist.forEach(b => {
                 if (b.subjects) {
                     b.subjects.forEach(s => {
                         const clean = s.toLowerCase().trim();
@@ -2568,7 +2521,6 @@
 
             const allBooks = [];
             const existingKeys = new Set([
-                ...favorites.map(b => b.key),
                 ...wishlist.map(b => b.key),
             ]);
 
@@ -2622,7 +2574,7 @@
         searchResultsSection.style.display = 'none';
         if (categoryDetailSection) categoryDetailSection.style.display = 'none';
         catalogSectionsContainer.style.display = 'block';
-        if (favorites.length > 0) recommendationsSection.style.display = 'block';
+        if (wishlist.length > 0) recommendationsSection.style.display = 'block';
     }
 
     // When clearing search input
@@ -7466,7 +7418,6 @@
     if (window.PlainSync && typeof window.PlainSync.init === 'function') {
         window.PlainSync.init((newData) => {
             wishlist = loadFromStorage(STORAGE_WISHLIST, []);
-            favorites = loadFromStorage(STORAGE_FAVORITES, []);
             finished = loadFromStorage(STORAGE_FINISHED, []);
             if (newData && newData.theme) {
                 applyTheme(newData.theme);
@@ -8249,6 +8200,91 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         };
     }
 
+    // Helper: Extract user's saved books (Wishlist) and audiobooks with listening progress (TasteDive Seeds)
+    function getUserTasteDiveSeeds() {
+        const seeds = [];
+        const seen = new Set();
+
+        // 1. Saved books in Wishlist (now unified with any past favorites)
+        const savedList = Array.isArray(wishlist) ? wishlist : [];
+        savedList.forEach(b => {
+            if (!b) return;
+            const title = (b.titleVi || b.title || '').trim();
+            const norm = title.toLowerCase();
+            if (title && !seen.has(norm)) {
+                seen.add(norm);
+                seeds.push({
+                    title: title,
+                    originalTitle: b.originalTitle || title,
+                    author: b.author || '',
+                    subjects: b.subjects || [],
+                    genre: b.genre || 'all',
+                    source: 'wishlist'
+                });
+            }
+        });
+
+        // 2. Audiobooks with listening progress / bookmarks / active audio
+        try {
+            const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+            const bookmarks = loadFromStorage(STORAGE_AUDIO_BOOKMARKS, []);
+            const notesMap = loadFromStorage(STORAGE_AUDIO_NOTES, {});
+
+            // Active playing book
+            if (currentAudiobook && currentAudiobook.title) {
+                const norm = currentAudiobook.title.trim().toLowerCase();
+                if (!seen.has(norm)) {
+                    seen.add(norm);
+                    seeds.push({
+                        title: currentAudiobook.title.trim(),
+                        originalTitle: currentAudiobook.title.trim(),
+                        author: currentAudiobook.author || '',
+                        source: 'audio_active'
+                    });
+                }
+            }
+            if (typeof ytCurrentItem !== 'undefined' && ytCurrentItem && ytCurrentItem.title) {
+                const norm = ytCurrentItem.title.trim().toLowerCase();
+                if (!seen.has(norm)) {
+                    seen.add(norm);
+                    seeds.push({
+                        title: ytCurrentItem.title.trim(),
+                        originalTitle: ytCurrentItem.title.trim(),
+                        author: ytCurrentItem.author || '',
+                        source: 'audio_active'
+                    });
+                }
+            }
+
+            // Items in progressMap
+            Object.entries(progressMap).forEach(([k, item]) => {
+                if (!item || !item.title) return;
+                const norm = item.title.trim().toLowerCase();
+                if (seen.has(norm)) return;
+                const isBm = bookmarks.some(b => {
+                    const bId = (typeof b === 'string') ? b : (b?.identifier || (b?.videoId ? `yt_${b.videoId}` : null));
+                    return bId === k || bId === item.identifier;
+                });
+                const hasNote = Boolean(notesMap[k] || notesMap[item.identifier]);
+                const hasProg = (item.currentTime && item.currentTime > 3) || (item.percent && item.percent > 0);
+
+                if (hasProg || isBm || hasNote) {
+                    seen.add(norm);
+                    seeds.push({
+                        title: item.title.trim(),
+                        originalTitle: item.title.trim(),
+                        author: item.author || '',
+                        source: 'audio_progress'
+                    });
+                }
+            });
+        } catch (e) {
+            console.warn('Error extracting audio seeds:', e);
+        }
+
+        return seeds;
+    }
+
     // Global recommendation pagination tracking
     let currentRecPage = 1;
     let isRecLoadingMore = false;
@@ -8415,15 +8451,90 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                         `Tác phẩm được hàng triệu độc giả quốc tế bình chọn xuất sắc trong danh mục ${moodInfo.name}.`
                     );
                 } else if (engine === 'similar') {
-                    if (recLoadingText) recLoadingText.textContent = `Đang kết nối mạng lưới sách tương đồng (${moodInfo.name})...`;
-                    liveBatch = await fetchOpenLibraryDiscovery(
-                        moodInfo.similarQ || moodInfo.searchQ,
-                        24,
-                        pageNum,
-                        'similar',
-                        '🎯 TasteDive Tương Đồng',
-                        `Gợi ý theo thuật toán tương quan phong cách viết và tác giả của ${moodInfo.name}.`
-                    );
+                    const userSeeds = getUserTasteDiveSeeds();
+
+                    if (userSeeds.length > 0) {
+                        const seedTitlesList = userSeeds.slice(0, 3).map(s => `"${s.title.split('(')[0].trim()}"`).join(', ');
+                        const extraCount = userSeeds.length > 3 ? ` và ${userSeeds.length - 3} cuốn khác` : '';
+                        insightText = `🎯 TasteDive đã trích xuất gu thưởng thức từ sách bạn đã lưu và tiến trình nghe (${seedTitlesList}${extraCount}) để đề xuất các tác phẩm có phong cách, tư tưởng và chủ đề tương đồng nhất.`;
+                        if (recLoadingText) recLoadingText.textContent = `TasteDive đang tìm sách tương đồng từ bộ sưu tập và tiến trình nghe (${seedTitlesList})...`;
+
+                        let simDbMatches = [];
+                        // Match user's seeds against SEMANTIC_SIMILARITY_GRAPH
+                        let matchedGraphIds = [];
+                        userSeeds.forEach(seed => {
+                            const t = seed.title.toLowerCase();
+                            for (const [keyTitle, ids] of Object.entries(SEMANTIC_SIMILARITY_GRAPH)) {
+                                if (t.includes(keyTitle) || keyTitle.includes(t)) {
+                                    ids.forEach(id => {
+                                        if (!matchedGraphIds.includes(id)) matchedGraphIds.push(id);
+                                    });
+                                }
+                            }
+                        });
+
+                        // Filter matched database books (exclude the seed books themselves)
+                        simDbMatches = RECOMMENDATION_DATABASE.filter(b => 
+                            matchedGraphIds.includes(b.id) &&
+                            !userSeeds.some(s => s.title.toLowerCase().includes(b.title.toLowerCase()) || b.title.toLowerCase().includes(s.title.toLowerCase()))
+                        );
+
+                        if (mood !== 'all') {
+                            simDbMatches = simDbMatches.filter(b => b.genre === mood);
+                        }
+
+                        // Live AI enhancement if Gemini key is available on page 1
+                        let liveAiSimilar = [];
+                        if (pageNum === 1 && savedApiKey) {
+                            try {
+                                const seedListStr = userSeeds.slice(0, 5).map(s => `"${s.title}"${s.author ? ` (${s.author})` : ''}`).join('; ');
+                                const aiData = await fetchLiveGeminiRecommendations(`Top sách hay nhất tương đồng với các cuốn sách tôi đã lưu và đang nghe: ${seedListStr}`, savedApiKey);
+                                if (aiData && aiData.books && aiData.books.length > 0) {
+                                    liveAiSimilar = aiData.books;
+                                    if (aiData.analysis) insightText = aiData.analysis;
+                                }
+                            } catch (err) {
+                                console.warn('TasteDive Live Gemini AI error:', err);
+                            }
+                        }
+
+                        // Cycle through user seeds across pages for diverse similar discovery
+                        const activeSeed = userSeeds[(pageNum - 1) % userSeeds.length];
+                        const cleanAuthor = (activeSeed.author && activeSeed.author !== 'Nhiều tác giả' && activeSeed.author !== 'Tác giả') ? activeSeed.author.split(',')[0].trim() : '';
+                        const cleanTitle = (activeSeed.originalTitle || activeSeed.title).split('(')[0].replace(/[:–-].*$/, '').trim();
+
+                        let queryForOl = cleanAuthor && cleanAuthor.length > 2 ? cleanAuthor : cleanTitle;
+                        if (!queryForOl || queryForOl.length < 3) {
+                            queryForOl = moodInfo.similarQ || moodInfo.searchQ;
+                        }
+
+                        const olBatch = await fetchOpenLibraryDiscovery(
+                            queryForOl,
+                            24,
+                            pageNum,
+                            'similar',
+                            '🎯 TasteDive Tương Tự',
+                            `Tác phẩm có phong cách và tư tưởng tương đồng với cuốn "${activeSeed.title}" trong danh sách của bạn.`
+                        );
+
+                        if (pageNum === 1) {
+                            liveBatch = [...liveAiSimilar, ...simDbMatches, ...olBatch];
+                        } else {
+                            liveBatch = olBatch;
+                        }
+                    } else {
+                        // Friendly fallback when user has no saved books and no listening progress yet
+                        insightText = `🎯 TasteDive: Bạn chưa có cuốn sách nào trong danh mục "Muốn đọc" hoặc tiến trình nghe sách nói. Hãy bấm lưu các cuốn sách bạn thích hoặc nghe một cuốn sách nói để TasteDive trích xuất gu cá nhân hóa cho bạn nhé! Dưới đây là các tác phẩm được bạn đọc thế giới yêu thích nhất.`;
+                        if (recLoadingText) recLoadingText.textContent = `Đang kết nối mạng lưới sách tương đồng (${moodInfo.name})...`;
+                        liveBatch = await fetchOpenLibraryDiscovery(
+                            moodInfo.similarQ || moodInfo.searchQ,
+                            24,
+                            pageNum,
+                            'similar',
+                            '🎯 TasteDive Tương Đồng',
+                            `Gợi ý theo thuật toán tương quan phong cách viết và tác giả của ${moodInfo.name}.`
+                        );
+                    }
                 } else if (engine === 'ai') {
                     if (pageNum === 1 && savedApiKey) {
                         if (recLoadingText) recLoadingText.textContent = 'Trợ lý Gemini AI đang tuyển chọn danh mục sách hay nhất...';
@@ -8824,7 +8935,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                         'all': '🌟 Tuyển tập Đề xuất Tổng hợp (AI & Đa Nguồn)',
                         'ai': queryToRun ? `🤖 Đề xuất Trợ lý AI cho: "${escapeHtml(queryToRun)}"` : '🤖 Tuyển tập do Trợ lý AI Tuyển Chọn',
                         'google': '📚 Tuyển tập Sách Nổi Bật từ Google Books',
-                        'similar': '🎯 Mạng lưới Đề xuất Sách Tương Tự (TasteDive)',
+                        'similar': '🎯 Sách Tương Tự từ Tủ Sách & Tiến Trình Nghe (TasteDive)',
                         'community': '👥 Tuyển tập Độc Giả Bình Chọn Top 1% (Hardcover)'
                     };
                     const titleEl = document.getElementById('recResultsTitle');

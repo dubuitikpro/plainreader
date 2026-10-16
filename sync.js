@@ -38,11 +38,24 @@
             } catch { return def; }
         };
 
+        const savedWishlist = parse(STORAGE_WISHLIST, []);
+        const savedFavs = parse(STORAGE_FAVORITES, []);
+        // Automatically merge any leftover favorites into wishlist
+        if (Array.isArray(savedFavs) && savedFavs.length > 0) {
+            savedFavs.forEach(fb => {
+                if (!fb) return;
+                const exists = savedWishlist.some(wb => wb && (wb.key === fb.key || (wb.title && fb.title && wb.title.toLowerCase().trim() === fb.title.toLowerCase().trim())));
+                if (!exists) savedWishlist.push(fb);
+            });
+            localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(savedWishlist));
+            localStorage.removeItem(STORAGE_FAVORITES);
+        }
+
         return {
             version: 1,
             lastUpdated: parseInt(localStorage.getItem(STORAGE_LAST_UPDATED) || '0', 10) || Date.now(),
-            wishlist: parse(STORAGE_WISHLIST, []),
-            favorites: parse(STORAGE_FAVORITES, []),
+            wishlist: savedWishlist,
+            favorites: [],
             finished: parse(STORAGE_FINISHED, []),
             audioProgress: parse(STORAGE_AUDIO_PROGRESS, {}),
             audioBookmarks: parse(STORAGE_AUDIO_BOOKMARKS, []),
@@ -67,8 +80,19 @@
                         }
                     });
                 }
+                // Merge remote favorites into wishlist if present
+                if (data.favorites && Array.isArray(data.favorites) && data.favorites.length > 0) {
+                    const curW = data.wishlist || parse(STORAGE_WISHLIST, []);
+                    data.favorites.forEach(fb => {
+                        if (!fb) return;
+                        const exists = curW.some(wb => wb && (wb.key === fb.key || (wb.title && fb.title && wb.title.toLowerCase().trim() === fb.title.toLowerCase().trim())));
+                        if (!exists) curW.push(fb);
+                    });
+                    data.wishlist = curW;
+                    data.favorites = [];
+                    localStorage.removeItem(STORAGE_FAVORITES);
+                }
                 if (data.wishlist) localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(data.wishlist));
-                if (data.favorites) localStorage.setItem(STORAGE_FAVORITES, JSON.stringify(data.favorites));
                 if (data.finished) localStorage.setItem(STORAGE_FINISHED, JSON.stringify(data.finished));
                 if (data.audioProgress) localStorage.setItem(STORAGE_AUDIO_PROGRESS, JSON.stringify(data.audioProgress));
                 if (data.audioBookmarks) localStorage.setItem(STORAGE_AUDIO_BOOKMARKS, JSON.stringify(data.audioBookmarks));
