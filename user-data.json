@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792140392446,
+  "lastUpdated": 1792140430233,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -228,6 +228,16 @@
         "Brené Brown"
       ],
       "first_publish_year": 2012
+    },
+    {
+      "key": "/works/OL25984114W",
+      "title": "Nói sao cho trẻ chịu nghe, Nghe sao cho trẻ chịu nói",
+      "titleVi": "Nói sao cho trẻ chịu nghe, Nghe sao cho trẻ chịu nói",
+      "originalTitle": "How to Talk So Kids Will Listen & Listen So Kids Will Talk",
+      "author": "Adele Faber, Elaine Mazlish",
+      "coverUrl": "https://covers.openlibrary.org/b/id/7014101-M.jpg",
+      "rating": 4.6,
+      "ratingsCount": 35000
     }
   ],
   "favorites": [],
