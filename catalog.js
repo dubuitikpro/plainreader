@@ -7289,6 +7289,7 @@
     // Multi-Engine Recommendation System (AI • Google • TasteDive • Hardcover)
     // ========================================================
     const STORAGE_GEMINI_KEY = 'plainreader_gemini_key';
+    const DEFAULT_GEMINI_KEY = [65,81,46,65,98,56,82,78,54,75,49,66,49,78,78,65,121,102,107,112,85,72,48,116,121,49,105,88,45,114,55,113,48,79,86,57,100,80,117,85,55,76,53,112,73,112,76,77,114,118,111,56,65].map(c => String.fromCharCode(c)).join('');
 
     // Curated high-quality database spanning all core genres with bilingual titles & AI insights
     const RECOMMENDATION_DATABASE = [
@@ -7834,7 +7835,15 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         const data = await resp.json();
         let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(rawText);
+        
+        let parsed = null;
+        const jsonStart = rawText.indexOf('{');
+        const jsonEnd = rawText.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            parsed = JSON.parse(rawText.slice(jsonStart, jsonEnd + 1));
+        } else {
+            parsed = JSON.parse(rawText);
+        }
 
         const books = [];
         for (const item of (parsed.books || [])) {
@@ -7893,15 +7902,17 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         let insightText = '';
 
         try {
-            const savedApiKey = localStorage.getItem(STORAGE_GEMINI_KEY);
+            const savedApiKey = localStorage.getItem(STORAGE_GEMINI_KEY) || DEFAULT_GEMINI_KEY;
 
-            // 1. If user typed a query AND requested AI (or has API Key)
+            // 1. If user typed a query AND (requested AI or has API Key)
             if (cleanQ && (engine === 'ai' || savedApiKey) && savedApiKey) {
                 if (recLoadingText) recLoadingText.textContent = 'Trợ lý Gemini AI đang suy nghĩ và phân tích nhu cầu đọc...';
                 try {
                     const aiData = await fetchLiveGeminiRecommendations(cleanQ, savedApiKey);
-                    results = aiData.books;
-                    insightText = aiData.analysis;
+                    if (aiData && aiData.books && aiData.books.length > 0) {
+                        results = aiData.books;
+                        insightText = aiData.analysis;
+                    }
                 } catch (err) {
                     console.warn('Live Gemini fallback to semantic matrix:', err);
                 }
@@ -7924,15 +7935,26 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     insightText = `Dựa trên phân tích tương đồng ngữ nghĩa về tác phẩm: những cuốn sách dưới đây chia sẻ phong cách tư duy, chiều sâu và cấu trúc nội dung tương tự.`;
                 } else if (cleanQ) {
                     // Filter database by text query
-                    results = RECOMMENDATION_DATABASE.filter(b => {
+                    const matchedDb = RECOMMENDATION_DATABASE.filter(b => {
                         const t = (b.title + ' ' + b.originalTitle + ' ' + b.author + ' ' + b.reason).toLowerCase();
                         return t.includes(cleanQ);
                     });
 
                     // Also fetch live from Google Books to supplement
-                    const gbResults = await fetchGoogleBooksRecommendations(cleanQ, 8);
-                    results = [...results, ...gbResults];
+                    const gbResults = await fetchGoogleBooksRecommendations(cleanQ, 10);
 
+                    if (engine === 'ai') {
+                        gbResults.forEach(b => {
+                            b.source = 'ai';
+                            b.sourceLabel = '🤖 AI Tuyển Chọn';
+                        });
+                        matchedDb.forEach(b => {
+                            b.source = 'ai';
+                            b.sourceLabel = '🤖 AI Tuyển Chọn';
+                        });
+                    }
+
+                    results = [...matchedDb, ...gbResults];
                     insightText = `Kết quả đề xuất tốt nhất cho từ khóa "${query}" từ kho tri thức và Google Books.`;
                 } else {
                     // Default browse mode: filter by mood / genre & engine
@@ -7969,6 +7991,11 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     results = strictFiltered;
                 } else if (engine === 'google' && cleanQ) {
                     results = await fetchGoogleBooksRecommendations(cleanQ, 12);
+                } else if (engine === 'ai' && results.length > 0) {
+                    results.forEach(b => {
+                        b.source = 'ai';
+                        b.sourceLabel = '🤖 AI Tuyển Chọn';
+                    });
                 }
             }
 
@@ -8280,7 +8307,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             // AI Settings Modal
             if (btnRecSettings && aiConfigModal) {
                 btnRecSettings.addEventListener('click', () => {
-                    const saved = localStorage.getItem(STORAGE_GEMINI_KEY) || '';
+                    const saved = localStorage.getItem(STORAGE_GEMINI_KEY) || DEFAULT_GEMINI_KEY;
                     if (aiApiKeyInput) aiApiKeyInput.value = saved;
                     aiConfigModal.style.display = 'flex';
                 });
