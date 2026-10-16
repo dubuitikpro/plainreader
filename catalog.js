@@ -903,6 +903,83 @@
         return null;
     }
 
+    // High-end stylized book cover SVG generator for books without an image
+    function generateStylizedBookCoverSvg(title, author) {
+        const safeTitle = (title || 'Sách').trim();
+        const safeAuthor = (author || 'Tác giả').trim();
+        
+        const palettes = [
+            { bg1: '#1e1b4b', bg2: '#312e81', accent: '#a5b4fc', text: '#ffffff', tag: '#6366f1' },
+            { bg1: '#064e3b', bg2: '#065f46', accent: '#6ee7b7', text: '#ffffff', tag: '#10b981' },
+            { bg1: '#4c0519', bg2: '#831843', accent: '#fbcfe8', text: '#ffffff', tag: '#f43f5e' },
+            { bg1: '#78350f', bg2: '#92400e', accent: '#fde68a', text: '#ffffff', tag: '#f59e0b' },
+            { bg1: '#0f172a', bg2: '#1e293b', accent: '#93c5fd', text: '#ffffff', tag: '#3b82f6' },
+            { bg1: '#3b0764', bg2: '#581c87', accent: '#e9d5ff', text: '#ffffff', tag: '#a855f7' },
+        ];
+        let hash = 0;
+        for (let i = 0; i < safeTitle.length; i++) {
+            hash = (hash << 5) - hash + safeTitle.charCodeAt(i);
+            hash |= 0;
+        }
+        const pal = palettes[Math.abs(hash) % palettes.length];
+        
+        const words = safeTitle.split(/\s+/);
+        const lines = [];
+        let curLine = '';
+        for (const w of words) {
+            if ((curLine + ' ' + w).trim().length <= 15) {
+                curLine = (curLine + ' ' + w).trim();
+            } else {
+                if (curLine) lines.push(curLine);
+                curLine = w;
+                if (lines.length >= 3) break;
+            }
+        }
+        if (curLine && lines.length < 3) lines.push(curLine);
+        if (lines.length === 0) lines.push(safeTitle.substring(0, 18));
+        
+        const titleTspans = lines.map((l, idx) => 
+            `<tspan x="100" dy="${idx === 0 ? 0 : 22}">${escapeHtml(l)}</tspan>`
+        ).join('');
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="covGrad_${Math.abs(hash)}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${pal.bg1}"/>
+      <stop offset="100%" stop-color="${pal.bg2}"/>
+    </linearGradient>
+    <linearGradient id="spineHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="4%" stop-color="rgba(0,0,0,0.3)"/>
+      <stop offset="8%" stop-color="rgba(255,255,255,0.1)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="300" rx="6" fill="url(#covGrad_${Math.abs(hash)})"/>
+  <rect x="12" y="12" width="176" height="276" rx="4" fill="none" stroke="${pal.accent}" stroke-width="1.2" stroke-opacity="0.35"/>
+  <rect x="15" y="15" width="170" height="270" rx="3" fill="none" stroke="${pal.accent}" stroke-width="0.6" stroke-opacity="0.2"/>
+  <rect width="18" height="300" fill="url(#spineHighlight)"/>
+  <g transform="translate(86, 42)">
+    <circle cx="14" cy="14" r="15" fill="${pal.tag}" fill-opacity="0.25"/>
+    <path d="M7 10h14v10H7z" fill="none" stroke="${pal.accent}" stroke-width="1.5"/>
+    <path d="M14 10v10" stroke="${pal.accent}" stroke-width="1.2"/>
+    <path d="M7 10l7-2 7 2" fill="none" stroke="${pal.accent}" stroke-width="1.5"/>
+  </g>
+  <text x="100" y="115" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="${pal.text}">
+    ${titleTspans}
+  </text>
+  <line x1="60" y1="210" x2="140" y2="210" stroke="${pal.accent}" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="100" y="235" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="500" fill="${pal.accent}" opacity="0.95">
+    ${escapeHtml(safeAuthor.length > 22 ? safeAuthor.substring(0, 20) + '...' : safeAuthor)}
+  </text>
+  <text x="100" y="268" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="600" fill="${pal.text}" opacity="0.45" letter-spacing="1.5">
+    PLAINREADER CLASSICS
+  </text>
+</svg>`.trim();
+
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
     // =========================================
     // API Calls
     // =========================================
@@ -1108,8 +1185,8 @@
         card.innerHTML = `
             <div class="book-cover-wrapper">
                 ${coverUrl
-                    ? `<img class="book-cover" src="${coverUrl}" alt="${escapeHtml(displayTitle)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'book-cover-placeholder\\'>${escapeHtml(displayTitle)}</div>'">`
-                    : `<div class="book-cover-placeholder">${escapeHtml(displayTitle)}</div>`
+                    ? `<img class="book-cover" src="${coverUrl}" alt="${escapeHtml(displayTitle)}" loading="lazy" onerror="this.onerror=null;this.src='${generateStylizedBookCoverSvg(displayTitle, book.author)}';">`
+                    : `<img class="book-cover" src="${generateStylizedBookCoverSvg(displayTitle, book.author)}" alt="${escapeHtml(displayTitle)}" loading="lazy">`
                 }
                 <div class="book-actions">
                     <button class="book-action-btn btn-wishlist ${wishlisted ? 'is-wishlisted' : ''}" title="${wishlisted ? 'Bỏ muốn đọc' : 'Muốn đọc'}">
@@ -1231,30 +1308,58 @@
         return div.innerHTML;
     }
 
+    // Real-time on-demand AI summary fetcher for books with missing descriptions
+    async function fetchBookSummaryFromGemini(title, originalTitle, author, apiKey) {
+        if (!apiKey) return null;
+        const bookName = originalTitle && originalTitle.toLowerCase() !== title.toLowerCase() 
+            ? `${title} (${originalTitle})` 
+            : title;
+        const prompt = `Bạn là chuyên gia sách PlainReader. Hãy phân tích và tóm tắt ngắn gọn 2-3 câu về nội dung cốt lõi, giá trị tri thức và bài học lớn nhất của cuốn sách "${bookName}" của tác giả ${author || ''}. Trả về tiếng Việt tự nhiên, súc tích, truyền cảm hứng, không dùng markdown.`;
+        const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
+        for (const model of candidateModels) {
+            try {
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
+                    })
+                });
+                if (r.ok) {
+                    const data = await r.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text && text.trim()) return text.trim();
+                }
+            } catch (e) {}
+        }
+        return null;
+    }
+
     // =========================================
     // Book Modal
     // =========================================
     async function openBookModal(book) {
         currentModalBook = book;
 
-        // Set initial data
-        const coverUrl = getCoverUrl(book, 'L') || getCoverUrl(book, 'M');
-        if (coverUrl) {
-            modalCover.src = coverUrl;
-            modalCover.onerror = () => {
-                modalCover.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect fill="%2312121a" width="200" height="300"/><text fill="%235a5a6e" x="100" y="150" text-anchor="middle" font-size="14">No Cover</text></svg>';
-            };
-        } else {
-            modalCover.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect fill="%2312121a" width="200" height="300"/><text fill="%235a5a6e" x="100" y="150" text-anchor="middle" font-size="14">No Cover</text></svg>';
-        }
-
-        const displayTitle = book.titleVi || book.title;
-        modalTitle.textContent = displayTitle;
-
-        // Original Title
+        const displayTitle = book.titleVi || book.title || 'Tác phẩm';
         const originalTitle = (book.originalTitle && book.originalTitle.toLowerCase() !== displayTitle.toLowerCase())
             ? book.originalTitle
             : (book.titleVi ? book.title : '');
+
+        // Set initial cover data with high-end stylized SVG fallback
+        const coverUrl = getCoverUrl(book, 'L') || getCoverUrl(book, 'M') || book.coverUrl;
+        const fallbackCover = generateStylizedBookCoverSvg(displayTitle, book.author);
+        if (coverUrl) {
+            modalCover.src = coverUrl;
+            modalCover.onerror = () => {
+                modalCover.src = fallbackCover;
+            };
+        } else {
+            modalCover.src = fallbackCover;
+        }
+
+        modalTitle.textContent = displayTitle;
 
         if (originalTitle && originalTitle.toLowerCase() !== displayTitle.toLowerCase()) {
             modalOriginalTitle.style.display = 'inline-flex';
@@ -1263,7 +1368,7 @@
             modalOriginalTitle.style.display = 'none';
         }
 
-        modalAuthor.textContent = book.author;
+        modalAuthor.textContent = book.author || 'Tác giả';
 
         // Rating in modal
         if (modalRatingBadge) {
@@ -1312,7 +1417,7 @@
             }).catch(() => {});
         }
 
-        modalDescription.textContent = 'Đang tải và dịch mô tả...';
+        modalDescription.textContent = 'Đang tải thông tin mô tả tác phẩm...';
         btnToggleOrigDesc.style.display = 'none';
         modalOriginalDescBox.style.display = 'none';
         modalOriginalDescription.textContent = '';
@@ -1321,8 +1426,11 @@
         // Actions
         updateModalActions();
 
-        // Open Library link
-        const olUrl = `${OL_BASE}${book.key}`;
+        // Open Library link (use real OL work page if OLID exists, else search)
+        const isRealOlKey = book.key && book.key.startsWith('/works/OL');
+        const olUrl = isRealOlKey
+            ? `${OL_BASE}${book.key}`
+            : `https://openlibrary.org/search?q=${encodeURIComponent((originalTitle || displayTitle) + ' ' + (book.author || ''))}`;
         modalBtnOpenLibrary.href = olUrl;
 
         // Anna's Archive search link (using working .gl mirror and ?q=...&check=1 syntax)
@@ -1361,14 +1469,26 @@
             updateModalSimilarBooks(book);
         }
 
-        // Fetch detailed info
+        // Fetch detailed info with Multi-tier resilience
         try {
-            const details = await fetchBookDetails(book.key);
             let rawDesc = '';
-            if (details.description) {
-                rawDesc = typeof details.description === 'string'
-                    ? details.description
-                    : (details.description.value || '');
+            let subjects = book.subjects || [];
+
+            // Tier 1: Try Open Library Work Details if real work key exists
+            if (isRealOlKey) {
+                try {
+                    const details = await fetchBookDetails(book.key);
+                    if (details.description) {
+                        rawDesc = typeof details.description === 'string'
+                            ? details.description
+                            : (details.description.value || '');
+                    }
+                    if (details.subjects && details.subjects.length > 0) {
+                        subjects = details.subjects;
+                    }
+                } catch (e) {
+                    console.warn('Open Library work details fetch error:', e);
+                }
             }
 
             if (rawDesc && rawDesc.trim()) {
@@ -1388,24 +1508,47 @@
                 } else {
                     btnToggleOrigDesc.style.display = 'none';
                 }
-            } else {
-                modalDescription.textContent = 'Không có mô tả cho tác phẩm này.';
+            } else if (book.summary || book.description || book.reason) {
+                // Tier 2: Rich AI Summary / Book Description / Reason
+                let descHtml = '';
+                const mainDesc = book.summary || book.description;
+                if (mainDesc) {
+                    descHtml += `<div class="modal-ai-desc" style="line-height: 1.65; margin-bottom: 12px; font-size: 0.95rem;">${escapeHtml(mainDesc)}</div>`;
+                }
+                if (book.reason && (!mainDesc || !mainDesc.includes(book.reason))) {
+                    descHtml += `<div class="modal-ai-reason" style="background: rgba(99, 102, 241, 0.08); border-left: 3px solid #6366f1; padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; color: #4338ca; line-height: 1.5; margin-top: 8px;">💡 <strong>Lý do gợi ý:</strong> ${escapeHtml(book.reason)}</div>`;
+                }
+                modalDescription.innerHTML = descHtml;
                 btnToggleOrigDesc.style.display = 'none';
+            } else {
+                // Tier 3: Fetch on-demand summary via Gemini if API key is present!
+                const apiKey = localStorage.getItem(STORAGE_GEMINI_KEY) || DEFAULT_GEMINI_KEY;
+                if (apiKey) {
+                    modalDescription.textContent = 'Trợ lý AI đang tra cứu và tổng hợp tóm tắt tác phẩm...';
+                    fetchBookSummaryFromGemini(displayTitle, originalTitle, book.author, apiKey).then(aiSummary => {
+                        if (currentModalBook === book && aiSummary) {
+                            modalDescription.innerHTML = `<div style="line-height: 1.65; font-size: 0.95rem;">${escapeHtml(aiSummary)}</div>`;
+                        }
+                    }).catch(() => {
+                        if (currentModalBook === book) {
+                            modalDescription.textContent = 'Tác phẩm tuyển chọn nổi bật. Bạn có thể tra cứu chi tiết hoặc tìm file tải sách qua các nút liên kết bên dưới.';
+                        }
+                    });
+                } else {
+                    modalDescription.textContent = 'Tác phẩm tuyển chọn nổi bật. Bạn có thể tra cứu chi tiết hoặc tìm file tải sách qua các nút liên kết bên dưới.';
+                    btnToggleOrigDesc.style.display = 'none';
+                }
             }
 
-            if (details.subjects && details.subjects.length > 0) {
-                modalSubjects.innerHTML = details.subjects.slice(0, 8).map(s =>
+            if (subjects && subjects.length > 0) {
+                modalSubjects.innerHTML = subjects.slice(0, 8).map(s =>
                     `<span class="subject-tag">${escapeHtml(s)}</span>`
                 ).join('');
             }
-        } catch {
-            modalDescription.textContent = 'Không thể tải mô tả tác phẩm.';
+        } catch (err) {
+            console.error('Modal detail error:', err);
+            modalDescription.textContent = book.summary || book.reason || 'Tác phẩm tuyển chọn nổi bật.';
             btnToggleOrigDesc.style.display = 'none';
-            if (book.subjects && book.subjects.length > 0) {
-                modalSubjects.innerHTML = book.subjects.map(s =>
-                    `<span class="subject-tag">${escapeHtml(s)}</span>`
-                ).join('');
-            }
         }
     }
 
@@ -7790,15 +7933,24 @@
         });
     }
 
-    // Live Gemini AI Recommendations Fetcher
+    // Live Gemini AI Recommendations Fetcher with Deep Metadata & Open Library Enrichment
     async function fetchLiveGeminiRecommendations(userQuery, apiKey) {
         const prompt = `Bạn là chuyên gia cố vấn sách PlainReader. Hãy phân tích nhu cầu: "${userQuery}".
-Gợi ý đúng 6 cuốn sách hay nhất (ưu tiên sách đã có bản tiếng Việt).
+Gợi ý đúng 6 cuốn sách kinh điển và có chiều sâu nhất thế giới (ưu tiên đã có bản dịch tiếng Việt).
 Trả về duy nhất định dạng JSON thuần không có markdown code block như sau:
 {
-  "analysis": "2 câu phân tích ngắn gọn lý do vì sao nhóm sách này phù hợp với nhu cầu",
+  "analysis": "2-3 câu phân tích ngắn gọn lý do vì sao nhóm sách này phù hợp nhất với nhu cầu của bạn",
   "books": [
-    { "title": "Tên sách", "author": "Tác giả", "reason": "1 câu ngắn lý do nên đọc" }
+    {
+      "title": "Tên sách tiếng Việt hoặc tên xuất bản tại Việt Nam",
+      "originalTitle": "Tên gốc tiếng Anh của tác phẩm để tra cứu quốc tế",
+      "author": "Tác giả",
+      "year": 2003,
+      "rating": 4.6,
+      "ratingsCount": 75000,
+      "summary": "Tóm tắt chi tiết 3-4 câu về nội dung cốt lõi và bài học thực tiễn của cuốn sách",
+      "reason": "1-2 câu lý do cụ thể nên đọc cuốn sách này"
+    }
   ]
 }`;
 
@@ -7814,7 +7966,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 2500 }
                     })
                 });
                 if (r.ok) {
@@ -7845,43 +7997,97 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             parsed = JSON.parse(rawText);
         }
 
-        const books = [];
-        for (const item of (parsed.books || [])) {
-            // Find book in our database or query Google Books for thumbnail
-            const matchedDb = RECOMMENDATION_DATABASE.find(b => b.title.toLowerCase().includes(item.title.toLowerCase()) || item.title.toLowerCase().includes(b.title.toLowerCase()));
-            let coverUrl = matchedDb ? matchedDb.coverUrl : null;
-            let rating = matchedDb ? matchedDb.rating : 4.7;
-            let ratingsCount = matchedDb ? matchedDb.ratingsCount : 85000;
-            let audioId = matchedDb ? matchedDb.audioIdentifier : null;
+        // Parallel Open Library & Database enrichment for covers, ratings, real OLID keys
+        const enrichmentPromises = (parsed.books || []).map(async (item) => {
+            // 1. Check local DB
+            const matchedDb = RECOMMENDATION_DATABASE.find(b => 
+                (b.title && b.title.toLowerCase().includes(item.title.toLowerCase())) || 
+                (item.title && item.title.toLowerCase().includes(b.title.toLowerCase())) ||
+                (b.originalTitle && item.originalTitle && b.originalTitle.toLowerCase() === item.originalTitle.toLowerCase())
+            );
 
-            if (!coverUrl) {
-                // Quick lookup Google Books for thumbnail
-                const gb = await fetchGoogleBooksRecommendations(item.title, 1);
-                if (gb && gb[0]) {
-                    coverUrl = gb[0].coverUrl;
-                    if (gb[0].rating) rating = gb[0].rating;
-                    if (gb[0].ratingsCount) ratingsCount = gb[0].ratingsCount;
-                    if (gb[0].audioIdentifier) audioId = gb[0].audioIdentifier;
+            let coverUrl = matchedDb ? matchedDb.coverUrl : null;
+            let rating = matchedDb ? matchedDb.rating : (Number(item.rating) || 4.7);
+            let ratingsCount = matchedDb ? matchedDb.ratingsCount : (Number(item.ratingsCount) || 65000);
+            let audioId = matchedDb ? matchedDb.audioIdentifier : null;
+            let workKey = matchedDb ? matchedDb.key : null;
+            let subjects = item.subjects || (matchedDb ? matchedDb.subjects : ['Phát triển bản thân', 'Tâm lý học']);
+
+            // 2. Open Library Search Enrichment (Fast, highly accurate for covers & real OL work key)
+            if (!coverUrl || !workKey) {
+                try {
+                    const searchQ = (item.originalTitle || item.title) + ' ' + (item.author || '');
+                    const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(searchQ.trim())}&limit=1&fields=key,title,author_name,cover_i,cover_edition_key,first_publish_year,ratings_average,ratings_count,subject`;
+                    const olResp = await fetch(olUrl);
+                    if (olResp.ok) {
+                        const olData = await olResp.json();
+                        const doc = olData.docs && olData.docs[0];
+                        if (doc) {
+                            if (!workKey && doc.key) workKey = doc.key;
+                            if (!coverUrl) {
+                                if (doc.cover_i) {
+                                    coverUrl = `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`;
+                                } else if (doc.cover_edition_key) {
+                                    coverUrl = `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-M.jpg`;
+                                }
+                            }
+                            if (doc.ratings_average) rating = Number(doc.ratings_average.toFixed(1));
+                            if (doc.ratings_count) ratingsCount = doc.ratings_count;
+                            if (doc.subject && doc.subject.length > 0) subjects = doc.subject.slice(0, 6);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Open Library live enrichment error:', e);
                 }
             }
 
-            books.push({
+            // 3. Fallback to Google Books if cover still missing
+            if (!coverUrl) {
+                try {
+                    const gb = await fetchGoogleBooksRecommendations(item.title, 1);
+                    if (gb && gb[0] && gb[0].coverUrl) {
+                        coverUrl = gb[0].coverUrl;
+                        if (!workKey) workKey = gb[0].key;
+                        if (gb[0].rating) rating = gb[0].rating;
+                        if (gb[0].ratingsCount) ratingsCount = gb[0].ratingsCount;
+                        if (gb[0].audioIdentifier) audioId = gb[0].audioIdentifier;
+                    }
+                } catch (e) {}
+            }
+
+            // 4. Stylized SVG cover fallback so card never looks empty
+            if (!coverUrl) {
+                coverUrl = generateStylizedBookCoverSvg(item.title, item.author);
+            }
+
+            // Match audiobook if available
+            if (!audioId) {
+                const audioMatch = findMatchingAudiobookInCatalog(item.title);
+                if (audioMatch) audioId = audioMatch.identifier;
+            }
+
+            return {
                 id: 'ai_' + Math.random().toString(36).substring(2),
                 title: item.title,
-                originalTitle: item.title,
+                originalTitle: item.originalTitle || item.title,
                 author: item.author || 'Tác giả',
-                year: matchedDb ? matchedDb.year : '2022',
+                year: item.year || (matchedDb ? matchedDb.year : '2022'),
                 rating: rating,
                 ratingsCount: ratingsCount,
                 genre: 'all',
                 source: 'ai',
                 sourceLabel: '🤖 Gemini AI Trực Tiếp',
                 coverUrl: coverUrl,
+                summary: item.summary || item.reason || '',
+                description: item.summary || item.reason || '',
                 reason: item.reason || 'Trợ lý AI phân tích và đề xuất riêng cho bạn.',
-                key: '/works/' + encodeURIComponent(item.title),
+                key: workKey || ('/works/' + encodeURIComponent(item.originalTitle || item.title)),
+                subjects: subjects,
                 audioIdentifier: audioId
-            });
-        }
+            };
+        });
+
+        const books = await Promise.all(enrichmentPromises);
 
         return {
             analysis: parsed.analysis || 'Trợ lý AI đã phân tích sở thích của bạn và chọn lọc những tựa sách giá trị nhất.',
@@ -8063,8 +8269,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 <div class="rec-card-cover-wrap">
                     <span class="rec-source-tag ${sourceClass}">${book.sourceLabel || '✨ Đề xuất'}</span>
                     ${book.coverUrl
-                        ? `<img class="rec-card-cover" src="${book.coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'rec-card-placeholder\\'>${escapeHtml(book.title)}</div>'">`
-                        : `<div class="rec-card-placeholder">${escapeHtml(book.title)}</div>`
+                        ? `<img class="rec-card-cover" src="${book.coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.onerror=null;this.src='${generateStylizedBookCoverSvg(book.title, book.author)}';">`
+                        : `<img class="rec-card-cover" src="${generateStylizedBookCoverSvg(book.title, book.author)}" alt="${escapeHtml(book.title)}" loading="lazy">`
                     }
                     <div class="rec-rating-badge">
                         <span>★</span>
@@ -8093,7 +8299,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
 
             const openDetail = () => {
                 openBookModal({
-                    key: book.key || '/works/' + encodeURIComponent(book.title),
+                    ...book,
+                    key: book.key || '/works/' + encodeURIComponent(book.originalTitle || book.title),
                     title: book.title,
                     titleVi: book.title,
                     originalTitle: book.originalTitle,
@@ -8103,7 +8310,10 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     rating: book.rating,
                     ratingsCount: book.ratingsCount,
                     coverUrl: book.coverUrl,
-                    coverId: null
+                    summary: book.summary,
+                    description: book.description || book.summary,
+                    reason: book.reason,
+                    subjects: book.subjects
                 });
             };
 
