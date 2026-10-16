@@ -3054,6 +3054,16 @@
         return currentAudiobook ? currentAudiobook.title : '';
     }
 
+    function isSameAudioIdentifier(id1, id2) {
+        if (!id1 || !id2) return false;
+        const clean1 = String(id1).trim().toLowerCase();
+        const clean2 = String(id2).trim().toLowerCase();
+        if (clean1 === clean2) return true;
+        const strip1 = clean1.replace(/^yt_/, '');
+        const strip2 = clean2.replace(/^yt_/, '');
+        return strip1 === strip2;
+    }
+
     // =========================================
     // Goodreads Smart Search Link Helper
     // =========================================
@@ -3499,7 +3509,18 @@
 
         const btnResume = section.querySelector('#btnContinueResume');
         if (btnResume) {
-            btnResume.addEventListener('click', () => {
+            btnResume.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const activeId = getActiveSessionIdentifier();
+                if (isSameAudioIdentifier(activeId, p.identifier) || (p.videoId && isSameAudioIdentifier(activeId, `yt_${p.videoId}`))) {
+                    if (isViewingPreview) {
+                        restoreActiveAudiobookModal();
+                    } else {
+                        openAudioPlayerModal();
+                    }
+                    showToast(`🎧 Đang phát: ${getActiveAudioTitle()}`);
+                    return;
+                }
                 if (isYt) {
                     const videoId = p.videoId || p.identifier.replace(/^yt_/, '');
                     const found = CURATED_YOUTUBE_AUDIOBOOKS.find(y => y.videoId === videoId) || {
@@ -3812,10 +3833,12 @@
         const id = item.identifier || item._storageKey || (item.videoId ? `yt_${item.videoId}` : null);
         const activeId = getActiveSessionIdentifier();
         const isCurrentActive = Boolean(activeId && (
-            activeId === id ||
-            activeId === item.identifier ||
-            activeId === item._storageKey ||
-            (item.videoId && activeId === `yt_${item.videoId}`)
+            isSameAudioIdentifier(activeId, id) ||
+            isSameAudioIdentifier(activeId, item.identifier) ||
+            isSameAudioIdentifier(activeId, item._storageKey) ||
+            (item.videoId && isSameAudioIdentifier(activeId, `yt_${item.videoId}`)) ||
+            (currentAudiobook && (isSameAudioIdentifier(currentAudiobook.identifier, id) || (currentAudiobook.title && item.title && currentAudiobook.title.trim().toLowerCase() === item.title.trim().toLowerCase()))) ||
+            (ytCurrentItem && (isSameAudioIdentifier(ytCurrentItem.identifier, id) || isSameAudioIdentifier(ytCurrentItem.videoId, item.videoId)))
         ));
 
         if (isCurrentActive) {
@@ -3838,6 +3861,7 @@
                     }
                 }
             }
+            showToast(`🎧 Đang phát: ${getActiveAudioTitle()}`);
             return;
         }
 
@@ -4120,35 +4144,52 @@
             card.addEventListener('click', (e) => {
                 const activeId = getActiveSessionIdentifier();
                 const isCurrentActive = Boolean(activeId && (
-                    activeId === b.identifier ||
-                    (b.videoId && activeId === `yt_${b.videoId}`)
+                    isSameAudioIdentifier(activeId, b.identifier) ||
+                    (b.videoId && isSameAudioIdentifier(activeId, `yt_${b.videoId}`)) ||
+                    (currentAudiobook && (isSameAudioIdentifier(currentAudiobook.identifier, b.identifier) || (currentAudiobook.title && b.title && currentAudiobook.title.trim().toLowerCase() === b.title.trim().toLowerCase()))) ||
+                    (ytCurrentItem && (isSameAudioIdentifier(ytCurrentItem.identifier, b.identifier) || isSameAudioIdentifier(ytCurrentItem.videoId, b.videoId)))
                 ));
+
+                // 1. Nếu đây chính là cuốn sách ĐANG PHÁT trong phiên hiện tại:
                 if (isCurrentActive) {
                     if (isViewingPreview) {
                         restoreActiveAudiobookModal();
                     } else {
                         openAudioPlayerModal();
                     }
+                    showToast(`🎧 Đang phát: ${getActiveAudioTitle()}`);
                     return;
                 }
 
-                // Nếu người dùng bấm trực tiếp vào nút "Nghe ngay" / "Nghe tiếp":
+                // Kiểm tra xem cuốn sách này có tiến trình nghe đã lưu không
+                const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+                const bId = b.identifier || (b.videoId ? `yt_${b.videoId}` : null);
+                const savedProg = (bId && progressMap[bId]) || (b.videoId && progressMap[`yt_${b.videoId}`]);
+                const hasSavedProg = Boolean(savedProg && (savedProg.currentTime > 2 || (typeof savedProg.trackIndex === 'number' && savedProg.trackIndex > 0)));
+
+                // 2. Nếu người dùng bấm trực tiếp vào nút "Nghe ngay" / "Nghe tiếp":
                 const clickedListenBtn = e.target.closest('.audiobook-btn-listen');
                 if (clickedListenBtn) {
                     if (isYt) {
-                        loadAndPlayYoutube(b, null, true);
+                        const resTime = hasSavedProg ? savedProg.currentTime : null;
+                        loadAndPlayYoutube(b, resTime, true);
                     } else {
-                        loadAndPlayAudiobook(b.identifier, null, true, null);
+                        const trIdx = hasSavedProg ? savedProg.trackIndex : null;
+                        const resTime = hasSavedProg ? savedProg.currentTime : null;
+                        loadAndPlayAudiobook(b.identifier, trIdx, true, resTime);
                     }
                     return;
                 }
 
-                // Người dùng click vào khung thẻ sách / bìa / tiêu đề để xem chi tiết:
-                // Mở player ở chế độ Xem Trước (Preview), KHÔNG làm dừng hay ngắt âm thanh đang phát ở nền!
+                // 3. Người dùng click vào khung thẻ sách / bìa / tiêu đề để xem chi tiết:
+                // Mở player ở chế độ Xem Trước (Preview), giữ nguyên mốc chương và thời gian của tiến trình đã lưu!
                 if (isYt) {
-                    previewYoutubeAudiobook(b, 0);
+                    const resTime = hasSavedProg ? savedProg.currentTime : null;
+                    previewYoutubeAudiobook(b, resTime);
                 } else {
-                    previewAudiobook(b.identifier, 0, 0);
+                    const trIdx = hasSavedProg ? savedProg.trackIndex : null;
+                    const resTime = hasSavedProg ? savedProg.currentTime : null;
+                    previewAudiobook(b.identifier, trIdx, resTime);
                 }
             });
 
@@ -4477,7 +4518,7 @@
     // =========================================
     // Audiobook Preview Mode (Non-interrupting)
     // =========================================
-    async function previewAudiobook(identifier, trackIndex = 0, resumeTime = 0) {
+    async function previewAudiobook(identifier, trackIndex = null, resumeTime = null) {
         showToast('Đang mở thông tin sách nói...');
         try {
             const resp = await fetch(`https://archive.org/metadata/${identifier}`);
@@ -4519,6 +4560,24 @@
                 };
             });
 
+            // Check saved listening progress:
+            const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+            const savedProg = progressMap[identifier];
+
+            let targetTrack = 0;
+            let targetResume = 0;
+
+            if (resumeTime !== null && resumeTime !== undefined && resumeTime > 0) {
+                targetResume = resumeTime;
+                targetTrack = (trackIndex !== null && trackIndex >= 0) ? Math.min(trackIndex, tracks.length - 1) : 0;
+            } else if (savedProg && (typeof savedProg.trackIndex === 'number' || (savedProg.currentTime && savedProg.currentTime > 2))) {
+                targetTrack = (typeof savedProg.trackIndex === 'number' && savedProg.trackIndex < tracks.length) ? savedProg.trackIndex : 0;
+                targetResume = (savedProg.currentTime && savedProg.currentTime > 2) ? savedProg.currentTime : 0;
+            } else if (trackIndex !== null && trackIndex !== undefined && trackIndex >= 0) {
+                targetTrack = Math.min(trackIndex, tracks.length - 1);
+                targetResume = (resumeTime !== null && resumeTime >= 0) ? resumeTime : 0;
+            }
+
             const previewBook = {
                 identifier: identifier,
                 title: bookTitle,
@@ -4531,15 +4590,24 @@
                 ratingsCount: (curated && curated.ratingsCount) || 0
             };
 
-            showBookPreviewInModal(previewBook, 'archive', trackIndex, resumeTime);
+            showBookPreviewInModal(previewBook, 'archive', targetTrack, targetResume);
         } catch (err) {
             console.error('Error previewing audiobook:', err);
             showToast('Lỗi tải thông tin sách nói từ Internet Archive.');
         }
     }
 
-    function previewYoutubeAudiobook(item, resumeTime = 0) {
-        showBookPreviewInModal(item, 'youtube', 0, resumeTime);
+    function previewYoutubeAudiobook(item, resumeTime = null) {
+        const id = item.identifier || (item.videoId ? `yt_${item.videoId}` : null);
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const savedProg = (id && progressMap[id]) || (item.videoId && progressMap[`yt_${item.videoId}`]);
+        let targetResume = 0;
+        if (resumeTime !== null && resumeTime !== undefined && resumeTime > 0) {
+            targetResume = resumeTime;
+        } else if (savedProg && savedProg.currentTime && savedProg.currentTime > 2) {
+            targetResume = savedProg.currentTime;
+        }
+        showBookPreviewInModal(item, 'youtube', 0, targetResume);
     }
 
     function showBookPreviewInModal(book, type, targetTrack = 0, targetResumeTime = 0) {
@@ -4779,10 +4847,18 @@
             const track = previewViewingBook.tracks[previewTargetTrack];
             if (playerTrackCounter) playerTrackCounter.textContent = `${previewTargetTrack + 1}/${numTracks}`;
             if (playerTrackTitle && track) playerTrackTitle.textContent = track.title;
-            if (playerCurrentTime) playerCurrentTime.textContent = '00:00';
+            const timeToDisplay = (previewResumeTime > 0) ? previewResumeTime : 0;
+            if (playerCurrentTime) playerCurrentTime.textContent = formatTime(timeToDisplay);
             if (playerTotalDuration && track) playerTotalDuration.textContent = formatTime(track.duration || 0);
-            if (playerSeekSlider) playerSeekSlider.value = 0;
-            if (playerSliderFill) playerSliderFill.style.width = '0%';
+            const trackDur = (track && track.duration) || 0;
+            if (trackDur > 0) {
+                const pct = (timeToDisplay / trackDur) * 100;
+                if (playerSeekSlider) playerSeekSlider.value = pct;
+                if (playerSliderFill) playerSliderFill.style.width = `${pct}%`;
+            } else {
+                if (playerSeekSlider) playerSeekSlider.value = 0;
+                if (playerSliderFill) playerSliderFill.style.width = '0%';
+            }
             renderPreviewPlaylist(previewViewingBook, previewViewingType, previewTargetTrack);
         }
     }
@@ -4796,10 +4872,24 @@
             if (playerNowPlayingText) playerNowPlayingText.textContent = 'Now Playing';
         }
 
+        const id = book.identifier || (book.videoId ? `yt_${book.videoId}` : null);
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        const savedProg = (id && progressMap[id]) || (book.videoId && progressMap[`yt_${book.videoId}`]);
+
+        let finalTrack = trackIndex;
+        let finalResume = resumeTime;
+
+        if ((finalResume <= 0) && savedProg && savedProg.currentTime && savedProg.currentTime > 2) {
+            finalResume = savedProg.currentTime;
+            if (typeof savedProg.trackIndex === 'number') {
+                finalTrack = savedProg.trackIndex;
+            }
+        }
+
         if (type === 'youtube') {
-            loadAndPlayYoutube(book, resumeTime, true);
+            loadAndPlayYoutube(book, finalResume, true);
         } else {
-            loadAndPlayAudiobook(book.identifier, trackIndex, true, resumeTime);
+            loadAndPlayAudiobook(book.identifier, finalTrack, true, finalResume);
         }
     }
 
@@ -4994,7 +5084,7 @@
         }
 
         // If already playing this exact YouTube video, just open modal without reloading
-        if (currentAudioType === 'youtube' && ytCurrentItem && (ytCurrentItem.videoId === item.videoId || ytCurrentItem.identifier === item.identifier)) {
+        if (currentAudioType === 'youtube' && ytCurrentItem && (isSameAudioIdentifier(ytCurrentItem.videoId, item.videoId) || isSameAudioIdentifier(ytCurrentItem.identifier, item.identifier))) {
             openAudioPlayerModal();
             return;
         }
@@ -5013,11 +5103,14 @@
 
         let targetResumeTime = 0;
         let isAutoResumed = false;
-        if (startTime !== null && startTime !== undefined && startTime >= 0) {
+        if (startTime !== null && startTime !== undefined && startTime > 0) {
             targetResumeTime = startTime;
+            isAutoResumed = true;
         } else if (savedProg && savedProg.currentTime && savedProg.currentTime > 2) {
             targetResumeTime = savedProg.currentTime;
             isAutoResumed = true;
+        } else if (startTime !== null && startTime !== undefined && startTime >= 0) {
+            targetResumeTime = startTime;
         }
 
         // Setup UI in player modal
@@ -5330,11 +5423,12 @@
         const savedProg = progressMap[identifier];
 
         // If already playing this exact book, just switch track or open modal
-        if (currentAudiobook && currentAudiobook.identifier === identifier) {
-            if (trackIndex !== null && trackIndex !== undefined && trackIndex !== currentTrackIndex) {
-                playTrack(trackIndex, (resumeTime !== null && resumeTime !== undefined) ? resumeTime : 0, autoPlay);
+        if (currentAudiobook && (isSameAudioIdentifier(currentAudiobook.identifier, identifier) || (currentAudiobook.title && currentAudiobook.title.trim().toLowerCase() === (identifier || '').trim().toLowerCase()))) {
+            if (trackIndex !== null && trackIndex !== undefined && trackIndex !== currentTrackIndex && (resumeTime !== null && resumeTime > 0)) {
+                playTrack(trackIndex, resumeTime, autoPlay);
             }
             openAudioPlayerModal();
+            showToast(`🎧 Đang phát: ${currentAudiobook.title}`);
             return;
         }
 
@@ -5510,13 +5604,17 @@
             let targetResumeTime = 0;
             let isAutoResumed = false;
 
-            if (trackIndex !== null && trackIndex !== undefined && trackIndex >= 0) {
-                targetTrack = Math.min(trackIndex, tracks.length - 1);
-                targetResumeTime = (resumeTime !== null && resumeTime !== undefined && resumeTime >= 0) ? resumeTime : 0;
-            } else if (savedProg && typeof savedProg.trackIndex === 'number' && savedProg.trackIndex < tracks.length) {
-                targetTrack = savedProg.trackIndex;
+            if (resumeTime !== null && resumeTime !== undefined && resumeTime > 0) {
+                targetTrack = (trackIndex !== null && trackIndex >= 0) ? Math.min(trackIndex, tracks.length - 1) : (savedProg?.trackIndex || 0);
+                targetResumeTime = resumeTime;
+                isAutoResumed = true;
+            } else if (savedProg && (typeof savedProg.trackIndex === 'number' || (savedProg.currentTime && savedProg.currentTime > 2))) {
+                targetTrack = (typeof savedProg.trackIndex === 'number' && savedProg.trackIndex < tracks.length) ? savedProg.trackIndex : 0;
                 targetResumeTime = (savedProg.currentTime && savedProg.currentTime > 2) ? savedProg.currentTime : 0;
                 isAutoResumed = true;
+            } else if (trackIndex !== null && trackIndex !== undefined && trackIndex >= 0) {
+                targetTrack = Math.min(trackIndex, tracks.length - 1);
+                targetResumeTime = (resumeTime !== null && resumeTime !== undefined && resumeTime >= 0) ? resumeTime : 0;
             }
 
             // Populate Playlist
@@ -5600,17 +5698,25 @@
         audioElement.playbackRate = SPEED_RATES[currentSpeedIndex];
 
         if (resumeTime > 0) {
+            isAudioSeeking = true;
             const seekFn = () => {
                 try {
                     audioElement.currentTime = resumeTime;
                 } catch (e) {
                     console.warn('Seek error:', e);
                 }
+                setTimeout(() => {
+                    isAudioSeeking = false;
+                    saveAudioProgress();
+                }, 400);
             };
             audioElement.addEventListener('loadedmetadata', seekFn, { once: true });
+            audioElement.addEventListener('canplay', seekFn, { once: true });
             try {
                 audioElement.currentTime = resumeTime;
             } catch (e) {}
+        } else {
+            isAudioSeeking = false;
         }
 
         // Highlight playlist row
@@ -5621,8 +5727,6 @@
                 console.log('Playback start was blocked by browser:', err);
             });
         }
-
-        saveAudioProgress();
     }
 
     function updatePlaylistActiveState() {
@@ -6870,12 +6974,17 @@
 
         if (currentAudioType === 'youtube') {
             if (!ytCurrentItem) return;
-            const cur = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
+            let cur = Math.floor(ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0);
             const dur = Math.floor(ytPlayer && ytPlayer.getDuration ? (ytPlayer.getDuration() || ytCurrentItem.duration || 0) : (ytCurrentItem.duration || 0));
 
             const existing = progressMap[identifier] || {};
             const noteText = existing.note || notesMap[identifier]?.text;
             const noteUpdated = existing.noteUpdatedAt || notesMap[identifier]?.updatedAt;
+
+            // Protection against zeroing progress during initial buffering/loading
+            if (cur <= 2 && existing.currentTime && existing.currentTime > 5 && isAudioSeeking) {
+                cur = existing.currentTime;
+            }
 
             progressMap[identifier] = {
                 identifier: identifier,
@@ -6905,13 +7014,18 @@
         }
 
         if (!currentAudiobook || !currentAudiobook.tracks || !currentAudiobook.tracks[currentTrackIndex]) return;
-        const cur = Math.floor(audioElement.currentTime || 0);
+        let cur = Math.floor(audioElement.currentTime || 0);
         const dur = Math.floor(audioElement.duration || currentAudiobook.tracks[currentTrackIndex]?.duration || 0);
         const track = currentAudiobook.tracks[currentTrackIndex];
 
         const existing = progressMap[currentAudiobook.identifier] || {};
         const noteText = existing.note || notesMap[currentAudiobook.identifier]?.text;
         const noteUpdated = existing.noteUpdatedAt || notesMap[currentAudiobook.identifier]?.updatedAt;
+
+        // Protection against zeroing progress during initial track load / seeking
+        if (cur <= 2 && existing.currentTime && existing.currentTime > 5 && existing.trackIndex === currentTrackIndex && (audioElement.readyState < 2 || isAudioSeeking)) {
+            cur = existing.currentTime;
+        }
 
         progressMap[currentAudiobook.identifier] = {
             identifier: currentAudiobook.identifier,
