@@ -7801,18 +7801,34 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
   ]
 }`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-            })
-        });
+        const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
+        let resp = null;
+        let lastError = null;
 
-        if (!resp.ok) {
-            throw new Error(`Gemini API Error: ${resp.status}`);
+        for (const model of candidateModels) {
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+                const r = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+                    })
+                });
+                if (r.ok) {
+                    resp = r;
+                    break;
+                } else {
+                    lastError = new Error(`Model ${model} returned status ${r.status}`);
+                }
+            } catch (e) {
+                lastError = e;
+            }
+        }
+
+        if (!resp) {
+            throw lastError || new Error('All Gemini models failed');
         }
 
         const data = await resp.json();
