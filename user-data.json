@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792118681022,
+  "lastUpdated": 1792118809834,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -227,11 +227,11 @@
       "cover": "https://archive.org/services/img/7670131803e640327f698418271ca555",
       "trackIndex": 3,
       "trackTitle": "38 08 chuong 2 su hinh thanh cua mot nice guy",
-      "currentTime": 1922,
+      "currentTime": 2049,
       "duration": 2295,
-      "percent": 84,
+      "percent": 89,
       "isBookmarked": true,
-      "updatedAt": 1792118680017
+      "updatedAt": 1792118806825
     }
   },
   "audioBookmarks": [
@@ -348,7 +348,7 @@
     "identifier": "7670131803e640327f698418271ca555",
     "type": "archive",
     "trackIndex": 3,
-    "time": 1922,
+    "time": 2049,
     "volume": 1,
     "speedIndex": 0
   },
