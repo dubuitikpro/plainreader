@@ -12,6 +12,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="catalog.css?v=6.5">
+    <script>
+        (function() {
+            try {
+                const t = localStorage.getItem('plainreader-theme');
+                if (t) document.documentElement.setAttribute('data-theme', t);
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
     <!-- Background animated elements -->
@@ -51,6 +59,15 @@
                     </svg>
                     <span>Đồng bộ</span>
                     <span class="sync-status-dot" id="syncStatusDot" title="Trạng thái đồng bộ"></span>
+                </button>
+                <button type="button" id="btnThemeToggle" class="nav-theme-btn" title="Chuyển chế độ sáng / tối" aria-label="Chuyển chế độ sáng / tối">
+                    <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
                 </button>
             </nav>
         </div>
@@ -109,6 +126,16 @@
                         <span class="tab-count" id="favoritesCount">0</span>
                     </div>
                     <span class="tab-label">Ưa thích</span>
+                </button>
+                <button class="tab" data-tab="finished" id="tabFinished" role="tab" aria-selected="false" title="Đã đọc xong">
+                    <div class="tab-icon-wrap">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        <span class="tab-count" id="finishedCount">0</span>
+                    </div>
+                    <span class="tab-label">Đã đọc</span>
                 </button>
                 <button class="tab" data-tab="audio" id="tabAudio" role="tab" aria-selected="false" title="Sách nói Audio">
                     <div class="tab-icon-wrap">
@@ -247,6 +274,21 @@
             </div>
             <div class="books-grid" id="favoritesGrid">
                 <!-- Favorite cards inserted here -->
+            </div>
+        </div>
+
+        <!-- Finished / Đã Đọc Tab Content -->
+        <div class="tab-content" id="contentFinished">
+            <div class="empty-state" id="finishedEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <h3>Chưa có sách nào đã đọc xong</h3>
+                <p>Đánh dấu những cuốn sách bạn đã đọc hoặc nghe xong để theo dõi tiến trình đọc sách</p>
+            </div>
+            <div class="books-grid" id="finishedGrid">
+                <!-- Finished cards inserted here -->
             </div>
         </div>
 
@@ -469,6 +511,13 @@
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
                             <span>Ưa thích</span>
+                        </button>
+                        <button id="modalBtnFinished" class="modal-action-btn finished-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <span>Đã đọc</span>
                         </button>
                         <a id="modalBtnOpenLibrary" class="modal-action-btn ol-btn" href="#" target="_blank" rel="noopener noreferrer">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">

@@ -57,21 +57,44 @@
     // =========================================
     // Theme
     // =========================================
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        try {
+            localStorage.setItem('plainreader-theme', theme);
+        } catch (e) {}
+        if (btnThemeToggle) {
+            const isLight = theme === 'light';
+            btnThemeToggle.setAttribute('title', isLight ? 'Chuyển sang giao diện tối' : 'Chuyển sang giao diện sáng');
+            btnThemeToggle.setAttribute('aria-label', isLight ? 'Chuyển sang giao diện tối' : 'Chuyển sang giao diện sáng');
+        }
+    }
+
     function initTheme() {
-        const saved = localStorage.getItem('plainreader-theme');
-        if (saved) {
-            document.documentElement.setAttribute('data-theme', saved);
+        try {
+            const saved = localStorage.getItem('plainreader-theme');
+            if (saved) {
+                applyTheme(saved);
+            } else {
+                applyTheme('dark');
+            }
+        } catch (e) {
+            applyTheme('dark');
         }
     }
 
     function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-theme');
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
         const next = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('plainreader-theme', next);
+        applyTheme(next);
     }
 
     initTheme();
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'plainreader-theme' && e.newValue) {
+            applyTheme(e.newValue);
+        }
+    });
 
     // =========================================
     // Sidebar

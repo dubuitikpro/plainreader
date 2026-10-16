@@ -12,6 +12,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            try {
+                const t = localStorage.getItem('plainreader-theme');
+                if (t) document.documentElement.setAttribute('data-theme', t);
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
     <!-- Background animated elements -->
@@ -52,18 +60,20 @@
                     </svg>
                     Đọc sách
                 </a>
+                <button type="button" id="btnThemeToggle" class="nav-theme-btn" title="Chuyển chế độ sáng / tối" aria-label="Chuyển chế độ sáng / tối">
+                    <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
             </nav>
             <div class="header-actions" id="headerActions" style="display:none;">
                 <button id="btnFontDecrease" class="btn-icon" title="Giảm cỡ chữ">A-</button>
                 <span id="fontSizeDisplay" class="font-size-display">18px</span>
                 <button id="btnFontIncrease" class="btn-icon" title="Tăng cỡ chữ">A+</button>
-                <div class="divider-v"></div>
-                <button id="btnThemeToggle" class="btn-icon" title="Đổi giao diện">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <circle cx="12" cy="12" r="5"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                </button>
                 <div class="divider-v"></div>
                 <button id="btnNewFile" class="btn-secondary" title="Mở file khác">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">

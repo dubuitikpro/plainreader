@@ -19,6 +19,7 @@
 
     const STORAGE_WISHLIST = 'plainreader-wishlist';
     const STORAGE_FAVORITES = 'plainreader-favorites';
+    const STORAGE_FINISHED = 'plainreader-finished';
     const STORAGE_THEME = 'plainreader-theme';
     const STORAGE_AUDIO_PROGRESS = 'plainreader-audio-progress';
     const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
@@ -32,6 +33,7 @@
     // =========================================
     let wishlist = loadFromStorage(STORAGE_WISHLIST);
     let favorites = loadFromStorage(STORAGE_FAVORITES);
+    let finished = loadFromStorage(STORAGE_FINISHED);
     let currentQuery = '';
     let currentSearchEnglishQuery = '';
     let currentPage = 1;
@@ -49,9 +51,11 @@
     const tabExplore = document.getElementById('tabExplore');
     const tabWishlist = document.getElementById('tabWishlist');
     const tabFavorites = document.getElementById('tabFavorites');
+    const tabFinished = document.getElementById('tabFinished');
     const contentExplore = document.getElementById('contentExplore');
     const contentWishlist = document.getElementById('contentWishlist');
     const contentFavorites = document.getElementById('contentFavorites');
+    const contentFinished = document.getElementById('contentFinished');
     const wishlistCount = document.getElementById('wishlistCount');
     const favoritesCount = document.getElementById('favoritesCount');
     const trendingGrid = document.getElementById('trendingGrid');
@@ -68,8 +72,11 @@
     const catalogLoading = document.getElementById('catalogLoading');
     const wishlistGrid = document.getElementById('wishlistGrid');
     const favoritesGrid = document.getElementById('favoritesGrid');
+    const finishedGrid = document.getElementById('finishedGrid');
     const wishlistEmpty = document.getElementById('wishlistEmpty');
     const favoritesEmpty = document.getElementById('favoritesEmpty');
+    const finishedEmpty = document.getElementById('finishedEmpty');
+    const finishedCount = document.getElementById('finishedCount');
 
     // Category Detail View Elements
     const categoryDetailSection = document.getElementById('categoryDetailSection');
@@ -101,6 +108,7 @@
     const modalDescription = document.getElementById('modalDescription');
     const modalBtnWishlist = document.getElementById('modalBtnWishlist');
     const modalBtnFavorite = document.getElementById('modalBtnFavorite');
+    const modalBtnFinished = document.getElementById('modalBtnFinished');
     const modalBtnOpenLibrary = document.getElementById('modalBtnOpenLibrary');
     const modalBtnGoodreads = document.getElementById('modalBtnGoodreads');
     const modalBtnAnnaArchive = document.getElementById('modalBtnAnnaArchive');
@@ -227,14 +235,58 @@
     const miniBtnClose = document.getElementById('miniBtnClose');
 
     // =========================================
-    // Theme (sync with main app)
+    // Theme (Dark / Light)
     // =========================================
-    (function initTheme() {
-        const saved = localStorage.getItem(STORAGE_THEME);
-        if (saved) {
-            document.documentElement.setAttribute('data-theme', saved);
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        try {
+            localStorage.setItem(STORAGE_THEME, theme);
+        } catch (e) {}
+        if (btnThemeToggle) {
+            const isLight = theme === 'light';
+            btnThemeToggle.setAttribute('title', isLight ? 'Chuyển sang giao diện tối' : 'Chuyển sang giao diện sáng');
+            btnThemeToggle.setAttribute('aria-label', isLight ? 'Chuyển sang giao diện tối' : 'Chuyển sang giao diện sáng');
         }
-    })();
+    }
+
+    function initTheme() {
+        try {
+            const saved = localStorage.getItem(STORAGE_THEME);
+            if (saved) {
+                applyTheme(saved);
+            } else {
+                applyTheme('dark');
+            }
+        } catch (e) {
+            applyTheme('dark');
+        }
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+        if (typeof showToast === 'function') {
+            showToast(next === 'light' ? '☀️ Đã chuyển sang giao diện sáng' : '🌙 Đã chuyển sang giao diện tối');
+        }
+        if (window.PlainSync && typeof window.PlainSync.schedulePush === 'function') {
+            window.PlainSync.schedulePush();
+        }
+    }
+
+    initTheme();
+
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', toggleTheme);
+    }
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_THEME && e.newValue) {
+            applyTheme(e.newValue);
+        }
+    });
 
     // =========================================
     // Storage Helpers
@@ -299,6 +351,10 @@
         return favorites.some(b => b.key === bookKey);
     }
 
+    function isInFinished(bookKey) {
+        return finished.some(b => b.key === bookKey);
+    }
+
     function toggleWishlist(book) {
         if (isInWishlist(book.key)) {
             wishlist = wishlist.filter(b => b.key !== book.key);
@@ -326,9 +382,31 @@
         if (!wasInFavorites) loadRecommendations();
     }
 
+    function toggleFinished(book) {
+        if (isInFinished(book.key)) {
+            finished = finished.filter(b => b.key !== book.key);
+            showToast('Đã bỏ đánh dấu đọc xong');
+        } else {
+            const finishedBook = { ...book, finishedAt: Date.now() };
+            finished.push(finishedBook);
+            showToast('✅ Đã đánh dấu đọc xong!');
+            // Auto-remove from wishlist if present
+            if (isInWishlist(book.key)) {
+                wishlist = wishlist.filter(b => b.key !== book.key);
+                saveToStorage(STORAGE_WISHLIST, wishlist);
+            }
+        }
+        saveToStorage(STORAGE_FINISHED, finished);
+        updateCounts();
+    }
+
     function updateCounts() {
         wishlistCount.textContent = wishlist.length;
         favoritesCount.textContent = favorites.length;
+        if (finishedCount) {
+            finishedCount.textContent = finished.length;
+            finishedCount.style.display = finished.length > 0 ? 'inline-block' : 'none';
+        }
 
         if (audioHistoryCount) {
             const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
@@ -848,6 +926,7 @@
         const coverUrl = getCoverUrl(book);
         const wishlisted = isInWishlist(book.key);
         const favorited = isInFavorites(book.key);
+        const isFinished = isInFinished(book.key);
 
         const displayTitle = book.titleVi || book.title;
         const originalTitle = (book.originalTitle && book.originalTitle.toLowerCase() !== displayTitle.toLowerCase())
@@ -871,7 +950,14 @@
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                         </svg>
                     </button>
+                    <button class="book-action-btn btn-finished ${isFinished ? 'is-finished' : ''}" title="${isFinished ? 'Bỏ đánh dấu đọc xong' : 'Đánh dấu đã đọc'}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </button>
                 </div>
+                ${isFinished ? '<div class="book-finished-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg> Đã đọc</div>' : ''}
             </div>
             <div class="book-info">
                 <div class="book-title" title="${escapeHtml(displayTitle)}">${escapeHtml(displayTitle)}</div>
@@ -909,6 +995,13 @@
         card.querySelector('.btn-favorite').addEventListener('click', (e) => {
             e.stopPropagation();
             toggleFavorite(book);
+            refreshAllViews();
+        });
+
+        // Finished button
+        card.querySelector('.btn-finished').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFinished(book);
             refreshAllViews();
         });
 
@@ -1092,12 +1185,18 @@
         if (!currentModalBook) return;
         const wishlisted = isInWishlist(currentModalBook.key);
         const favorited = isInFavorites(currentModalBook.key);
+        const isFinishedBook = isInFinished(currentModalBook.key);
 
         modalBtnWishlist.classList.toggle('active', wishlisted);
         modalBtnWishlist.querySelector('span').textContent = wishlisted ? 'Đã thêm' : 'Muốn đọc';
 
         modalBtnFavorite.classList.toggle('active', favorited);
         modalBtnFavorite.querySelector('span').textContent = favorited ? 'Đã thích' : 'Ưa thích';
+
+        if (modalBtnFinished) {
+            modalBtnFinished.classList.toggle('active', isFinishedBook);
+            modalBtnFinished.querySelector('span').textContent = isFinishedBook ? 'Đã đọc ✅' : 'Đã đọc';
+        }
     }
 
     btnCloseModal.addEventListener('click', closeBookModal);
@@ -1121,6 +1220,15 @@
         updateModalActions();
         refreshAllViews();
     });
+
+    if (modalBtnFinished) {
+        modalBtnFinished.addEventListener('click', () => {
+            if (!currentModalBook) return;
+            toggleFinished(currentModalBook);
+            updateModalActions();
+            refreshAllViews();
+        });
+    }
 
     // Clicking author in modal initiates a search for that author
     modalAuthor.addEventListener('click', () => {
@@ -1456,7 +1564,7 @@
         if (targetTab) targetTab.classList.add('active');
 
         // Update tab content
-        [contentExplore, contentWishlist, contentFavorites, contentAudio, contentHistory].forEach(c => {
+        [contentExplore, contentWishlist, contentFavorites, contentFinished, contentAudio, contentHistory].forEach(c => {
             if (c) c.classList.remove('active');
         });
 
@@ -1468,6 +1576,9 @@
         } else if (tabName === 'favorites') {
             contentFavorites.classList.add('active');
             renderFavorites();
+        } else if (tabName === 'finished') {
+            if (contentFinished) contentFinished.classList.add('active');
+            renderFinished();
         } else if (tabName === 'audio') {
             if (contentAudio) contentAudio.classList.add('active');
             initAudiobooksTab();
@@ -1484,7 +1595,7 @@
     });
 
     // =========================================
-    // Render Wishlist & Favorites
+    // Render Wishlist, Favorites & Finished
     // =========================================
     function renderWishlist() {
         wishlistGrid.innerHTML = '';
@@ -1510,6 +1621,21 @@
         });
     }
 
+    function renderFinished() {
+        if (!finishedGrid || !finishedEmpty) return;
+        finishedGrid.innerHTML = '';
+        if (finished.length === 0) {
+            finishedEmpty.style.display = 'flex';
+            return;
+        }
+        finishedEmpty.style.display = 'none';
+        // Sort by finishedAt descending (most recently finished first)
+        const sorted = [...finished].sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
+        sorted.forEach(book => {
+            finishedGrid.appendChild(createBookCard(book));
+        });
+    }
+
     function refreshAllViews() {
         updateCounts();
         // Refresh current search results card states
@@ -1517,19 +1643,35 @@
             const key = card.getAttribute('data-key');
             const wBtn = card.querySelector('.btn-wishlist');
             const fBtn = card.querySelector('.btn-favorite');
+            const finBtn = card.querySelector('.btn-finished');
             if (wBtn) {
                 wBtn.classList.toggle('is-wishlisted', isInWishlist(key));
             }
             if (fBtn) {
                 fBtn.classList.toggle('is-favorited', isInFavorites(key));
             }
+            if (finBtn) {
+                finBtn.classList.toggle('is-finished', isInFinished(key));
+            }
+            // Update finished badge on card
+            const existingBadge = card.querySelector('.book-finished-badge');
+            const coverWrapper = card.querySelector('.book-cover-wrapper');
+            if (isInFinished(key) && !existingBadge && coverWrapper) {
+                const badge = document.createElement('div');
+                badge.className = 'book-finished-badge';
+                badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg> Đã đọc';
+                coverWrapper.appendChild(badge);
+            } else if (!isInFinished(key) && existingBadge) {
+                existingBadge.remove();
+            }
         });
 
-        // Re-render if on wishlist or favorites tab
+        // Re-render if on wishlist, favorites, or finished tab
         const activeTab = document.querySelector('.tab.active');
         if (activeTab) {
             if (activeTab.dataset.tab === 'wishlist') renderWishlist();
             if (activeTab.dataset.tab === 'favorites') renderFavorites();
+            if (activeTab.dataset.tab === 'finished') renderFinished();
         }
     }
 
@@ -6531,6 +6673,10 @@
         window.PlainSync.init((newData) => {
             wishlist = loadFromStorage(STORAGE_WISHLIST, []);
             favorites = loadFromStorage(STORAGE_FAVORITES, []);
+            finished = loadFromStorage(STORAGE_FINISHED, []);
+            if (newData && newData.theme) {
+                applyTheme(newData.theme);
+            }
             updateCounts();
             refreshAllViews();
             renderAudioContinueSection();

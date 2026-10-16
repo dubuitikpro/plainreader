@@ -14,6 +14,8 @@
 
     const STORAGE_WISHLIST = 'plainreader-wishlist';
     const STORAGE_FAVORITES = 'plainreader-favorites';
+    const STORAGE_FINISHED = 'plainreader-finished';
+    const STORAGE_THEME = 'plainreader-theme';
     const STORAGE_AUDIO_PROGRESS = 'plainreader-audio-progress';
     const STORAGE_AUDIO_BOOKMARKS = 'plainreader-audio-bookmarks';
     const STORAGE_AUDIO_NOTES = 'plainreader-audio-notes';
@@ -41,12 +43,14 @@
             lastUpdated: parseInt(localStorage.getItem(STORAGE_LAST_UPDATED) || '0', 10) || Date.now(),
             wishlist: parse(STORAGE_WISHLIST, []),
             favorites: parse(STORAGE_FAVORITES, []),
+            finished: parse(STORAGE_FINISHED, []),
             audioProgress: parse(STORAGE_AUDIO_PROGRESS, {}),
             audioBookmarks: parse(STORAGE_AUDIO_BOOKMARKS, []),
             audioNotes: parse(STORAGE_AUDIO_NOTES, {}),
             lastPlayedId: parse(STORAGE_AUDIO_LAST_PLAYED, null),
             audioState: parse(STORAGE_AUDIO_STATE, null),
-            searchHistory: parse(STORAGE_SEARCH_HISTORY, [])
+            searchHistory: parse(STORAGE_SEARCH_HISTORY, []),
+            theme: localStorage.getItem(STORAGE_THEME) || 'dark'
         };
     }
 
@@ -65,12 +69,17 @@
                 }
                 if (data.wishlist) localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(data.wishlist));
                 if (data.favorites) localStorage.setItem(STORAGE_FAVORITES, JSON.stringify(data.favorites));
+                if (data.finished) localStorage.setItem(STORAGE_FINISHED, JSON.stringify(data.finished));
                 if (data.audioProgress) localStorage.setItem(STORAGE_AUDIO_PROGRESS, JSON.stringify(data.audioProgress));
                 if (data.audioBookmarks) localStorage.setItem(STORAGE_AUDIO_BOOKMARKS, JSON.stringify(data.audioBookmarks));
                 if (data.audioNotes) localStorage.setItem(STORAGE_AUDIO_NOTES, JSON.stringify(data.audioNotes));
                 if (data.lastPlayedId) localStorage.setItem(STORAGE_AUDIO_LAST_PLAYED, JSON.stringify(data.lastPlayedId));
                 if (data.audioState) localStorage.setItem(STORAGE_AUDIO_STATE, JSON.stringify(data.audioState));
                 if (data.searchHistory) localStorage.setItem(STORAGE_SEARCH_HISTORY, JSON.stringify(data.searchHistory));
+                if (data.theme) {
+                    localStorage.setItem(STORAGE_THEME, data.theme);
+                    document.documentElement.setAttribute('data-theme', data.theme);
+                }
                 if (data.lastUpdated) localStorage.setItem(STORAGE_LAST_UPDATED, data.lastUpdated.toString());
             }
 
