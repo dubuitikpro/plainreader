@@ -158,6 +158,10 @@
     const tabRecommend = document.getElementById('tabRecommend');
     const contentRecommend = document.getElementById('contentRecommend');
     const recEngineNav = document.getElementById('recEngineNav');
+    const recAiPromptContainer = document.getElementById('recAiPromptContainer');
+    const recAiPromptForm = document.getElementById('recAiPromptForm');
+    const recAiPromptInput = document.getElementById('recAiPromptInput');
+    const btnRecAiSubmit = document.getElementById('btnRecAiSubmit');
     const recSearchForm = document.getElementById('recSearchForm');
     const recSearchInput = document.getElementById('recSearchInput');
     const btnRecSearch = document.getElementById('btnRecSearch');
@@ -171,6 +175,7 @@
     const recBooksGrid = document.getElementById('recBooksGrid');
     const recLoadMoreContainer = document.getElementById('recLoadMoreContainer');
     const btnRecLoadMore = document.getElementById('btnRecLoadMore');
+    const recEndMessage = document.getElementById('recEndMessage');
     const recLoading = document.getElementById('recLoading');
     const recLoadingText = document.getElementById('recLoadingText');
     const modalRecWrapper = document.getElementById('modalRecWrapper');
@@ -7948,7 +7953,8 @@
     };
 
     // Google Books API Fetcher with High-Resilient Open Library Fallback
-    async function fetchGoogleBooksRecommendations(query, maxResults = 24, startIndex = 0) {
+    async function fetchGoogleBooksRecommendations(query, maxResults = 24, startIndex = 0, page = 1) {
+        const pageNum = page || (Math.floor(startIndex / maxResults) + 1);
         try {
             const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&startIndex=${startIndex}&orderBy=relevance`;
             const resp = await fetch(url);
@@ -7996,8 +8002,7 @@
         // Resilient Fallback: If Google Books API quota (429) is exceeded or returns empty,
         // fetch directly from Open Library Search API with sort=rating so users ALWAYS get rich books!
         try {
-            const cleanQ = (query || 'bestseller').replace(/subject:|["']|OR|bestseller/gi, '').trim() || 'popular books';
-            const pageNum = Math.floor(startIndex / maxResults) + 1;
+            const cleanQ = (query || 'bestseller').replace(/subject:|["']/gi, '').trim() || 'bestseller';
             const olSearchUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQ)}&sort=rating&limit=${maxResults}&page=${pageNum}&fields=key,title,author_name,cover_i,first_publish_year,ratings_average,ratings_count`;
             const olResp = await fetch(olSearchUrl);
             if (olResp.ok) {
@@ -8266,50 +8271,66 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         const MOOD_CONFIG = {
             'all': {
                 name: 'Tất cả chủ đề',
-                searchQ: 'bestseller award winning popular novels',
-                gbQuery: 'bestseller world popular classics',
+                searchQ: 'bestseller',
+                similarQ: 'classic novel prize',
+                communityQ: 'bestseller top rated',
+                gbQuery: 'bestseller',
                 aiInsight: 'Tổng hợp các tác phẩm xuất sắc nhất thế giới được độc giả quốc tế và hệ thống AI đánh giá cao.'
             },
             'self-help': {
                 name: 'Phát triển bản thân & Tư duy',
-                searchQ: 'self-help personal development habits mindset',
-                gbQuery: 'subject:"self-help" OR "personal development" bestseller',
+                searchQ: 'self-help',
+                similarQ: 'habits mindset',
+                communityQ: 'personal development',
+                gbQuery: 'self-help',
                 aiInsight: 'Tuyển tập những tác phẩm khai phóng tiềm năng, kiến tạo thói quen và tối ưu hóa năng lực tư duy.'
             },
             'finance': {
                 name: 'Tài chính & Đầu tư',
-                searchQ: 'finance investing wealth money economics',
-                gbQuery: 'subject:"finance" OR subject:"business" OR subject:"investing" bestseller',
+                searchQ: 'finance',
+                similarQ: 'investing economics',
+                communityQ: 'wealth money',
+                gbQuery: 'finance',
                 aiInsight: 'Những kiệt tác về dòng tiền, quản trị tài chính cá nhân và triết lý đầu tư giá trị bền vững.'
             },
             'psychology': {
                 name: 'Tâm lý học hành vi',
-                searchQ: 'psychology human behavior thinking mind',
-                gbQuery: 'subject:"psychology" OR "human behavior" bestseller',
+                searchQ: 'psychology',
+                similarQ: 'human behavior',
+                communityQ: 'cognitive thinking',
+                gbQuery: 'psychology',
                 aiInsight: 'Thấu hiểu cơ chế tâm lý vô thức, sự tương tác xã hội và nghệ thuật làm chủ cảm xúc của bản thân.'
             },
             'mindfulness': {
                 name: 'Bình an & Chữa lành',
-                searchQ: 'mindfulness meditation peace spiritual healing',
-                gbQuery: 'subject:"mindfulness" OR subject:"meditation" OR "peace of mind" bestseller',
+                searchQ: 'mindfulness',
+                similarQ: 'meditation zen',
+                communityQ: 'inner peace healing',
+                gbQuery: 'mindfulness',
                 aiInsight: 'Hành trình quay về bên trong, xoa dịu những âu lo và thiết lập trạng thái an lạc vững chãi trong hiện tại.'
             },
             'classic': {
                 name: 'Văn học kinh điển bất hủ',
-                searchQ: 'classic literature classics masterpiece novel',
-                gbQuery: 'subject:"classic literature" bestseller masterpiece',
+                searchQ: 'classic',
+                similarQ: 'masterpiece novel',
+                communityQ: 'world classics',
+                gbQuery: 'classic literature',
                 aiInsight: 'Những tượng đài văn chương trường tồn cùng thời gian, chứa đựng chiều sâu nhân văn sâu sắc.'
             },
             'thriller': {
                 name: 'Trinh thám & Kịch tính',
-                searchQ: 'thriller detective mystery crime suspense',
-                gbQuery: 'subject:"thriller" OR subject:"mystery" OR subject:"detective" bestseller',
+                searchQ: 'thriller',
+                similarQ: 'detective suspense',
+                communityQ: 'mystery crime',
+                gbQuery: 'thriller',
                 aiInsight: 'Những câu chuyện trinh thám ly kỳ, suy luận sắc bén và nút thắt bất ngờ đến trang cuối cùng.'
             },
             'scifi': {
                 name: 'Khoa học & Viễn tưởng',
-                searchQ: 'science fiction space future galaxy',
-                gbQuery: 'subject:"science fiction" OR subject:"space exploration" bestseller',
+                searchQ: 'science fiction',
+                similarQ: 'space galaxy',
+                communityQ: 'sci-fi adventure',
+                gbQuery: 'science fiction',
                 aiInsight: 'Mở rộng chân trời tưởng tượng với những viễn cảnh tương lai, vũ trụ và bước nhảy vọt của khoa học.'
             }
         };
@@ -8317,12 +8338,25 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         const moodInfo = MOOD_CONFIG[mood] || MOOD_CONFIG['all'];
         const savedApiKey = localStorage.getItem(STORAGE_GEMINI_KEY) || DEFAULT_GEMINI_KEY;
         const pageNum = Math.max(1, page);
-        const offset = (pageNum - 1) * 20;
+        const offset = (pageNum - 1) * 24;
 
         try {
-            // Case A: Query provided (e.g. from "Gợi ý theo sách đang đọc dở" or seed book)
+            // Case A: Query provided (e.g. from AI Prompt Box, "Gợi ý theo sách đang đọc dở" or seed book)
             if (cleanQ) {
-                if (recLoadingText) recLoadingText.textContent = `Đang phân tích và tìm sách tương tự với: "${query}"...`;
+                if (recLoadingText) recLoadingText.textContent = `Trợ lý AI đang phân tích nhu cầu "${query}" và tìm sách phù hợp nhất...`;
+
+                let liveAiBooks = [];
+                if (savedApiKey) {
+                    try {
+                        const aiData = await fetchLiveGeminiRecommendations(query, savedApiKey);
+                        if (aiData && aiData.books && aiData.books.length > 0) {
+                            liveAiBooks = aiData.books;
+                            if (aiData.analysis) insightText = aiData.analysis;
+                        }
+                    } catch (err) {
+                        console.warn('Live Gemini AI recommendation error:', err);
+                    }
+                }
 
                 let matchedIds = [];
                 for (const [keyTitle, ids] of Object.entries(SEMANTIC_SIMILARITY_GRAPH)) {
@@ -8331,10 +8365,26 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     }
                 }
 
-                let seedDb = RECOMMENDATION_DATABASE.filter(b => matchedIds.includes(b.id) || (b.title + ' ' + b.author).toLowerCase().includes(cleanQ));
-                const gbSimilar = await fetchGoogleBooksRecommendations(cleanQ, 16, offset);
-                results = [...seedDb, ...gbSimilar];
-                insightText = `Đề xuất các tác phẩm có tư tưởng, cấu trúc và phong cách gần gũi nhất với "${query}".`;
+                const seedDb = RECOMMENDATION_DATABASE.filter(b => 
+                    matchedIds.includes(b.id) || 
+                    (b.title + ' ' + b.author + ' ' + (b.reason || '')).toLowerCase().includes(cleanQ)
+                );
+
+                // Fetch live books matching the user's prompt from Open Library
+                const olMatched = await fetchOpenLibraryDiscovery(
+                    cleanQ,
+                    24,
+                    pageNum,
+                    'ai',
+                    '🤖 AI Tuyển Chọn',
+                    `Tác phẩm phù hợp với nhu cầu tìm kiếm: "${query}".`
+                );
+
+                results = [...liveAiBooks, ...seedDb, ...olMatched];
+
+                if (!insightText) {
+                    insightText = `Trợ lý AI đã phân tích chủ đề "${query}" và tuyển chọn các tác phẩm có tư tưởng sâu sắc, giá trị thực tiễn cao nhất.`;
+                }
             } 
             // Case B: Browsing Curated Feeds by Channel & Mood (The primary experience requested)
             else {
@@ -8353,11 +8403,11 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
 
                 if (engine === 'google') {
                     if (recLoadingText) recLoadingText.textContent = `Đang lấy tuyển tập sách phong phú từ Google Books (${moodInfo.name})...`;
-                    liveBatch = await fetchGoogleBooksRecommendations(moodInfo.gbQuery, 24, offset);
+                    liveBatch = await fetchGoogleBooksRecommendations(moodInfo.gbQuery, 24, offset, pageNum);
                 } else if (engine === 'community') {
                     if (recLoadingText) recLoadingText.textContent = `Đang tổng hợp sách được cộng đồng bình chọn cao nhất (${moodInfo.name})...`;
                     liveBatch = await fetchOpenLibraryDiscovery(
-                        moodInfo.searchQ,
+                        moodInfo.communityQ || moodInfo.searchQ,
                         24,
                         pageNum,
                         'community',
@@ -8367,7 +8417,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 } else if (engine === 'similar') {
                     if (recLoadingText) recLoadingText.textContent = `Đang kết nối mạng lưới sách tương đồng (${moodInfo.name})...`;
                     liveBatch = await fetchOpenLibraryDiscovery(
-                        moodInfo.searchQ,
+                        moodInfo.similarQ || moodInfo.searchQ,
                         24,
                         pageNum,
                         'similar',
@@ -8401,7 +8451,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     // 'all': Plentiful multi-source aggregation (Google Books + Open Library + Curated)
                     if (recLoadingText) recLoadingText.textContent = `Đang kết hợp tuyển tập sách phong phú từ AI, Google Books và Open Library...`;
                     const [gbItems, olItems] = await Promise.all([
-                        fetchGoogleBooksRecommendations(moodInfo.gbQuery, 12, offset).catch(() => []),
+                        fetchGoogleBooksRecommendations(moodInfo.gbQuery, 12, offset, pageNum).catch(() => []),
                         fetchOpenLibraryDiscovery(moodInfo.searchQ, 16, pageNum, 'openlibrary', '📖 Open Library', `Sách được đánh giá cao trên thư viện mở toàn cầu.`).catch(() => [])
                     ]);
 
@@ -8432,8 +8482,13 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             // If in append mode and no more new books could be loaded
             if (append && results.length === 0) {
                 showToast('Đã tải hết tất cả các sách đề xuất trong danh mục này.');
-                if (recLoadMoreContainer) recLoadMoreContainer.style.display = 'none';
+                if (btnRecLoadMore) btnRecLoadMore.style.display = 'none';
+                if (recEndMessage) recEndMessage.style.display = 'inline-flex';
                 return;
+            }
+            if (append && results.length < 12) {
+                if (btnRecLoadMore) btnRecLoadMore.style.display = 'none';
+                if (recEndMessage) recEndMessage.style.display = 'inline-flex';
             }
 
             // Render to Grid
@@ -8474,6 +8529,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         if (recLoadMoreContainer) {
             if (books && books.length > 0) {
                 recLoadMoreContainer.style.display = 'flex';
+                if (btnRecLoadMore) btnRecLoadMore.style.display = 'block';
+                if (recEndMessage) recEndMessage.style.display = 'none';
             } else if (!append) {
                 recLoadMoreContainer.style.display = 'none';
             }
@@ -8714,6 +8771,33 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         if (!isRecTabInitialized) {
             isRecTabInitialized = true;
 
+            // Dedicated AI Recommendation Prompt Form
+            if (recAiPromptForm) {
+                recAiPromptForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const q = recAiPromptInput ? recAiPromptInput.value.trim() : '';
+                    if (!q) {
+                        showToast('💡 Vui lòng nhập nhu cầu hoặc chủ đề bạn muốn nhờ AI gợi ý!');
+                        if (recAiPromptInput) recAiPromptInput.focus();
+                        return;
+                    }
+                    if (recEngineNav) {
+                        recEngineNav.querySelectorAll('.rec-engine-btn').forEach(b => {
+                            b.classList.toggle('active', b.dataset.engine === 'ai');
+                        });
+                    }
+                    currentRecEngine = 'ai';
+                    currentRecPage = 1;
+                    const titleEl = document.getElementById('recResultsTitle');
+                    if (titleEl) {
+                        titleEl.innerHTML = `<span>🤖 Đề xuất Trợ lý AI cho: "${escapeHtml(q)}"</span>`;
+                    }
+                    if (recEndMessage) recEndMessage.style.display = 'none';
+                    if (btnRecLoadMore) btnRecLoadMore.style.display = 'block';
+                    runRecommendationSearch(q, 'ai', currentRecMood, 1, false);
+                });
+            }
+
             // Curated Recommendation Discovery Feeds (Channels)
             if (recEngineNav) {
                 recEngineNav.addEventListener('click', (e) => {
@@ -8723,12 +8807,22 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     btn.classList.add('active');
                     currentRecEngine = btn.dataset.engine || 'all';
 
-                    // Clear search input because engine buttons are purely curated discovery channels
-                    if (recSearchInput) recSearchInput.value = '';
+                    if (recEndMessage) recEndMessage.style.display = 'none';
+                    if (btnRecLoadMore) btnRecLoadMore.style.display = 'block';
+
+                    let queryToRun = '';
+                    if (currentRecEngine === 'ai') {
+                        if (recAiPromptInput) {
+                            recAiPromptInput.focus();
+                            queryToRun = recAiPromptInput.value.trim();
+                        }
+                    } else {
+                        if (recAiPromptInput) recAiPromptInput.value = '';
+                    }
 
                     const titles = {
                         'all': '🌟 Tuyển tập Đề xuất Tổng hợp (AI & Đa Nguồn)',
-                        'ai': '🤖 Tuyển tập do Trợ lý AI Tuyển Chọn',
+                        'ai': queryToRun ? `🤖 Đề xuất Trợ lý AI cho: "${escapeHtml(queryToRun)}"` : '🤖 Tuyển tập do Trợ lý AI Tuyển Chọn',
                         'google': '📚 Tuyển tập Sách Nổi Bật từ Google Books',
                         'similar': '🎯 Mạng lưới Đề xuất Sách Tương Tự (TasteDive)',
                         'community': '👥 Tuyển tập Độc Giả Bình Chọn Top 1% (Hardcover)'
@@ -8739,7 +8833,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     }
 
                     currentRecPage = 1;
-                    runRecommendationSearch('', currentRecEngine, currentRecMood, 1, false);
+                    runRecommendationSearch(queryToRun, currentRecEngine, currentRecMood, 1, false);
                 });
             }
 
@@ -8751,7 +8845,9 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     recMoodsScroll.querySelectorAll('.rec-mood-tag').forEach(t => t.classList.remove('active'));
                     tag.classList.add('active');
                     currentRecMood = tag.dataset.mood || 'all';
-                    if (recSearchInput) recSearchInput.value = '';
+                    if (recEndMessage) recEndMessage.style.display = 'none';
+                    if (btnRecLoadMore) btnRecLoadMore.style.display = 'block';
+                    if (recAiPromptInput) recAiPromptInput.value = '';
                     currentRecPage = 1;
                     runRecommendationSearch('', currentRecEngine, currentRecMood, 1, false);
                 });
@@ -8767,7 +8863,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     btnRecLoadMore.disabled = true;
                     btnRecLoadMore.textContent = 'Đang tải thêm sách...';
                     try {
-                        await runRecommendationSearch('', currentRecEngine, currentRecMood, currentRecPage, true);
+                        const activeAiQ = (currentRecEngine === 'ai' && recAiPromptInput) ? recAiPromptInput.value.trim() : '';
+                        await runRecommendationSearch(activeAiQ, currentRecEngine, currentRecMood, currentRecPage, true);
                     } finally {
                         isRecLoadingMore = false;
                         if (btnRecLoadMore) {

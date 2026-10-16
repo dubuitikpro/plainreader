@@ -506,7 +506,25 @@
                     </button>
                 </div>
 
-                <!-- Quick AI & Audiobook Action Toolbar (Search is removed as requested) -->
+                <!-- Dedicated AI Book Recommendation Prompt Bar -->
+                <div class="rec-ai-prompt-container" id="recAiPromptContainer">
+                    <form class="rec-ai-prompt-form" id="recAiPromptForm" action="javascript:void(0);">
+                        <div class="rec-ai-sparkle-badge">
+                            <span class="ai-sparkle-icon">✦</span>
+                            <span>Hỏi AI Gợi Ý</span>
+                        </div>
+                        <input type="text" id="recAiPromptInput" class="rec-ai-prompt-input" placeholder="Nhập nhu cầu để nhờ Trợ lý AI gợi ý sách (vd: Sách chữa lành tâm hồn, Sách kinh doanh khởi nghiệp, Tiểu thuyết trinh thám ly kỳ...)" autocomplete="off">
+                        <button type="submit" id="btnRecAiSubmit" class="rec-ai-prompt-submit-btn" title="Nhờ Trợ lý AI tìm & gợi ý sách">
+                            <span>Nhờ AI Gợi Ý</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Quick AI & Audiobook Action Toolbar -->
                 <div class="rec-actions-toolbar">
                     <button type="button" class="rec-quick-btn" id="btnRecFromCurrent" title="Gợi ý các cuốn sách liên quan trực tiếp đến cuốn bạn đang nghe/đọc dở">
                         <span class="rec-quick-icon">🎧</span>
@@ -562,6 +580,10 @@
                 </div>
                 <div class="load-more-container" id="recLoadMoreContainer" style="display:none; justify-content:center; margin-top:28px;">
                     <button id="btnRecLoadMore" class="btn-load-more">Xem thêm đề xuất</button>
+                    <div id="recEndMessage" class="rec-end-message" style="display:none;">
+                        <span class="rec-end-icon">✓</span>
+                        <span>Đã tải hết tất cả các sách đề xuất trong danh mục này.</span>
+                    </div>
                 </div>
                 <div class="catalog-loading" id="recLoading" style="display:none;">
                     <div class="catalog-spinner"></div>
