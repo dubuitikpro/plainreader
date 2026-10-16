@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792120177057,
+  "lastUpdated": 1792120301275,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -227,11 +227,11 @@
       "cover": "https://archive.org/services/img/7670131803e640327f698418271ca555",
       "trackIndex": 4,
       "trackTitle": "16 23 chuong 3 hoc cach chi lam hai long ngoi thuc su quan trong nguoi ay la ai",
-      "currentTime": 660,
+      "currentTime": 784,
       "duration": 2244,
-      "percent": 29,
+      "percent": 35,
       "isBookmarked": true,
-      "updatedAt": 1792120176960
+      "updatedAt": 1792120301194
     }
   },
   "audioBookmarks": [
@@ -348,7 +348,7 @@
     "identifier": "7670131803e640327f698418271ca555",
     "type": "archive",
     "trackIndex": 4,
-    "time": 660,
+    "time": 784,
     "volume": 1,
     "speedIndex": 0
   },
