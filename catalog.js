@@ -965,6 +965,17 @@
         return null;
     }
 
+    function formatRatingCount(count) {
+        if (!count || count <= 0) return '';
+        if (count >= 1000000) {
+            return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        }
+        if (count >= 10000) {
+            return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+        }
+        return count.toLocaleString();
+    }
+
     // =========================================
     // Rendering
     // =========================================
@@ -993,7 +1004,7 @@
                     <svg viewBox="0 0 24 24" width="9" height="9" fill="#fbbf24">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                     </svg>
-                    <span>${book.rating} ★</span>
+                    <span>${book.rating} ★${book.ratingsCount ? `<span class="rating-count">(${formatRatingCount(book.ratingsCount)})</span>` : ''}</span>
                 </span>
               `
             : '';
@@ -1053,7 +1064,7 @@
                             <svg viewBox="0 0 24 24" width="9" height="9" fill="#fbbf24">
                                 <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                             </svg>
-                            <span>${rate.rating} ★</span>
+                            <span>${rate.rating} ★${rate.ratingsCount ? `<span class="rating-count">(${formatRatingCount(rate.ratingsCount)})</span>` : ''}</span>
                         `;
                         coverWrap.appendChild(badge);
                     }
@@ -3848,7 +3859,7 @@
                         <svg viewBox="0 0 24 24" width="10" height="10" fill="#fbbf24">
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                         </svg>
-                        <span>${b.rating} ★</span>
+                        <span>${b.rating} ★${b.ratingsCount ? `<span class="rating-count">(${formatRatingCount(b.ratingsCount)})</span>` : ''}</span>
                     </span>
                   `
                 : '';
