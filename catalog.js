@@ -850,6 +850,8 @@
             pages: doc.number_of_pages_median || null,
             rating: doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : null,
             ratingsCount: doc.ratings_count || 0,
+            source: 'openlibrary',
+            sourceLabel: '📖 Open Library'
         };
     }
 
@@ -868,6 +870,8 @@
             language: null,
             editionCount: work.edition_count || 0,
             pages: null,
+            source: 'openlibrary',
+            sourceLabel: '📖 Open Library'
         };
     }
 
@@ -886,6 +890,8 @@
             language: null,
             editionCount: w.edition_count || 0,
             pages: null,
+            source: 'openlibrary',
+            sourceLabel: '📖 Open Library'
         };
     }
 
@@ -1182,8 +1188,20 @@
             ? book.originalTitle
             : '';
 
+        const sourceMap = {
+            'ai': { cls: 'src-ai', label: '🤖 Gemini AI' },
+            'google': { cls: 'src-gb', label: '📚 Google Books' },
+            'similar': { cls: 'src-similar', label: '🎯 TasteDive' },
+            'community': { cls: 'src-community', label: '👥 Hardcover' },
+            'openlibrary': { cls: 'src-ol', label: '📖 Open Library' }
+        };
+        const sKey = book.source || (book.key && book.key.startsWith('/works/') ? 'openlibrary' : 'openlibrary');
+        const sInfo = sourceMap[sKey] || sourceMap['openlibrary'];
+        const sourceBadgeHtml = `<span class="book-badge-source ${sInfo.cls}" title="Nguồn: ${escapeHtml(book.sourceLabel || sInfo.label)}">${escapeHtml(book.sourceLabel || sInfo.label)}</span>`;
+
         card.innerHTML = `
             <div class="book-cover-wrapper">
+                ${sourceBadgeHtml}
                 ${coverUrl
                     ? `<img class="book-cover" src="${coverUrl}" alt="${escapeHtml(displayTitle)}" loading="lazy" onerror="this.onerror=null;this.src='${generateStylizedBookCoverSvg(displayTitle, book.author)}';">`
                     : `<img class="book-cover" src="${generateStylizedBookCoverSvg(displayTitle, book.author)}" alt="${escapeHtml(displayTitle)}" loading="lazy">`
@@ -1214,6 +1232,7 @@
                 ${originalTitle ? `<div class="book-original-title" title="Tên gốc: ${escapeHtml(originalTitle)}">${escapeHtml(originalTitle)}</div>` : ''}
                 <div class="book-author">${escapeHtml(book.author)}</div>
                 ${book.year ? `<div class="book-year">${book.year}</div>` : ''}
+                ${book.reason ? `<div class="book-card-reason-snippet" style="font-size: 0.76rem; color: #4338ca; background: rgba(99, 102, 241, 0.08); padding: 5px 8px; border-radius: 4px; margin-top: 6px; line-height: 1.4; border-left: 2px solid #6366f1;" title="${escapeHtml(book.reason)}">💡 ${escapeHtml(book.reason)}</div>` : ''}
             </div>
         `;
 
@@ -1369,6 +1388,22 @@
         }
 
         modalAuthor.textContent = book.author || 'Tác giả';
+
+        // Source badge in modal
+        const modalSourceBadge = document.getElementById('modalSourceBadge');
+        if (modalSourceBadge) {
+            const sourceMap = {
+                'ai': { cls: 'src-ai', label: '🤖 Gemini AI Tuyển Chọn' },
+                'google': { cls: 'src-gb', label: '📚 Google Books' },
+                'similar': { cls: 'src-similar', label: '🎯 TasteDive Tương Đồng' },
+                'community': { cls: 'src-community', label: '👥 Hardcover / Goodreads Top 1%' },
+                'openlibrary': { cls: 'src-ol', label: '📖 Thư viện Open Library' }
+            };
+            const sKey = book.source || (book.key && book.key.startsWith('/works/') ? 'openlibrary' : 'openlibrary');
+            const sInfo = sourceMap[sKey] || sourceMap['openlibrary'];
+            modalSourceBadge.textContent = book.sourceLabel ? `🏷️ Nguồn: ${book.sourceLabel}` : `🏷️ Nguồn: ${sInfo.label}`;
+            modalSourceBadge.style.display = 'inline-flex';
+        }
 
         // Rating in modal
         if (modalRatingBadge) {
@@ -1672,6 +1707,40 @@
             recommendationsSection.style.display = 'none';
             loadMoreContainer.style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Reset AI Smart Recommendations container
+            const searchAiRecBox = document.getElementById('searchAiRecBox');
+            const searchAiRecGrid = document.getElementById('searchAiRecGrid');
+            const searchAiInsightText = document.getElementById('searchAiInsightText');
+            if (searchAiRecBox) searchAiRecBox.style.display = 'none';
+            if (searchAiRecGrid) searchAiRecGrid.innerHTML = '';
+            if (searchAiInsightText) searchAiInsightText.innerHTML = '';
+
+            // Asynchronously trigger Gemini AI Smart Analysis & Recommendations in parallel
+            const savedApiKey = localStorage.getItem(STORAGE_GEMINI_KEY) || DEFAULT_GEMINI_KEY;
+            if (savedApiKey) {
+                fetchLiveGeminiRecommendations(trimmed, savedApiKey).then(aiData => {
+                    if (aiData && aiData.books && aiData.books.length > 0 && currentQuery === trimmed) {
+                        const box = document.getElementById('searchAiRecBox');
+                        const grid = document.getElementById('searchAiRecGrid');
+                        const text = document.getElementById('searchAiInsightText');
+                        if (box && grid) {
+                            if (text) {
+                                text.innerHTML = `<p>${escapeHtml(aiData.analysis)}</p>`;
+                            }
+                            grid.innerHTML = '';
+                            aiData.books.forEach(b => {
+                                b.source = 'ai';
+                                b.sourceLabel = '🤖 Gemini AI Gợi Ý';
+                                grid.appendChild(createBookCard(b));
+                            });
+                            box.style.display = 'block';
+                        }
+                    }
+                }).catch(e => {
+                    console.warn('AI search suggestions error:', e);
+                });
+            }
         }
 
         isLoading = true;
@@ -1713,7 +1782,7 @@
                         <circle cx="11" cy="11" r="8"/>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
-                    <span>Kết quả cho "<b>${escapeHtml(currentQuery)}</b>" <span style="font-size:0.85em; opacity:0.8; font-weight:400;">(dịch: <i>${escapeHtml(currentSearchEnglishQuery)}</i>)</span></span>
+                    <span>Kết quả thư viện cho "<b>${escapeHtml(currentQuery)}</b>" <span style="font-size:0.85em; opacity:0.8; font-weight:400;">(dịch: <i>${escapeHtml(currentSearchEnglishQuery)}</i>)</span></span>
                 `;
             } else {
                 searchResultsTitle.innerHTML = `
@@ -1721,12 +1790,14 @@
                         <circle cx="11" cy="11" r="8"/>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
-                    Kết quả cho "${escapeHtml(currentQuery)}"
+                    Kết quả thư viện cho "${escapeHtml(currentQuery)}"
                 `;
             }
             resultCount.textContent = `${totalResults.toLocaleString()} sách`;
 
             result.books.forEach(book => {
+                book.source = 'openlibrary';
+                book.sourceLabel = '📖 Open Library';
                 searchResultsGrid.appendChild(createBookCard(book));
             });
 
@@ -8472,7 +8543,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         if (!isRecTabInitialized) {
             isRecTabInitialized = true;
 
-            // Engine Navigation Selector
+            // Curated Recommendation Discovery Feeds (Channels)
             if (recEngineNav) {
                 recEngineNav.addEventListener('click', (e) => {
                     const btn = e.target.closest('.rec-engine-btn');
@@ -8480,8 +8551,23 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     recEngineNav.querySelectorAll('.rec-engine-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     currentRecEngine = btn.dataset.engine || 'all';
-                    const q = recSearchInput ? recSearchInput.value : '';
-                    runRecommendationSearch(q, currentRecEngine, currentRecMood);
+
+                    // Clear search input because engine buttons are purely curated discovery channels
+                    if (recSearchInput) recSearchInput.value = '';
+
+                    const titles = {
+                        'all': '🌟 Tuyển tập Đề xuất Tổng hợp (AI & Đa Nguồn)',
+                        'ai': '🤖 Tuyển tập do Trợ lý AI Tuyển Chọn',
+                        'google': '📚 Tuyển tập Sách Nổi Bật từ Google Books',
+                        'similar': '🎯 Mạng lưới Đề xuất Sách Tương Tự (TasteDive)',
+                        'community': '👥 Tuyển tập Độc Giả Bình Chọn Top 1% (Hardcover)'
+                    };
+                    const titleEl = document.getElementById('recResultsTitle');
+                    if (titleEl) {
+                        titleEl.innerHTML = `<span>${titles[currentRecEngine] || '🌟 Danh sách đề xuất'}</span>`;
+                    }
+
+                    runRecommendationSearch('', currentRecEngine, currentRecMood);
                 });
             }
 
@@ -8493,17 +8579,21 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     recMoodsScroll.querySelectorAll('.rec-mood-tag').forEach(t => t.classList.remove('active'));
                     tag.classList.add('active');
                     currentRecMood = tag.dataset.mood || 'all';
-                    const q = recSearchInput ? recSearchInput.value : '';
-                    runRecommendationSearch(q, currentRecEngine, currentRecMood);
+                    if (recSearchInput) recSearchInput.value = '';
+                    runRecommendationSearch('', currentRecEngine, currentRecMood);
                 });
             }
 
-            // Search Form Submit
+            // Unified Search Form Submit (Natural Library Search + Gemini AI Suggestions)
             if (recSearchForm) {
                 recSearchForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const q = recSearchInput ? recSearchInput.value : '';
-                    runRecommendationSearch(q, currentRecEngine, currentRecMood);
+                    const q = recSearchInput ? recSearchInput.value.trim() : '';
+                    if (q) {
+                        performSearch(q);
+                    } else {
+                        runRecommendationSearch('', currentRecEngine, currentRecMood);
+                    }
                 });
             }
 

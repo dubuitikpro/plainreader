@@ -14,7 +14,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=15.2">
+    <link rel="stylesheet" href="catalog.css?v=15.3">
     <script>
         (function() {
             try {
@@ -233,7 +233,7 @@
                 </div>
             </section>
 
-            <!-- Search Results -->
+            <!-- Search Results (Hybrid: AI Insights & Recommendations + Natural Library Catalog) -->
             <section class="section" id="searchResultsSection" style="display:none;">
                 <button class="btn-back-explore" id="btnBackToExplore">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -242,13 +242,39 @@
                     </svg>
                     <span>Quay lại trang khám phá</span>
                 </button>
-                <div class="section-header">
+
+                <!-- AI Smart Recommendations & Insight Box (when query triggers AI recommendations) -->
+                <div class="search-ai-recommendations" id="searchAiRecBox" style="display:none; margin-bottom: 32px;">
+                    <div class="rec-ai-insight-box" style="margin-bottom: 16px; display: block;">
+                        <div class="ai-insight-header">
+                            <div class="ai-insight-title">
+                                <span class="ai-sparkle-icon">🤖</span>
+                                <h4>Góc nhìn & Đề xuất chuyên sâu từ Trợ lý AI</h4>
+                            </div>
+                            <span class="ai-insight-badge">Gemini AI</span>
+                        </div>
+                        <div class="ai-insight-content" id="searchAiInsightText">
+                            <!-- AI insight analysis text -->
+                        </div>
+                    </div>
+                    <div class="rec-results-header" style="margin-bottom: 12px;">
+                        <h3 class="rec-results-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                            <span>✨ Sách do AI gợi ý theo nhu cầu tìm kiếm</span>
+                        </h3>
+                    </div>
+                    <div class="books-grid" id="searchAiRecGrid">
+                        <!-- AI recommended cards injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Natural Search Library Results Header & Grid -->
+                <div class="section-header" id="searchNaturalHeader">
                     <h3 class="section-title" id="searchResultsTitle">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                             <circle cx="11" cy="11" r="8"/>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
-                        Kết quả tìm kiếm
+                        <span>Kết quả tìm kiếm từ thư viện</span>
                     </h3>
                     <span class="result-count" id="resultCount"></span>
                 </div>
@@ -256,7 +282,7 @@
                     <!-- Search result cards inserted here -->
                 </div>
                 <div class="load-more-container" id="loadMoreContainer" style="display:none;">
-                    <button id="btnLoadMore" class="btn-load-more">Xem thêm</button>
+                    <button id="btnLoadMore" class="btn-load-more">Xem thêm từ thư viện</button>
                 </div>
             </section>
         </div>
@@ -451,29 +477,29 @@
                     </div>
                     <h2 class="rec-hero-title">Khám Phá Sách Thông Minh</h2>
                     <p class="rec-hero-subtitle">
-                        Tìm kiếm sách tương đồng theo phong cách, tác giả, xu hướng cộng đồng và nhận phân tích đề xuất chuyên sâu từ Trợ lý AI.
+                        Duyệt các bộ sưu tập đề xuất theo nguồn tuyển chọn hoặc nhập nhu cầu để tìm kiếm kết hợp (Thư viện tự nhiên + Trợ lý AI gợi ý).
                     </p>
                 </div>
 
-                <!-- Engine Selector Pills -->
+                <!-- Curated Recommendation Discovery Feeds (Channels) -->
                 <div class="rec-engine-nav" id="recEngineNav">
-                    <button class="rec-engine-btn active" data-engine="all" type="button">
+                    <button class="rec-engine-btn active" data-engine="all" type="button" title="Tuyển tập đề xuất tổng hợp">
                         <span class="engine-icon">🌟</span>
-                        <span>Tất cả nguồn</span>
+                        <span>Tất cả đề xuất</span>
                     </button>
-                    <button class="rec-engine-btn" data-engine="ai" type="button">
+                    <button class="rec-engine-btn" data-engine="ai" type="button" title="Tuyển tập do Trợ lý AI tuyển chọn">
                         <span class="engine-icon">🤖</span>
                         <span>Trợ lý AI</span>
                     </button>
-                    <button class="rec-engine-btn" data-engine="google" type="button">
+                    <button class="rec-engine-btn" data-engine="google" type="button" title="Sách nổi bật từ Google Books">
                         <span class="engine-icon">📚</span>
                         <span>Google Books</span>
                     </button>
-                    <button class="rec-engine-btn" data-engine="similar" type="button">
+                    <button class="rec-engine-btn" data-engine="similar" type="button" title="Mạng lưới đề xuất sách tương tự">
                         <span class="engine-icon">🎯</span>
                         <span>Sách tương tự (TasteDive)</span>
                     </button>
-                    <button class="rec-engine-btn" data-engine="community" type="button">
+                    <button class="rec-engine-btn" data-engine="community" type="button" title="Sách được cộng đồng độc giả bình chọn Top 1%">
                         <span class="engine-icon">👥</span>
                         <span>Cộng đồng (Hardcover)</span>
                     </button>
@@ -486,9 +512,9 @@
                             <circle cx="11" cy="11" r="8"/>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
-                        <input type="text" id="recSearchInput" placeholder="Nhập tên cuốn sách bạn thích hoặc hỏi AI (VD: Sách tâm lý thao túng, Sách rèn kỷ luật...)" autocomplete="off">
-                        <button type="submit" id="btnRecSearch" class="rec-search-submit-btn" title="Tìm và gợi ý">
-                            <span>Gợi ý ngay</span>
+                        <input type="text" id="recSearchInput" placeholder="Tìm kiếm kết hợp (Thư viện tự nhiên + Trợ lý AI gợi ý)..." autocomplete="off">
+                        <button type="submit" id="btnRecSearch" class="rec-search-submit-btn" title="Tìm kiếm kết hợp">
+                            <span>Tìm & Gợi ý</span>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                                 <polyline points="12 5 19 12 12 19"/>
@@ -584,6 +610,7 @@
                     </div>
                     <p id="modalAuthor" class="modal-author"></p>
                     <div class="modal-meta">
+                        <span id="modalSourceBadge" class="meta-badge modal-badge-source" style="display:none;" title="Nguồn dữ liệu sách"></span>
                         <span id="modalRatingBadge" class="meta-badge modal-badge-rating" style="display:none;" title="Đánh giá sách từ độc giả">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="#fbbf24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                             <span id="modalRatingBadgeText"></span>
@@ -1238,7 +1265,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=15.2"></script>
-    <script src="catalog.js?v=15.2"></script>
+    <script src="sync.js?v=15.3"></script>
+    <script src="catalog.js?v=15.3"></script>
 </body>
 </html>

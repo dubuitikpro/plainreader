@@ -1247,6 +1247,82 @@ a { color: inherit; text-decoration: none; }
     bottom: 26px;
 }
 
+/* Source badge on book cover */
+.book-badge-source {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 2.5px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    line-height: 1;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform var(--transition-fast);
+}
+
+.book-card:hover .book-badge-source {
+    transform: translateY(-1px);
+}
+
+.book-badge-source.src-ai,
+.rec-source-ai {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(139, 92, 246, 0.95)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(199, 210, 254, 0.5) !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
+}
+
+.book-badge-source.src-ol,
+.rec-source-openlibrary {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.95), rgba(3, 105, 161, 0.95)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(186, 230, 253, 0.4) !important;
+}
+
+.book-badge-source.src-gb,
+.rec-source-google {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.95), rgba(4, 120, 87, 0.95)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(167, 243, 208, 0.4) !important;
+}
+
+.book-badge-source.src-similar,
+.rec-source-similar {
+    background: linear-gradient(135deg, rgba(234, 88, 12, 0.95), rgba(194, 65, 12, 0.95)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(254, 215, 170, 0.4) !important;
+}
+
+.book-badge-source.src-community,
+.rec-source-community {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.95), rgba(126, 34, 206, 0.95)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(233, 213, 255, 0.4) !important;
+}
+
+/* Modal Source Badge */
+.modal-badge-source {
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: var(--primary-color);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* Card info */
 .book-info {
     padding: 8px 8px 10px;
