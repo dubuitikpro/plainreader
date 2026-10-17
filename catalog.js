@@ -5249,6 +5249,9 @@
 
         // Open modal
         openAudioPlayerModal();
+        if (typeof updatePlayerSuggestedBooks === 'function') {
+            updatePlayerSuggestedBooks();
+        }
     }
 
     function renderPreviewPlaylist(book, type, activeTrackIndex = 0) {
@@ -10277,11 +10280,19 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
     async function updatePlayerSuggestedBooks() {
         if (!playerSuggestedBox || !playerSuggestedList) return;
 
-        const playingTitle = (currentAudiobook?.title || ytCurrentItem?.title || '').trim();
-        const playingAuthor = (currentAudiobook?.author || ytCurrentItem?.author || '').trim();
-        const currentTrack = (currentAudiobook?.tracks?.[currentTrackIndex]?.title || '').trim();
-        const playingDesc = (currentAudiobook?.description || ytCurrentItem?.description || '').trim();
-        const currentIdentifier = currentAudiobook?.identifier || ytCurrentItem?.videoId || '';
+        // Resolve active book from playback, preview mode, or direct DOM representation
+        const activeBook = previewViewingBook || currentAudiobook || ytCurrentItem || null;
+        const domTitle = document.getElementById('playerBookTitle')?.textContent?.trim() || '';
+        const domAuthor = document.getElementById('playerBookAuthor')?.textContent?.trim() || '';
+        const domTrack = document.getElementById('playerTrackTitle')?.textContent?.trim() || '';
+        const domDesc = document.getElementById('playerBookDescription')?.textContent?.trim() || '';
+
+        const playingTitle = (activeBook?.title || domTitle || '').trim();
+        const playingAuthor = (activeBook?.author || domAuthor || '').trim();
+        const curTrackIdx = (typeof currentTrackIndex === 'number' && currentTrackIndex >= 0) ? currentTrackIndex : (typeof previewTargetTrack === 'number' ? previewTargetTrack : 0);
+        const currentTrack = (activeBook?.tracks?.[curTrackIdx]?.title || domTrack || '').trim();
+        const playingDesc = (activeBook?.description || domDesc || '').trim();
+        const currentIdentifier = activeBook?.identifier || activeBook?.videoId || '';
 
         if (!playingTitle && !currentIdentifier) {
             playerSuggestedBox.style.display = 'none';
@@ -10290,11 +10301,12 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
 
         const sig = `${playingTitle} ${playingAuthor} ${currentTrack} ${playingDesc} ${currentIdentifier}`.toLowerCase();
         const isCurrentAudio = (item) => {
+            if (!item) return false;
+            if (item.identifier && currentIdentifier && (item.identifier === currentIdentifier || isSameAudioIdentifier(item.identifier, currentIdentifier))) return true;
+            if (item.videoId && (ytCurrentItem?.videoId || activeBook?.videoId) && item.videoId === (ytCurrentItem?.videoId || activeBook?.videoId)) return true;
             const itemTitle = (item.title || '').toLowerCase().trim();
             const currentTitleNorm = playingTitle.toLowerCase().trim();
-            if (itemTitle && currentTitleNorm && (itemTitle.includes(currentTitleNorm) || currentTitleNorm.includes(itemTitle))) return true;
-            if (item.identifier && currentIdentifier && (item.identifier === currentIdentifier || isSameAudioIdentifier(item.identifier, currentIdentifier))) return true;
-            if (item.videoId && ytCurrentItem?.videoId && item.videoId === ytCurrentItem.videoId) return true;
+            if (itemTitle && currentTitleNorm && itemTitle === currentTitleNorm) return true;
             return false;
         };
 
@@ -10363,10 +10375,47 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             return;
         }
 
-        // 3. Strict Relevance Guard: If NO relevant audiobooks are found, HIDE the section
-        // CRITICAL: NEVER display arbitrary unrelated default books (like Atomic Habits for Ghost stories)!
-        playerSuggestedBox.style.display = 'none';
-        playerSuggestedList.innerHTML = '';
+        // 3. Fallback: If no strict thematic match, show curated literary & storytelling audiobooks
+        const generalPicks = [
+            {
+                title: 'Nhà Giả Kim (The Alchemist)',
+                author: 'Paulo Coelho',
+                identifier: 'nha-gia-kim.sna',
+                cover: 'https://archive.org/services/img/nha-gia-kim.sna',
+                type: 'archive',
+                reason: 'Kiệt tác văn học kinh điển'
+            },
+            {
+                title: 'Đắc Nhân Tâm',
+                author: 'Dale Carnegie',
+                identifier: 'dac-nhan-tam.sna',
+                cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
+                type: 'archive',
+                reason: 'Nghệ thuật thấu hiểu lòng người'
+            },
+            {
+                title: 'Bố Già (The Godfather)',
+                author: 'Mario Puzo',
+                identifier: 'bogia_201903',
+                cover: 'https://archive.org/services/img/bogia_201903',
+                type: 'archive',
+                reason: 'Tiểu thuyết kinh điển kịch tính'
+            },
+            {
+                title: 'Hoàng Tử Bé',
+                author: 'Antoine de Saint-Exupéry',
+                identifier: 'hoang-tu-be.sna',
+                cover: 'https://archive.org/services/img/hoang-tu-be.sna',
+                type: 'archive',
+                reason: 'Tác phẩm văn học bất hủ'
+            }
+        ].filter(item => !isCurrentAudio(item));
+
+        if (generalPicks.length > 0) {
+            renderPlayerSuggestedItems(generalPicks, '🌟 Tác phẩm audio nổi bật');
+        } else {
+            playerSuggestedBox.style.display = 'none';
+        }
     }
 
     // Initialize Recommendations Tab & Event Listeners
