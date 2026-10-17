@@ -4837,6 +4837,29 @@
         librivox: '🎙️ LibriVox & Bản thu kinh điển mới đăng (Archive.org)'
     };
 
+    // Helper: Global strict author comparison to ensure different authors
+    function isSameAuthorComparison(authorA, authorB) {
+        if (!authorA || !authorB) return false;
+        const normalize = (name) => (name || '').toLowerCase().trim().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+        const a = normalize(authorA);
+        const b = normalize(authorB);
+        if (!a || !b) return false;
+        if (a === b) return true;
+        if (a.length > 3 && b.includes(a)) return true;
+        if (b.length > 3 && a.includes(b)) return true;
+
+        const tokensA = a.split(/\s+/).filter(w => w.length > 2);
+        const tokensB = b.split(/\s+/).filter(w => w.length > 2);
+        for (const t of tokensA) {
+            if (t.length > 3 && b.includes(t)) return true;
+        }
+        for (const t of tokensB) {
+            if (t.length > 3 && a.includes(t)) return true;
+        }
+        return false;
+    }
+    window.isSameAuthorComparison = isSameAuthorComparison;
+
     // =========================================
     // Dedicated WebArchive Full Page Recommendations
     // =========================================
@@ -4905,7 +4928,7 @@
             if (page === 1 && Array.isArray(cluster.items)) {
                 cluster.items.forEach(item => {
                     const normAuth = normalizeA(item.author);
-                    if (!isSameAuthor(item.author, playingAuthor) && !seenAuthors.has(normAuth)) {
+                    if (!isSameAuthorComparison(item.author, playingAuthor) && !seenAuthors.has(normAuth)) {
                         seenAuthors.add(normAuth);
                         const id = item.identifier || `curated_${item.title}`;
                         seenIds.add(id);
@@ -4937,8 +4960,8 @@
                     const normAuth = normalizeA(author);
 
                     // Must NOT be the playing author or already seen author
-                    if (!isSameAuthor(author, playingAuthor) && 
-                        !isSameAuthor(d.title, playingAuthor) &&
+                    if (!isSameAuthorComparison(author, playingAuthor) && 
+                        !isSameAuthorComparison(d.title, playingAuthor) &&
                         !seenAuthors.has(normAuth) && 
                         !seenIds.has(d.identifier)) {
                         
@@ -10980,7 +11003,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             if (inPlayerRecPage === 1 && Array.isArray(inPlayerRecCluster.items)) {
                 inPlayerRecCluster.items.forEach(item => {
                     const normAuth = normalizeA(item.author);
-                    if (!isSameAuthor(item.author, inPlayerRecPlayingAuthor) && !inPlayerRecSeenAuthors.has(normAuth)) {
+                    if (!isSameAuthorComparison(item.author, inPlayerRecPlayingAuthor) && !inPlayerRecSeenAuthors.has(normAuth)) {
                         inPlayerRecSeenAuthors.add(normAuth);
                         const id = item.identifier || item.videoId || item.key || `curated_${item.title}`;
                         inPlayerRecSeenIds.add(id);
@@ -11018,8 +11041,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                         const normAuth = normalizeA(author);
 
                         // Must NOT be the playing author or already seen author
-                        if (!isSameAuthor(author, inPlayerRecPlayingAuthor) && 
-                            !isSameAuthor(d.title, inPlayerRecPlayingAuthor) &&
+                        if (!isSameAuthorComparison(author, inPlayerRecPlayingAuthor) && 
+                            !isSameAuthorComparison(d.title, inPlayerRecPlayingAuthor) &&
                             !inPlayerRecSeenAuthors.has(normAuth) && 
                             !inPlayerRecSeenIds.has(d.identifier)) {
                             
