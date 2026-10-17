@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792218580827,
+  "lastUpdated": 1792218942221,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -397,11 +397,11 @@
       "cover": "https://archive.org/services/img/dam-bi-ghet",
       "trackIndex": 0,
       "trackTitle": "Koga Fumitake, Kishimi Ichiro Phần 1: Đêm Thứ nhất Audio Book",
-      "currentTime": 312,
+      "currentTime": 672,
       "duration": 4172,
-      "percent": 7,
+      "percent": 16,
       "isBookmarked": true,
-      "updatedAt": 1792218580826
+      "updatedAt": 1792218941639
     }
   },
   "audioBookmarks": [
@@ -534,7 +534,7 @@
     "identifier": "dam-bi-ghet",
     "type": "archive",
     "trackIndex": 0,
-    "time": 312,
+    "time": 672,
     "volume": 1,
     "speedIndex": 0
   },
