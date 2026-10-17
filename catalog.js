@@ -29,6 +29,12 @@
     const PAGE_SIZE = 20;
 
     // =========================================
+    // Global Diacritics Remover Helper
+    // =========================================
+    const removeDiacritics = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+    window.removeDiacritics = removeDiacritics;
+
+    // =========================================
     // State
     // =========================================
     let wishlist = loadFromStorage(STORAGE_WISHLIST, []);
@@ -10583,7 +10589,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             recPagePrompt: 'Tâm lý học kỹ năng sống mối quan hệ đàn ông phụ nữ giao tiếp',
             recPageTitle: '🧠 Tuyển tập Tâm lý, Kỹ năng & Thấu hiểu (Đa tác giả)',
             keywords: [
-                'thoat kiep', 'trai hen', 'nice guy', 'tam ly', 'tâm lý', 'ky nang', 'kỹ năng',
+                'thoat kiep', 'trai hen', 'nice guy', 'tam ly', 'tâm lý', 
+                'ky nang giao tiep', 'kỹ năng giao tiếp', 'ky nang song', 'kỹ năng sống', 'ky nang ung xu', 'kỹ năng ứng xử',
                 'giao tiep', 'giao tiếp', 'hen ho', 'hẹn hò', 'tinh yeu', 'tình yêu', 'hon nhan',
                 'hôn nhân', 'dan ong', 'đàn ông', 'phu nu', 'phụ nữ', 'ban linh', 'bản lĩnh',
                 'tu tin', 'tự tin', 'cam xuc', 'cảm xúc', 'quan he', 'mối quan hệ', 'thao tung',
@@ -10715,7 +10722,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             recPagePrompt: 'Phát triển bản thân thói quen năng suất tập trung',
             recPageTitle: '⚡ Tuyển tập Thói quen & Năng suất (Đa tác giả)',
             keywords: [
-                'atomic habits', 'thay đổi tí hon', 'thói quen', 'deep work',
+                'atomic habits', 'thay đổi tí hon', 'thói quen nguyên tử', 'thoi quen nguyen tu', 'thói quen', 'deep work',
                 '7 thói quen', 'tuổi trẻ đáng giá', 'sức mạnh tiềm thức', 'trên đường băng', 'năng suất',
                 'tập trung', 'james clear', 'stephen covey', 'cal newport', 'charles duhigg'
             ],
@@ -11395,6 +11402,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
     // Update Suggested Audiobooks in Dedicated Audio Player (Strict Same Genre + Different Authors)
     async function updatePlayerSuggestedBooks() {
         if (!playerSuggestedBox || !playerSuggestedList) return;
+        try {
 
         // Resolve active book from playback, preview mode, or direct DOM representation
         const activeBook = previewViewingBook || currentAudiobook || ytCurrentItem || null;
@@ -11572,6 +11580,9 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             });
         } else {
             playerSuggestedBox.style.display = 'none';
+        }
+        } catch (err) {
+            console.error('Error updating player suggestions:', err);
         }
     }
 
