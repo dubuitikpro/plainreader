@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792250122148,
+  "lastUpdated": 1792250367971,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -395,15 +395,15 @@
       "title": "Dám Bị Ghét",
       "author": "Internet Archive",
       "cover": "https://archive.org/services/img/dam-bi-ghet",
-      "trackIndex": 1,
-      "trackTitle": "Koga Fumitake, Kishimi Ichiro Phần 2: Đêm Thứ Hai Audio Book",
-      "currentTime": 4496,
-      "duration": 4740,
-      "percent": 95,
+      "trackIndex": 2,
+      "trackTitle": "Koga Fumitake, Kishimi Ichiro Phần 3: Đêm Thứ Ba Audio Book",
+      "currentTime": 0,
+      "duration": 3301,
+      "percent": 0,
       "isBookmarked": true,
       "note": "Mọi phiền muộn đều do mối quan hệ giữa người với người",
       "noteUpdatedAt": 1792249090553,
-      "updatedAt": 1792250121648
+      "updatedAt": 1792250364963
     }
   },
   "audioBookmarks": [
@@ -543,8 +543,8 @@
   "audioState": {
     "identifier": "dam-bi-ghet",
     "type": "archive",
-    "trackIndex": 1,
-    "time": 4496,
+    "trackIndex": 2,
+    "time": 0,
     "volume": 1,
     "speedIndex": 0
   },
