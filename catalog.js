@@ -4847,7 +4847,8 @@
     // Helper: Global strict author comparison to ensure different authors
     function isSameAuthorComparison(authorA, authorB) {
         if (!authorA || !authorB) return false;
-        const removeDiacritics = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        const isGeneric = (str) => /(internet archive|sachnoi|truyen audio|audio|kenh|thuvien|hp|nghe|online|youtube|uploader|admin|khong ro|dang cap nhat)/i.test(str);
+        if (isGeneric(authorA) || isGeneric(authorB)) return false;
         const normalize = (name) => removeDiacritics(name).toLowerCase().trim().replace(/^(sir|dai su|thay|nha van|tac gia)\s+/i, '');
         const a = normalize(authorA);
         const b = normalize(authorB);
@@ -10625,9 +10626,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 {
                     title: 'Khéo Ăn Nói Sẽ Có Được Thiên Hạ',
                     author: 'Trác Nhã',
-                    identifier: 'dac-nhan-tam.sna',
-                    cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
-                    type: 'archive',
+                    cover: 'https://covers.openlibrary.org/b/id/12488319-M.jpg',
+                    key: '/works/OL28123456W_kheoannoi',
                     reason: 'Nghệ thuật giao tiếp tinh tế trong mọi hoàn cảnh'
                 },
                 {
@@ -11580,6 +11580,11 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             });
         } else {
             playerSuggestedBox.style.display = 'none';
+        }
+
+        // If the 8-books-per-row dedicated recommendations view is currently open, automatically reload it for the newly playing audio!
+        if (isInPlayerRecMode) {
+            openInPlayerRecommendations8();
         }
         } catch (err) {
             console.error('Error updating player suggestions:', err);
