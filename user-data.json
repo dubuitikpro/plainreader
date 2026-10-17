@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792218258444,
+  "lastUpdated": 1792218580827,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -388,6 +388,20 @@
       "percent": 40,
       "isBookmarked": true,
       "updatedAt": 1792201649880
+    },
+    "dam-bi-ghet": {
+      "identifier": "dam-bi-ghet",
+      "type": "archive",
+      "title": "Dám Bị Ghét",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/dam-bi-ghet",
+      "trackIndex": 0,
+      "trackTitle": "Koga Fumitake, Kishimi Ichiro Phần 1: Đêm Thứ nhất Audio Book",
+      "currentTime": 312,
+      "duration": 4172,
+      "percent": 7,
+      "isBookmarked": true,
+      "updatedAt": 1792218580826
     }
   },
   "audioBookmarks": [
@@ -515,12 +529,12 @@
       "updatedAt": 1791017523196
     }
   },
-  "lastPlayedId": "yt_IBh60rV9ue0",
+  "lastPlayedId": "dam-bi-ghet",
   "audioState": {
-    "identifier": "mat-ma-da-vinci.sna",
+    "identifier": "dam-bi-ghet",
     "type": "archive",
-    "trackIndex": 1,
-    "time": 315,
+    "trackIndex": 0,
+    "time": 312,
     "volume": 1,
     "speedIndex": 0
   },
