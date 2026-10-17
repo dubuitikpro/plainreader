@@ -153,6 +153,23 @@
     const audiobooksLoading = document.getElementById('audiobooksLoading');
     const modalBtnAudiobook = document.getElementById('modalBtnAudiobook');
 
+    // Audio Sort & Recent Live Feed Elements
+    const btnSortPopular = document.getElementById('btnSortPopular');
+    const btnSortNewest = document.getElementById('btnSortNewest');
+    const audioSortControl = document.getElementById('audioSortControl');
+    const audioRecentSubBar = document.getElementById('audioRecentSubBar');
+    const btnRecentRefresh = document.getElementById('btnRecentRefresh');
+    const recentFilterPills = document.getElementById('recentFilterPills');
+    const audiobooksPagination = document.getElementById('audiobooksPagination');
+    const btnLoadMoreAudio = document.getElementById('btnLoadMoreAudio');
+    const loadMoreAudioText = document.getElementById('loadMoreAudioText');
+
+    let currentAudioSort = 'downloads'; // 'downloads' or 'addeddate'
+    let currentRecentSubFilter = 'all';
+    let currentRecentPage = 1;
+    let isRecentAudioLoading = false;
+    const recentArchiveCache = {}; // subFilter_page_X -> { items: [], hasMore: bool, timestamp: 0 }
+
     // Audio History & In-Progress Elements
     const tabHistory = document.getElementById('tabHistory');
     const contentHistory = document.getElementById('contentHistory');
@@ -402,6 +419,85 @@
         const hours = d.getHours().toString().padStart(2, '0');
         const mins = d.getMinutes().toString().padStart(2, '0');
         return `${day}/${month} ${hours}:${mins}`;
+    }
+
+    function formatRelativeUploadDate(dateVal) {
+        if (!dateVal) return '';
+        const ts = typeof dateVal === 'number' ? dateVal : new Date(dateVal).getTime();
+        if (!ts || isNaN(ts)) return '';
+        const now = Date.now();
+        const diff = Math.floor((now - ts) / 1000);
+        if (diff < 0) return 'Vừa đăng';
+        if (diff < 60) return 'Vừa xong';
+        if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+        if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} ngày trước`;
+        const d = new Date(ts);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    function generateAudioCoverDataUrl(title, author) {
+        const cleanTitle = (title || 'Audiobook').slice(0, 48);
+        const cleanAuthor = (author || 'Internet Archive').slice(0, 32);
+        const palettes = [
+            ['#1e1b4b', '#4338ca', '#818cf8'],
+            ['#0f172a', '#0d9488', '#2dd4bf'],
+            ['#18181b', '#d97706', '#fbbf24'],
+            ['#31103f', '#7e22ce', '#c084fc'],
+            ['#064e3b', '#059669', '#34d399'],
+            ['#701a75', '#db2777', '#f472b6'],
+            ['#1c1917', '#ea580c', '#fb923c']
+        ];
+        let hash = 0;
+        for (let i = 0; i < cleanTitle.length; i++) {
+            hash = (hash * 31 + cleanTitle.charCodeAt(i)) & 0xffffffff;
+        }
+        const colors = palettes[Math.abs(hash) % palettes.length];
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 420" width="300" height="420">
+            <defs>
+                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="${colors[0]}"/>
+                    <stop offset="100%" stop-color="${colors[1]}"/>
+                </linearGradient>
+                <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="${colors[2]}" stop-opacity="0.8"/>
+                    <stop offset="100%" stop-color="#00cec9" stop-opacity="0.8"/>
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+            <rect x="0" y="0" width="100%" height="4" fill="url(#glowGrad)"/>
+            
+            <circle cx="150" cy="135" r="54" fill="rgba(255,255,255,0.04)"/>
+            <circle cx="150" cy="135" r="40" fill="rgba(255,255,255,0.07)"/>
+            
+            <path d="M125 137v-12a25 25 0 0 1 50 0v12" fill="none" stroke="${colors[2]}" stroke-width="4" stroke-linecap="round"/>
+            <rect x="117" y="131" width="12" height="22" rx="6" fill="${colors[2]}"/>
+            <rect x="171" y="131" width="12" height="22" rx="6" fill="${colors[2]}"/>
+
+            <line x1="100" y1="142" x2="100" y2="142" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="107" y1="137" x2="107" y2="147" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="193" y1="137" x2="193" y2="147" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="200" y1="142" x2="200" y2="142" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round"/>
+
+            <foreignObject x="18" y="210" width="264" height="185">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                    <div style="font-weight:800;font-size:15px;line-height:1.35;max-height:65px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.6);">
+                        ${escapeHtml(cleanTitle)}
+                    </div>
+                    <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.75);margin-top:10px;max-height:32px;overflow:hidden;text-overflow:ellipsis;">
+                        ${escapeHtml(cleanAuthor)}
+                    </div>
+                    <div style="margin-top:14px;display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.1);font-size:9px;font-weight:700;color:#00cec9;letter-spacing:1px;text-transform:uppercase;">
+                        Internet Archive
+                    </div>
+                </div>
+            </foreignObject>
+        </svg>`;
+        return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     }
 
     function isInWishlist(bookKey) {
@@ -3804,6 +3900,7 @@
             currentAudioSource = 'archive';
             if (btnArchive) btnArchive.classList.add('active');
             if (btnYoutube) btnYoutube.classList.remove('active');
+            if (audioSortControl) audioSortControl.style.display = 'inline-flex';
             if (searchInput) {
                 searchInput.placeholder = 'Tìm theo tên tác phẩm, tác giả trên Web Archive (Mặt dày tâm đen, Đắc nhân tâm, Tam quốc...)';
             }
@@ -3815,13 +3912,34 @@
             if (autoSearch && currentQuery) {
                 searchAudiobooks(currentQuery);
             } else if (!currentQuery) {
-                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
-                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+                if (currentGenreFilter === 'archive-recent') {
+                    if (audioRecentSubBar) audioRecentSubBar.style.display = 'block';
+                    loadRecentArchiveAudiobooks(currentRecentSubFilter || 'all', 1, false, false);
+                } else {
+                    if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
+                    if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+                    if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
+                    renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+                }
             }
         } else if (source === 'youtube') {
             currentAudioSource = 'youtube';
             if (btnYoutube) btnYoutube.classList.add('active');
             if (btnArchive) btnArchive.classList.remove('active');
+            if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
+            if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+            if (audioSortControl) audioSortControl.style.display = 'none';
+
+            // If active tag was recent archive, reset back to all
+            if (currentGenreFilter === 'archive-recent') {
+                currentGenreFilter = 'all';
+                if (audioGenreTags) {
+                    audioGenreTags.querySelectorAll('.audio-tag').forEach(t => t.classList.remove('active'));
+                    const allTag = audioGenreTags.querySelector('.audio-tag[data-genre="all"]');
+                    if (allTag) allTag.classList.add('active');
+                }
+            }
+
             if (searchInput) {
                 searchInput.placeholder = 'Tìm sách nói, podcast trên YouTube Music hoặc dán link/ID video...';
             }
@@ -4501,6 +4619,148 @@
         });
     }
 
+    function createAudiobookCardElement(b, sourceType = currentAudioSource, progressMap = null) {
+        if (!progressMap) {
+            progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        }
+        const isYt = b.type === 'youtube' || sourceType === 'youtube' || (b.identifier && b.identifier.startsWith('yt_'));
+        const card = document.createElement('div');
+        card.className = `audiobook-card ${isYt ? 'audiobook-card-youtube' : ''}`;
+        card.setAttribute('data-id', b.identifier);
+
+        const fallbackCover = generateAudioCoverDataUrl(b.title, b.author);
+        const coverUrl = b.cover || (b.videoId ? `https://i.ytimg.com/vi/${b.videoId}/hqdefault.jpg` : `https://archive.org/services/img/${b.identifier}`);
+        const chapterBadge = b.chapters ? `${b.chapters} chương` : (isYt ? 'YouTube Audio' : 'Audiobook');
+        const savedProg = progressMap[b.identifier];
+        const hasProgress = savedProg && savedProg.currentTime && savedProg.currentTime > 5;
+        const resumeBadgeHtml = hasProgress 
+            ? `<span class="audiobook-badge-resume">🎧 Tiếp tục (${formatTime(savedProg.currentTime)})</span>` 
+            : '';
+
+        const sourceTagHtml = isYt
+            ? `
+                <span class="audiobook-source-tag is-youtube">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff"/>
+                    </svg>
+                    YouTube Music
+                </span>
+              `
+            : `
+                <span class="audiobook-source-tag">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                    </svg>
+                    archive.org
+                </span>
+              `;
+
+        const badgeYoutubeHtml = isYt ? `<span class="audiobook-badge-youtube">YouTube Music</span>` : '';
+        const ratingBadgeHtml = (b.rating && b.rating > 0)
+            ? `
+                <span class="audiobook-badge-rating" title="Đánh giá sách: ${b.rating}/5.0 ${b.ratingsCount ? '(' + b.ratingsCount.toLocaleString() + ' đánh giá)' : ''}">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="#fbbf24">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                    <span>${b.rating} ★${b.ratingsCount ? `<span class="rating-count">(${formatRatingCount(b.ratingsCount)})</span>` : ''}</span>
+                </span>
+              `
+            : '';
+
+        const dateBadgeHtml = (!isYt && (b.addeddate || b.publicdate))
+            ? `<span class="audiobook-badge-date" title="Ngày đăng trên Archive.org: ${escapeHtml(b.addeddate || b.publicdate)}">⚡ ${formatRelativeUploadDate(b.addeddate || b.publicdate)}</span>`
+            : '';
+
+        card.innerHTML = `
+            <div class="audiobook-cover-wrap">
+                <img class="audiobook-cover" src="${coverUrl}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}';">
+                <span class="audiobook-badge-chapters">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <line x1="8" y1="6" x2="21" y2="6"/>
+                        <line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                    </svg>
+                    ${chapterBadge}
+                </span>
+                ${badgeYoutubeHtml}
+                ${dateBadgeHtml}
+                ${resumeBadgeHtml}
+                ${ratingBadgeHtml}
+                <div class="audiobook-overlay-play">
+                    <div class="audiobook-play-circle">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                            <polygon points="6 3 20 12 6 21 6 3"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="audiobook-info">
+                <div class="audiobook-title" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</div>
+                <div class="audiobook-author">${escapeHtml(b.author || (isYt ? 'YouTube' : 'Internet Archive'))}</div>
+                <div class="audiobook-footer">
+                    ${sourceTagHtml}
+                    <button class="audiobook-btn-listen" title="Nghe sách này">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        <span>${hasProgress ? 'Nghe tiếp' : 'Nghe ngay'}</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+            const activeId = getActiveSessionIdentifier();
+            const isCurrentActive = Boolean(activeId && (
+                isSameAudioIdentifier(activeId, b.identifier) ||
+                (b.videoId && isSameAudioIdentifier(activeId, `yt_${b.videoId}`)) ||
+                (currentAudiobook && (isSameAudioIdentifier(currentAudiobook.identifier, b.identifier) || (currentAudiobook.title && b.title && currentAudiobook.title.trim().toLowerCase() === b.title.trim().toLowerCase()))) ||
+                (ytCurrentItem && (isSameAudioIdentifier(ytCurrentItem.identifier, b.identifier) || isSameAudioIdentifier(ytCurrentItem.videoId, b.videoId)))
+            ));
+
+            if (isCurrentActive) {
+                if (isViewingPreview) {
+                    restoreActiveAudiobookModal();
+                } else {
+                    openAudioPlayerModal();
+                }
+                showToast(`🎧 Đang phát: ${getActiveAudioTitle()}`);
+                return;
+            }
+
+            const pMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+            const bId = b.identifier || (b.videoId ? `yt_${b.videoId}` : null);
+            const savedP = (bId && pMap[bId]) || (b.videoId && pMap[`yt_${b.videoId}`]);
+            const hasSavedP = Boolean(savedP && (savedP.currentTime > 2 || (typeof savedP.trackIndex === 'number' && savedP.trackIndex > 0)));
+
+            const clickedListenBtn = e.target.closest('.audiobook-btn-listen');
+            if (clickedListenBtn) {
+                if (isYt) {
+                    const resTime = hasSavedP ? savedP.currentTime : null;
+                    loadAndPlayYoutube(b, resTime, true);
+                } else {
+                    const trIdx = hasSavedP ? savedP.trackIndex : null;
+                    const resTime = hasSavedP ? savedP.currentTime : null;
+                    loadAndPlayAudiobook(b.identifier, trIdx, true, resTime);
+                }
+                return;
+            }
+
+            if (isYt) {
+                const resTime = hasSavedP ? savedP.currentTime : null;
+                previewYoutubeAudiobook(b, resTime);
+            } else {
+                const trIdx = hasSavedP ? savedP.trackIndex : null;
+                const resTime = hasSavedP ? savedP.currentTime : null;
+                previewAudiobook(b.identifier, trIdx, resTime);
+            }
+        });
+
+        return card;
+    }
+
     function renderAudiobooksGrid(books, sourceType = currentAudioSource) {
         if (!audiobooksGrid) return;
         audiobooksGrid.innerHTML = '';
@@ -4528,144 +4788,149 @@
         }
 
         const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
-
         books.forEach(b => {
-            const isYt = b.type === 'youtube' || sourceType === 'youtube' || (b.identifier && b.identifier.startsWith('yt_'));
-            const card = document.createElement('div');
-            card.className = `audiobook-card ${isYt ? 'audiobook-card-youtube' : ''}`;
-            card.setAttribute('data-id', b.identifier);
-
-            const coverUrl = b.cover || (b.videoId ? `https://i.ytimg.com/vi/${b.videoId}/hqdefault.jpg` : `https://archive.org/services/img/${b.identifier}`);
-            const chapterBadge = b.chapters ? `${b.chapters} chương` : (isYt ? 'YouTube Audio' : 'Audiobook');
-            const savedProg = progressMap[b.identifier];
-            const hasProgress = savedProg && savedProg.currentTime && savedProg.currentTime > 5;
-            const resumeBadgeHtml = hasProgress 
-                ? `<span class="audiobook-badge-resume">🎧 Tiếp tục (${formatTime(savedProg.currentTime)})</span>` 
-                : '';
-
-            const sourceTagHtml = isYt
-                ? `
-                    <span class="audiobook-source-tag is-youtube">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
-                            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
-                            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff"/>
-                        </svg>
-                        YouTube Music
-                    </span>
-                  `
-                : `
-                    <span class="audiobook-source-tag">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="2" y1="12" x2="22" y2="12"/>
-                        </svg>
-                        archive.org
-                    </span>
-                  `;
-
-            const badgeYoutubeHtml = isYt ? `<span class="audiobook-badge-youtube">YouTube Music</span>` : '';
-            const ratingBadgeHtml = (b.rating && b.rating > 0)
-                ? `
-                    <span class="audiobook-badge-rating" title="Đánh giá sách: ${b.rating}/5.0 ${b.ratingsCount ? '(' + b.ratingsCount.toLocaleString() + ' đánh giá)' : ''}">
-                        <svg viewBox="0 0 24 24" width="10" height="10" fill="#fbbf24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                        </svg>
-                        <span>${b.rating} ★${b.ratingsCount ? `<span class="rating-count">(${formatRatingCount(b.ratingsCount)})</span>` : ''}</span>
-                    </span>
-                  `
-                : '';
-
-            card.innerHTML = `
-                <div class="audiobook-cover-wrap">
-                    <img class="audiobook-cover" src="${coverUrl}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='https://archive.org/images/archive_logo.png'">
-                    <span class="audiobook-badge-chapters">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                            <line x1="8" y1="6" x2="21" y2="6"/>
-                            <line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                        </svg>
-                        ${chapterBadge}
-                    </span>
-                    ${badgeYoutubeHtml}
-                    ${resumeBadgeHtml}
-                    ${ratingBadgeHtml}
-                    <div class="audiobook-overlay-play">
-                        <div class="audiobook-play-circle">
-                            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-                                <polygon points="6 3 20 12 6 21 6 3"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="audiobook-info">
-                    <div class="audiobook-title" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</div>
-                    <div class="audiobook-author">${escapeHtml(b.author || (isYt ? 'YouTube' : 'Internet Archive'))}</div>
-                    <div class="audiobook-footer">
-                        ${sourceTagHtml}
-                        <button class="audiobook-btn-listen" title="Nghe sách này">
-                            <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
-                                <polygon points="5 3 19 12 5 21 5 3"/>
-                            </svg>
-                            <span>${hasProgress ? 'Nghe tiếp' : 'Nghe ngay'}</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            card.addEventListener('click', (e) => {
-                const activeId = getActiveSessionIdentifier();
-                const isCurrentActive = Boolean(activeId && (
-                    isSameAudioIdentifier(activeId, b.identifier) ||
-                    (b.videoId && isSameAudioIdentifier(activeId, `yt_${b.videoId}`)) ||
-                    (currentAudiobook && (isSameAudioIdentifier(currentAudiobook.identifier, b.identifier) || (currentAudiobook.title && b.title && currentAudiobook.title.trim().toLowerCase() === b.title.trim().toLowerCase()))) ||
-                    (ytCurrentItem && (isSameAudioIdentifier(ytCurrentItem.identifier, b.identifier) || isSameAudioIdentifier(ytCurrentItem.videoId, b.videoId)))
-                ));
-
-                // 1. Nếu đây chính là cuốn sách ĐANG PHÁT trong phiên hiện tại:
-                if (isCurrentActive) {
-                    if (isViewingPreview) {
-                        restoreActiveAudiobookModal();
-                    } else {
-                        openAudioPlayerModal();
-                    }
-                    showToast(`🎧 Đang phát: ${getActiveAudioTitle()}`);
-                    return;
-                }
-
-                // Kiểm tra xem cuốn sách này có tiến trình nghe đã lưu không
-                const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
-                const bId = b.identifier || (b.videoId ? `yt_${b.videoId}` : null);
-                const savedProg = (bId && progressMap[bId]) || (b.videoId && progressMap[`yt_${b.videoId}`]);
-                const hasSavedProg = Boolean(savedProg && (savedProg.currentTime > 2 || (typeof savedProg.trackIndex === 'number' && savedProg.trackIndex > 0)));
-
-                // 2. Nếu người dùng bấm trực tiếp vào nút "Nghe ngay" / "Nghe tiếp":
-                const clickedListenBtn = e.target.closest('.audiobook-btn-listen');
-                if (clickedListenBtn) {
-                    if (isYt) {
-                        const resTime = hasSavedProg ? savedProg.currentTime : null;
-                        loadAndPlayYoutube(b, resTime, true);
-                    } else {
-                        const trIdx = hasSavedProg ? savedProg.trackIndex : null;
-                        const resTime = hasSavedProg ? savedProg.currentTime : null;
-                        loadAndPlayAudiobook(b.identifier, trIdx, true, resTime);
-                    }
-                    return;
-                }
-
-                // 3. Người dùng click vào khung thẻ sách / bìa / tiêu đề để xem chi tiết:
-                // Mở player ở chế độ Xem Trước (Preview), giữ nguyên mốc chương và thời gian của tiến trình đã lưu!
-                if (isYt) {
-                    const resTime = hasSavedProg ? savedProg.currentTime : null;
-                    previewYoutubeAudiobook(b, resTime);
-                } else {
-                    const trIdx = hasSavedProg ? savedProg.trackIndex : null;
-                    const resTime = hasSavedProg ? savedProg.currentTime : null;
-                    previewAudiobook(b.identifier, trIdx, resTime);
-                }
-            });
-
+            const card = createAudiobookCardElement(b, sourceType, progressMap);
             audiobooksGrid.appendChild(card);
         });
+    }
+
+    function appendAudiobooksToGrid(books, sourceType = currentAudioSource) {
+        if (!audiobooksGrid || !books || books.length === 0) return;
+        const progressMap = loadFromStorage(STORAGE_AUDIO_PROGRESS, {});
+        books.forEach(b => {
+            const card = createAudiobookCardElement(b, sourceType, progressMap);
+            audiobooksGrid.appendChild(card);
+        });
+        if (audiobooksCount) {
+            audiobooksCount.textContent = `${audiobooksGrid.children.length} sách nói`;
+        }
+    }
+
+    // =========================================
+    // Archive.org Recent Live Feed (Audio & Truyện)
+    // =========================================
+    const RECENT_ARCHIVE_SUBQUERIES = {
+        all: 'mediatype:audio AND (title:("sách nói" OR "sach noi" OR "truyện" OR "truyen audio" OR "tiểu thuyết" OR "audiobook" OR "audio book" OR "nghe đọc" OR "diễn đọc" OR "đọc truyện") OR (language:vie AND (title:("truyện" OR "sách") OR description:("sách nói" OR "truyện"))))',
+        stories: 'mediatype:audio AND (title:("truyện" OR "truyện audio" OR "truyện ma" OR "truyện ngắn" OR "tiểu thuyết" OR "nghe truyện" OR "đọc truyện" OR "hồi ký" OR "truyện chưởng" OR "kiếm hiệp"))',
+        sachnoi: 'mediatype:audio AND (title:("sách nói" OR "sach noi" OR "audiobook" OR "kinh doanh" OR "tâm lý" OR "kỹ năng" OR "đắc nhân tâm" OR "bài học" OR "phát triển bản thân") OR (language:vie AND title:"sách"))',
+        librivox: 'mediatype:audio AND collection:librivoxaudio'
+    };
+
+    const SUBFILTER_TITLES = {
+        all: '⚡ Tất cả truyện audio & sách nói mới đăng (Archive.org)',
+        stories: '📻 Truyện Audio & Tiểu thuyết mới đăng (Archive.org)',
+        sachnoi: '📚 Sách nói & Tự lực mới đăng (Archive.org)',
+        librivox: '🎙️ LibriVox & Bản thu kinh điển mới đăng (Archive.org)'
+    };
+
+    async function loadRecentArchiveAudiobooks(subFilter = 'all', page = 1, append = false, isRefresh = false) {
+        if (isRecentAudioLoading) return;
+        isRecentAudioLoading = true;
+        currentRecentSubFilter = subFilter;
+        currentRecentPage = page;
+
+        if (audioRecentSubBar) audioRecentSubBar.style.display = 'block';
+
+        if (!append) {
+            if (audiobooksLoading) {
+                audiobooksLoading.style.display = 'flex';
+                const loadText = audiobooksLoading.querySelector('p');
+                if (loadText) loadText.textContent = 'Đang tải truyện audio & sách nói mới upload từ Archive.org...';
+            }
+            if (audiobooksGrid) audiobooksGrid.style.display = 'none';
+            if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+        } else {
+            if (btnLoadMoreAudio) {
+                btnLoadMoreAudio.disabled = true;
+                if (loadMoreAudioText) loadMoreAudioText.textContent = `Đang tải thêm trang ${page}...`;
+            }
+        }
+
+        const cacheKey = `${subFilter}_page_${page}`;
+        if (!append && !isRefresh && recentArchiveCache[cacheKey] && (Date.now() - recentArchiveCache[cacheKey].timestamp < 5 * 60 * 1000)) {
+            const cached = recentArchiveCache[cacheKey];
+            if (audiobooksSectionTitle) {
+                audiobooksSectionTitle.textContent = SUBFILTER_TITLES[subFilter] || SUBFILTER_TITLES.all;
+            }
+            renderAudiobooksGrid(cached.items, 'archive');
+            if (audiobooksPagination) {
+                audiobooksPagination.style.display = cached.hasMore ? 'flex' : 'none';
+                if (btnLoadMoreAudio) btnLoadMoreAudio.disabled = false;
+                if (loadMoreAudioText) loadMoreAudioText.textContent = `Tải thêm truyện & sách mới upload (Trang ${page + 1})`;
+            }
+            if (audiobooksLoading) audiobooksLoading.style.display = 'none';
+            if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
+            isRecentAudioLoading = false;
+            return;
+        }
+
+        try {
+            const query = RECENT_ARCHIVE_SUBQUERIES[subFilter] || RECENT_ARCHIVE_SUBQUERIES.all;
+            const enc = encodeURIComponent(query);
+            const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&sort[]=addeddate+desc&rows=24&page=${page}&output=json`;
+
+            const resp = await fetch(archiveUrl);
+            if (!resp.ok) throw new Error('Failed to fetch recent audio from archive.org');
+            const data = await resp.json();
+            const docs = (data.response && data.response.docs) || [];
+
+            const books = docs.map(d => ({
+                identifier: d.identifier,
+                title: d.title || d.identifier,
+                author: d.creator || 'Internet Archive',
+                cover: `https://archive.org/services/img/${d.identifier}`,
+                description: d.description || '',
+                addeddate: d.addeddate || d.publicdate || null,
+                downloads: d.downloads || 0,
+                genre: 'archive-recent',
+                chapters: null
+            }));
+
+            const hasMore = docs.length >= 24;
+            recentArchiveCache[cacheKey] = {
+                items: books,
+                hasMore: hasMore,
+                timestamp: Date.now()
+            };
+
+            if (audiobooksSectionTitle) {
+                audiobooksSectionTitle.textContent = SUBFILTER_TITLES[subFilter] || SUBFILTER_TITLES.all;
+            }
+
+            if (append) {
+                appendAudiobooksToGrid(books, 'archive');
+            } else {
+                renderAudiobooksGrid(books, 'archive');
+            }
+
+            if (audiobooksPagination) {
+                audiobooksPagination.style.display = hasMore ? 'flex' : 'none';
+                if (btnLoadMoreAudio) {
+                    btnLoadMoreAudio.disabled = false;
+                    if (loadMoreAudioText) {
+                        loadMoreAudioText.textContent = hasMore 
+                            ? `Tải thêm truyện & sách mới upload (Trang ${page + 1})`
+                            : 'Đã hiển thị tất cả truyện & sách mới nhất';
+                    }
+                }
+            }
+
+            if (isRefresh) {
+                showToast(`✨ Đã làm mới luồng audio mới nhất từ Archive.org (${books.length} tác phẩm)`);
+            }
+
+        } catch (err) {
+            console.error('Error loading recent audio:', err);
+            showToast('Không thể tải luồng audio mới nhất từ Archive.org lúc này');
+            if (!append && audiobooksGrid && audiobooksGrid.children.length === 0) {
+                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+            }
+        } finally {
+            isRecentAudioLoading = false;
+            if (audiobooksLoading) audiobooksLoading.style.display = 'none';
+            if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
+            if (btnLoadMoreAudio) btnLoadMoreAudio.disabled = false;
+        }
     }
 
     // Genre Filter Buttons
@@ -4680,12 +4945,99 @@
             const genre = tag.dataset.genre || 'all';
             currentGenreFilter = genre;
 
+            if (genre === 'archive-recent') {
+                if (currentAudioSource === 'youtube') {
+                    setAudioSource('archive', false);
+                }
+                if (audioRecentSubBar) audioRecentSubBar.style.display = 'block';
+                loadRecentArchiveAudiobooks(currentRecentSubFilter || 'all', 1, false, false);
+                return;
+            }
+
+            // Hide recent subbar and pagination for standard curated genres
+            if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
+            if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+
+            const titleEl = document.getElementById('audiobooksSectionTitle');
+            if (titleEl) {
+                titleEl.textContent = currentAudioSource === 'youtube'
+                    ? 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)'
+                    : 'Tuyển tập Sách Nói (Internet Archive)';
+            }
+
             const collection = currentAudioSource === 'youtube' ? CURATED_YOUTUBE_AUDIOBOOKS : CURATED_AUDIOBOOKS;
             if (genre === 'all') {
                 renderAudiobooksGrid(collection, currentAudioSource);
             } else {
                 const filtered = collection.filter(b => b.genre === genre);
                 renderAudiobooksGrid(filtered, currentAudioSource);
+            }
+        });
+    }
+
+    // Sub-filter pills for Recent Feed
+    if (recentFilterPills) {
+        recentFilterPills.addEventListener('click', (e) => {
+            const pill = e.target.closest('.recent-pill');
+            if (!pill) return;
+            recentFilterPills.querySelectorAll('.recent-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            const sub = pill.dataset.sub || 'all';
+            loadRecentArchiveAudiobooks(sub, 1, false, false);
+        });
+    }
+
+    // Refresh Recent Feed
+    if (btnRecentRefresh) {
+        btnRecentRefresh.addEventListener('click', () => {
+            Object.keys(recentArchiveCache).forEach(k => {
+                if (k.startsWith(`${currentRecentSubFilter}_`)) {
+                    delete recentArchiveCache[k];
+                }
+            });
+            loadRecentArchiveAudiobooks(currentRecentSubFilter, 1, false, true);
+        });
+    }
+
+    // Load More Pagination for Recent Feed
+    if (btnLoadMoreAudio) {
+        btnLoadMoreAudio.addEventListener('click', () => {
+            loadRecentArchiveAudiobooks(currentRecentSubFilter, currentRecentPage + 1, true, false);
+        });
+    }
+
+    // Audio Sort Controls in Search
+    if (btnSortPopular && btnSortNewest) {
+        btnSortPopular.addEventListener('click', () => {
+            if (currentAudioSort === 'downloads') return;
+            currentAudioSort = 'downloads';
+            btnSortPopular.classList.add('active');
+            btnSortNewest.classList.remove('active');
+            const q = audioSearchInput ? audioSearchInput.value.trim() : '';
+            if (q) {
+                searchAudiobooks(q);
+            } else if (currentGenreFilter !== 'archive-recent') {
+                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
+            }
+        });
+
+        btnSortNewest.addEventListener('click', () => {
+            if (currentAudioSort === 'addeddate') return;
+            currentAudioSort = 'addeddate';
+            btnSortNewest.classList.add('active');
+            btnSortPopular.classList.remove('active');
+            const q = audioSearchInput ? audioSearchInput.value.trim() : '';
+            if (q) {
+                searchAudiobooks(q);
+            } else {
+                // If search input is empty, trigger the recent live feed!
+                if (audioGenreTags) {
+                    audioGenreTags.querySelectorAll('.audio-tag').forEach(t => t.classList.remove('active'));
+                    const recTag = audioGenreTags.querySelector('.audio-tag-recent');
+                    if (recTag) recTag.classList.add('active');
+                }
+                currentGenreFilter = 'archive-recent';
+                loadRecentArchiveAudiobooks(currentRecentSubFilter || 'all', 1, false, false);
             }
         });
     }
@@ -4698,6 +5050,9 @@
             renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
             return CURATED_AUDIOBOOKS;
         }
+
+        if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
+        if (audiobooksPagination) audiobooksPagination.style.display = 'none';
 
         if (audiobooksLoading) {
             audiobooksLoading.style.display = 'flex';
@@ -4756,7 +5111,8 @@
             const fetchIaDocs = async (phrase) => {
                 try {
                     const enc = encodeURIComponent(phrase);
-                    const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(title:("${enc}")+OR+"${enc}")&fl[]=identifier,title,creator,description,downloads,item_size,year&sort[]=downloads+desc&rows=20&output=json`;
+                    const sortParam = currentAudioSort === 'addeddate' ? 'sort[]=addeddate+desc' : 'sort[]=downloads+desc';
+                    const archiveUrl = `https://archive.org/advancedsearch.php?q=mediatype:audio+AND+(title:("${enc}")+OR+"${enc}")&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&${sortParam}&rows=24&output=json`;
                     const resp = await fetch(archiveUrl);
                     const data = await resp.json();
                     return (data.response && data.response.docs) || [];
@@ -4810,6 +5166,8 @@
                     rating: rRating,
                     ratingsCount: rRatingsCount,
                     olWorkKey: olMeta ? olMeta.workKey : null,
+                    addeddate: d.addeddate || d.publicdate || null,
+                    downloads: d.downloads || 0,
                     chapters: null
                 };
             });
@@ -4997,17 +5355,17 @@
             const data = await resp.json();
 
             const files = data.files || [];
-            let mp3Files = files.filter(f =>
-                f.name &&
-                f.name.toLowerCase().endsWith('.mp3') &&
-                !f.name.includes('_spectrogram') &&
-                !f.name.includes('_64kb')
-            );
+            const isPlayableAudio = f => f && f.name && (
+                /\.(mp3|m4a|ogg|wav|flac|aac)$/i.test(f.name) ||
+                (f.format && /mp3|audio|ogg|vorbis|aac/i.test(f.format))
+            ) && !f.name.includes('_spectrogram');
+
+            let mp3Files = files.filter(f => isPlayableAudio(f) && !f.name.includes('_64kb'));
             if (mp3Files.length === 0) {
-                mp3Files = files.filter(f => f.name && f.name.toLowerCase().endsWith('.mp3'));
+                mp3Files = files.filter(isPlayableAudio);
             }
             if (mp3Files.length === 0) {
-                showToast('Tác phẩm này chưa có bản ghi âm MP3 trên Archive.org');
+                showToast('Tác phẩm này chưa có bản ghi âm tương thích trên Archive.org');
                 return;
             }
 
@@ -5915,21 +6273,18 @@
             const data = await resp.json();
 
             const files = data.files || [];
-            // Filter mp3 files
-            let mp3Files = files.filter(f =>
-                f.name &&
-                f.name.toLowerCase().endsWith('.mp3') &&
-                !f.name.includes('_spectrogram') &&
-                !f.name.includes('_64kb')
-            );
+            const isPlayableAudio = f => f && f.name && (
+                /\.(mp3|m4a|ogg|wav|flac|aac)$/i.test(f.name) ||
+                (f.format && /mp3|audio|ogg|vorbis|aac/i.test(f.format))
+            ) && !f.name.includes('_spectrogram');
 
-            // Fallback if none passed the strict filter
+            let mp3Files = files.filter(f => isPlayableAudio(f) && !f.name.includes('_64kb'));
             if (mp3Files.length === 0) {
-                mp3Files = files.filter(f => f.name && f.name.toLowerCase().endsWith('.mp3'));
+                mp3Files = files.filter(isPlayableAudio);
             }
 
             if (mp3Files.length === 0) {
-                showToast('Tác phẩm này chưa có bản ghi âm MP3 trên Archive.org');
+                showToast('Tác phẩm này chưa có bản ghi âm tương thích trên Archive.org');
                 return;
             }
 
