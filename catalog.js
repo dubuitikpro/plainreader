@@ -3933,7 +3933,6 @@
             currentAudioSource = 'archive';
             if (btnArchive) btnArchive.classList.add('active');
             if (btnYoutube) btnYoutube.classList.remove('active');
-            if (audioSortControl) audioSortControl.style.display = 'inline-flex';
             if (searchInput) {
                 searchInput.placeholder = 'Tìm theo tên tác phẩm, tác giả trên Web Archive (Mặt dày tâm đen, Đắc nhân tâm, Tam quốc...)';
             }
@@ -3945,33 +3944,15 @@
             if (autoSearch && currentQuery) {
                 searchAudiobooks(currentQuery);
             } else if (!currentQuery) {
-                if (currentGenreFilter === 'archive-recent') {
-                    if (audioRecentSubBar) audioRecentSubBar.style.display = 'block';
-                    loadRecentArchiveAudiobooks(currentRecentSubFilter || 'all', 1, false, false);
-                } else {
-                    if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
-                    if (audiobooksPagination) audiobooksPagination.style.display = 'none';
-                    if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
-                    renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
-                }
+                if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+                if (titleEl) titleEl.textContent = 'Tuyển tập Sách Nói (Internet Archive)';
+                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
             }
         } else if (source === 'youtube') {
             currentAudioSource = 'youtube';
             if (btnYoutube) btnYoutube.classList.add('active');
             if (btnArchive) btnArchive.classList.remove('active');
-            if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
             if (audiobooksPagination) audiobooksPagination.style.display = 'none';
-            if (audioSortControl) audioSortControl.style.display = 'none';
-
-            // If active tag was recent archive, reset back to all
-            if (currentGenreFilter === 'archive-recent') {
-                currentGenreFilter = 'all';
-                if (audioGenreTags) {
-                    audioGenreTags.querySelectorAll('.audio-tag').forEach(t => t.classList.remove('active'));
-                    const allTag = audioGenreTags.querySelector('.audio-tag[data-genre="all"]');
-                    if (allTag) allTag.classList.add('active');
-                }
-            }
 
             if (searchInput) {
                 searchInput.placeholder = 'Tìm sách nói, podcast trên YouTube Music hoặc dán link/ID video...';
@@ -5141,17 +5122,6 @@
             const genre = tag.dataset.genre || 'all';
             currentGenreFilter = genre;
 
-            if (genre === 'archive-recent') {
-                if (currentAudioSource === 'youtube') {
-                    setAudioSource('archive', false);
-                }
-                if (audioRecentSubBar) audioRecentSubBar.style.display = 'block';
-                loadRecentArchiveAudiobooks(currentRecentSubFilter || 'all', 1, false, false);
-                return;
-            }
-
-            // Hide recent subbar and pagination for standard curated genres
-            if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
             if (audiobooksPagination) audiobooksPagination.style.display = 'none';
 
             const titleEl = document.getElementById('audiobooksSectionTitle');
@@ -5171,31 +5141,7 @@
         });
     }
 
-    // Sub-filter pills for Recent Feed
-    if (recentFilterPills) {
-        recentFilterPills.addEventListener('click', (e) => {
-            const pill = e.target.closest('.recent-pill');
-            if (!pill) return;
-            recentFilterPills.querySelectorAll('.recent-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            const sub = pill.dataset.sub || 'all';
-            loadRecentArchiveAudiobooks(sub, 1, false, false);
-        });
-    }
-
-    // Refresh Recent Feed
-    if (btnRecentRefresh) {
-        btnRecentRefresh.addEventListener('click', () => {
-            Object.keys(recentArchiveCache).forEach(k => {
-                if (k.startsWith(`${currentRecentSubFilter}_`)) {
-                    delete recentArchiveCache[k];
-                }
-            });
-            loadRecentArchiveAudiobooks(currentRecentSubFilter, 1, false, true);
-        });
-    }
-
-    // Load More Pagination for Recent Feed or WebArchive Recommendations
+    // Load More Pagination for WebArchive Recommendations
     if (btnLoadMoreAudio) {
         btnLoadMoreAudio.addEventListener('click', () => {
             if (isAudioRecMode && currentRecCluster) {
@@ -5206,8 +5152,6 @@
                     currentRecClusterPage + 1,
                     true
                 );
-            } else {
-                loadRecentArchiveAudiobooks(currentRecentSubFilter, currentRecentPage + 1, true, false);
             }
         });
     }
@@ -5228,42 +5172,6 @@
             const collection = currentAudioSource === 'youtube' ? CURATED_YOUTUBE_AUDIOBOOKS : CURATED_AUDIOBOOKS;
             renderAudiobooksGrid(collection, currentAudioSource);
             showToast('Đã quay lại danh mục tuyển tập');
-        });
-    }
-
-    // Audio Sort Controls in Search
-    if (btnSortPopular && btnSortNewest) {
-        btnSortPopular.addEventListener('click', () => {
-            if (currentAudioSort === 'downloads') return;
-            currentAudioSort = 'downloads';
-            btnSortPopular.classList.add('active');
-            btnSortNewest.classList.remove('active');
-            const q = audioSearchInput ? audioSearchInput.value.trim() : '';
-            if (q) {
-                searchAudiobooks(q);
-            } else if (currentGenreFilter !== 'archive-recent') {
-                renderAudiobooksGrid(CURATED_AUDIOBOOKS, 'archive');
-            }
-        });
-
-        btnSortNewest.addEventListener('click', () => {
-            if (currentAudioSort === 'addeddate') return;
-            currentAudioSort = 'addeddate';
-            btnSortNewest.classList.add('active');
-            btnSortPopular.classList.remove('active');
-            const q = audioSearchInput ? audioSearchInput.value.trim() : '';
-            if (q) {
-                searchAudiobooks(q);
-            } else {
-                // If search input is empty, trigger the recent live feed!
-                if (audioGenreTags) {
-                    audioGenreTags.querySelectorAll('.audio-tag').forEach(t => t.classList.remove('active'));
-                    const recTag = audioGenreTags.querySelector('.audio-tag-recent');
-                    if (recTag) recTag.classList.add('active');
-                }
-                currentGenreFilter = 'archive-recent';
-                loadRecentArchiveAudiobooks(currentRecentSubFilter || 'all', 1, false, false);
-            }
         });
     }
 

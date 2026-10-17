@@ -15,7 +15,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=16.8">
+    <link rel="stylesheet" href="catalog.css?v=16.9">
     <script>
         (function() {
             try {
@@ -355,25 +355,10 @@
                                 <span>Tìm sách nói</span>
                             </button>
                         </div>
-                        <div class="audio-search-options">
-                            <div class="audio-sort-control" id="audioSortControl">
-                                <span class="audio-sort-label">Sắp xếp:</span>
-                                <button class="audio-sort-btn active" id="btnSortPopular" data-sort="downloads" type="button" title="Xếp theo số lượt nghe / tải nhiều nhất">
-                                    🔥 Phổ biến
-                                </button>
-                                <button class="audio-sort-btn" id="btnSortNewest" data-sort="addeddate" type="button" title="Xếp theo ngày tải lên mới nhất">
-                                    ⚡ Mới nhất
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="audio-genre-tags" id="audioGenreTags">
                         <button class="audio-tag active" data-genre="all">🔥 Tất cả tuyển tập</button>
-                        <button class="audio-tag audio-tag-recent" data-genre="archive-recent" title="Xem truyện audio và sách nói mới nhất vừa tải lên Internet Archive">
-                            <span class="recent-tag-icon">⚡</span>
-                            <span>Mới cập nhật (Archive.org)</span>
-                        </button>
                         <button class="audio-tag" data-genre="self-help">💡 Phát triển bản thân</button>
                         <button class="audio-tag" data-genre="literature">📖 Văn học - Kinh điển</button>
                         <button class="audio-tag" data-genre="history-philosophy">🧠 Triết học - Tư duy</button>
@@ -385,55 +370,6 @@
             <!-- Continue Listening Banner -->
             <div class="audio-continue-section" id="audioContinueSection" style="display: none;">
                 <!-- Rendered dynamically via JS -->
-            </div>
-
-            <!-- Live Feed Sub-bar for Archive.org Recent Uploads -->
-            <div class="audio-recent-subbar" id="audioRecentSubBar" style="display: none;">
-                <div class="recent-subbar-top">
-                    <div class="recent-subbar-title-wrap">
-                        <div class="recent-live-badge">
-                            <span class="live-dot-pulse"></span>
-                            <span class="live-badge-text">LIVE ARCHIVE</span>
-                        </div>
-                        <h4 class="recent-subbar-title">Truyện Audio & Sách Nói Mới Đăng</h4>
-                        <span class="recent-subbar-caption">Cập nhật trực tiếp từ kho lưu trữ toàn cầu Internet Archive</span>
-                    </div>
-                    <div class="recent-subbar-actions">
-                        <button class="btn-recent-refresh" id="btnRecentRefresh" type="button" title="Làm mới luồng audio">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                                <path d="M23 4v6h-6"></path>
-                                <path d="M1 20v-6h6"></path>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                            </svg>
-                            <span>Làm mới</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="recent-filter-pills" id="recentFilterPills">
-                    <button class="recent-pill active" data-sub="all" type="button">🌟 Tất cả mới đăng</button>
-                    <button class="recent-pill" data-sub="stories" type="button">📻 Truyện Audio & Tiểu thuyết</button>
-                    <button class="recent-pill" data-sub="sachnoi" type="button">📚 Sách nói & Tự lực</button>
-                    <button class="recent-pill" data-sub="librivox" type="button">🎙️ LibriVox & Thế giới</button>
-                </div>
-            </div>
-
-            <!-- Dedicated WebArchive Recommendations Banner (Opened from Audio Player) -->
-            <div class="audio-rec-banner" id="audioRecBanner" style="display: none;">
-                <div class="audio-rec-banner-left">
-                    <div class="audio-rec-badge">
-                        <span class="live-dot-pulse"></span>
-                        <span id="audioRecBadgeText">TOÀN TRANG ĐỀ XUẤT WEB ARCHIVE</span>
-                    </div>
-                    <h3 class="audio-rec-banner-title" id="audioRecBannerTitle">Tuyển tập Trinh thám, Kinh dị & Ly kỳ (Đa tác giả)</h3>
-                    <p class="audio-rec-banner-desc" id="audioRecBannerDesc">Gợi ý từ tác phẩm đang nghe: "Ngôi Mộ Mới Đắp" • Chọn lọc đa dạng tác giả (Không trùng lặp)</p>
-                </div>
-                <button class="btn-audio-rec-exit" id="btnAudioRecExit" type="button" title="Thoát chế độ đề xuất, quay lại kho sách chung">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    <span>Thoát xem đề xuất</span>
-                </button>
             </div>
 
             <!-- Audiobooks Grid -->
@@ -1379,7 +1315,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=16.8"></script>
-    <script src="catalog.js?v=16.8"></script>
+    <script src="sync.js?v=16.9"></script>
+    <script src="catalog.js?v=16.9"></script>
 </body>
 </html>
