@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792247014987,
+  "lastUpdated": 1792247134508,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -397,13 +397,13 @@
       "cover": "https://archive.org/services/img/dam-bi-ghet",
       "trackIndex": 1,
       "trackTitle": "Koga Fumitake, Kishimi Ichiro Phần 2: Đêm Thứ Hai Audio Book",
-      "currentTime": 1390,
+      "currentTime": 1508,
       "duration": 4740,
-      "percent": 29,
+      "percent": 32,
       "isBookmarked": true,
       "note": "Mọi phiền muộn đều do mối quan hệ giữa người với người",
       "noteUpdatedAt": 1792246998347,
-      "updatedAt": 1792247014831
+      "updatedAt": 1792247133562
     }
   },
   "audioBookmarks": [
@@ -544,7 +544,7 @@
     "identifier": "dam-bi-ghet",
     "type": "archive",
     "trackIndex": 1,
-    "time": 1390,
+    "time": 1508,
     "volume": 1,
     "speedIndex": 0
   },
