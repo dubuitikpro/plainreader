@@ -6517,6 +6517,25 @@ a { color: inherit; text-decoration: none; }
     overflow: hidden;
 }
 
+.player-suggested-author {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-suggested-reason {
+    font-size: 0.65rem;
+    color: #00cec9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: rgba(0, 206, 201, 0.08);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
 /* AI Config Modal */
 .ai-config-card {
     max-width: 480px;
