@@ -15,7 +15,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=16.7">
+    <link rel="stylesheet" href="catalog.css?v=16.8">
     <script>
         (function() {
             try {
@@ -1104,12 +1104,59 @@
                     </div>
                     <div class="player-suggested-actions" id="playerSuggestedActions">
                         <button type="button" class="btn-player-open-rec-page" id="btnPlayerOpenRecPage">
-                            <span class="btn-icon">🌐</span>
-                            <span class="btn-text" id="playerOpenRecPageText">Mở toàn trang đề xuất Web Archive cùng thể loại (Đa tác giả) ↗</span>
+                            <span class="btn-icon">⚡</span>
+                            <span class="btn-text" id="playerOpenRecPageText">Mở toàn trang đề xuất (Fill 8 sách / hàng) ↗</span>
                         </button>
-                        <span class="player-suggested-hint">Mở toàn trang audio Web Archive theo thể loại này với nhiều tác giả khác nhau (trình phát sẽ thu nhỏ ở góc phải)</span>
+                        <span class="player-suggested-hint">Mở xem toàn bộ đề xuất cùng thể loại từ các tác giả khác nhau (8 sách 1 hàng ngay tại đây)</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- In-Player Dedicated Recommendations Full View (8 Books Per Row) -->
+        <div class="player-rec-full-view" id="playerRecFullView" style="display: none;">
+            <div class="player-rec-top-nav">
+                <button class="btn-player-rec-back" id="btnPlayerRecBack" type="button" title="Quay lại trình phát">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Quay lại Trình phát</span>
+                </button>
+                <div class="player-rec-header-titles">
+                    <h3 class="player-rec-header-title" id="playerRecHeaderTitle">✨ Đề xuất Trinh thám, Kinh dị & Ly kỳ (Đa tác giả)</h3>
+                    <p class="player-rec-header-desc" id="playerRecHeaderDesc">Gợi ý từ tác phẩm đang nghe • Lọc riêng các tác giả khác nhau (8 sách / hàng)</p>
+                </div>
+                <div class="player-rec-mini-transport" id="playerRecMiniTransport">
+                    <div class="player-rec-now-playing-wrap">
+                        <span class="bg-sound-anim"><span></span><span></span><span></span></span>
+                        <span class="player-rec-np-title" id="playerRecNpTitle">Đang phát...</span>
+                    </div>
+                    <button class="player-rec-play-btn" id="playerRecPlayBtn" type="button" title="Phát / Tạm dừng">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" id="playerRecPlayIcon">
+                            <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 8 Books Per Row Grid -->
+            <div class="player-rec-grid-8" id="playerRecGrid8">
+                <!-- Cards populated here -->
+            </div>
+
+            <div class="player-rec-loading" id="playerRecLoading" style="display: none;">
+                <div class="catalog-spinner"></div>
+                <p id="playerRecLoadingText">Đang tải thêm sách đề xuất cùng thể loại...</p>
+            </div>
+
+            <div class="player-rec-footer">
+                <button class="btn-player-rec-load-more" id="btnPlayerRecLoadMore" type="button">
+                    <span>Tải thêm sách đề xuất (Hàng tiếp theo)</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
@@ -1332,7 +1379,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=16.7"></script>
-    <script src="catalog.js?v=16.7"></script>
+    <script src="sync.js?v=16.8"></script>
+    <script src="catalog.js?v=16.8"></script>
 </body>
 </html>

@@ -182,6 +182,27 @@
     let currentRecClusterPlayingTitle = '';
     let currentRecClusterPlayingAuthor = '';
 
+    // In-Player Dedicated 8-Per-Row Recommendations View Elements
+    const playerDialogBody = document.querySelector('.player-dialog-body');
+    const playerRecFullView = document.getElementById('playerRecFullView');
+    const btnPlayerRecBack = document.getElementById('btnPlayerRecBack');
+    const playerRecHeaderTitle = document.getElementById('playerRecHeaderTitle');
+    const playerRecHeaderDesc = document.getElementById('playerRecHeaderDesc');
+    const playerRecGrid8 = document.getElementById('playerRecGrid8');
+    const playerRecLoading = document.getElementById('playerRecLoading');
+    const btnPlayerRecLoadMore = document.getElementById('btnPlayerRecLoadMore');
+    const playerRecNpTitle = document.getElementById('playerRecNpTitle');
+    const playerRecPlayBtn = document.getElementById('playerRecPlayBtn');
+    const playerRecPlayIcon = document.getElementById('playerRecPlayIcon');
+
+    let isInPlayerRecMode = false;
+    let inPlayerRecPage = 1;
+    let inPlayerRecCluster = null;
+    let inPlayerRecPlayingAuthor = '';
+    let inPlayerRecPlayingTitle = '';
+    let inPlayerRecSeenAuthors = new Set();
+    let inPlayerRecSeenIds = new Set();
+
     // Audio History & In-Progress Elements
     const tabHistory = document.getElementById('tabHistory');
     const contentHistory = document.getElementById('contentHistory');
@@ -6839,6 +6860,10 @@
         if (!isViewingPreview) {
             updatePlaylistActiveState();
         }
+
+        if (typeof syncPlayerRecMiniTransport === 'function') {
+            syncPlayerRecMiniTransport();
+        }
     }
 
     // Audio Element Event Listeners
@@ -7800,6 +7825,9 @@
     }
 
     function minimizeAudioPlayerModal() {
+        if (typeof closeInPlayerRecommendations8 === 'function' && isInPlayerRecMode) {
+            closeInPlayerRecommendations8();
+        }
         if (audioPlayerModal) {
             audioPlayerModal.classList.add('is-minimized');
             document.body.style.overflow = '';
@@ -10928,26 +10956,238 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         return card;
     }
 
-    // Launch Dedicated Recommendations Discovery Page (Full Page WebArchive View with Auto-Minimize Player)
-    async function openDedicatedRecommendationsForAudio() {
+    // In-Player Card Generator for 8-Per-Row Grid
+    function createPlayerRecCard8(item) {
+        const card = document.createElement('div');
+        card.className = 'player-rec-card-8';
+        card.dataset.id = item.identifier || item.videoId || item.key || '';
+
+        const coverSrc = item.cover || getArchiveSvgCover(item.title, item.author);
+        const typeBadge = item.type === 'youtube' ? 'YouTube' : (item.key ? 'Sách' : 'Archive');
+
+        card.innerHTML = `
+            <div class="player-rec-card-cover-wrap">
+                <img class="player-rec-card-cover" src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" />
+                <div class="player-rec-card-hover-overlay">
+                    <span class="player-rec-card-play-icon">${item.key ? '📖' : '▶'}</span>
+                </div>
+                <span class="player-rec-card-type-badge">${typeBadge}</span>
+            </div>
+            <div class="player-rec-card-info">
+                <h5 class="player-rec-card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
+                <p class="player-rec-card-author" title="${escapeHtml(item.author || 'Đa tác giả')}">${escapeHtml(item.author || 'Đa tác giả')}</p>
+                ${item.description ? `<span class="player-rec-card-tag" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</span>` : ''}
+            </div>
+        `;
+
+        const img = card.querySelector('.player-rec-card-cover');
+        if (img) {
+            img.onerror = () => {
+                img.src = getArchiveSvgCover(item.title, item.author);
+            };
+        }
+
+        card.addEventListener('click', () => {
+            if (item.key && !item.identifier && !item.videoId) {
+                openBookModal({
+                    title: item.title,
+                    author_name: [item.author],
+                    key: item.key,
+                    cover_i: item.cover?.match(/\/id\/(\d+)/)?.[1] || null
+                });
+            } else if (item.type === 'youtube' || item.videoId) {
+                closeInPlayerRecommendations8();
+                playYoutubeAudiobook(item);
+            } else {
+                closeInPlayerRecommendations8();
+                loadAndPlayAudiobook(item.identifier, item.title, item.author, item.cover);
+            }
+        });
+
+        return card;
+    }
+
+    // Sync Mini Transport in In-Player Recommendations View
+    function syncPlayerRecMiniTransport() {
+        if (!isInPlayerRecMode) return;
+        const activeBook = currentAudiobook || ytCurrentItem || null;
+        const title = activeBook?.title || document.getElementById('playerBookTitle')?.textContent || 'Đang phát audio';
+        if (playerRecNpTitle) {
+            playerRecNpTitle.textContent = `Đang phát: ${title}`;
+        }
+        if (playerRecPlayIcon) {
+            const isPlaying = isAudioPlaying || (typeof ytPlayer !== 'undefined' && ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 1);
+            playerRecPlayIcon.innerHTML = isPlaying
+                ? `<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>`
+                : `<path d="M8 5v14l11-7z"/>`;
+        }
+    }
+
+    // Close In-Player Dedicated Recommendations Full View
+    function closeInPlayerRecommendations8() {
+        isInPlayerRecMode = false;
+        const dialog = document.querySelector('.audio-player-dialog');
+        if (dialog) dialog.classList.remove('recommendations-mode');
+
+        if (playerRecFullView) playerRecFullView.style.display = 'none';
+        if (playerDialogBody) playerDialogBody.style.display = 'flex';
+    }
+
+    // Load More Items for 8-Per-Row Grid
+    async function loadMoreInPlayerRec8(append = false) {
+        if (!inPlayerRecCluster || !playerRecGrid8) return;
+
+        if (playerRecLoading) {
+            playerRecLoading.style.display = 'flex';
+            const loadP = playerRecLoading.querySelector('p');
+            if (loadP) {
+                loadP.textContent = `Đang tải thêm sách đề xuất cùng thể loại (${inPlayerRecCluster.tag || ''})...`;
+            }
+        }
+        if (btnPlayerRecLoadMore) btnPlayerRecLoadMore.disabled = true;
+
+        if (!append) {
+            playerRecGrid8.innerHTML = '';
+        }
+
+        try {
+            const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+            const results = [];
+
+            // 1. On page 1: insert curated items for this cluster (up to 8 curated icons from different authors)
+            if (inPlayerRecPage === 1 && Array.isArray(inPlayerRecCluster.items)) {
+                inPlayerRecCluster.items.forEach(item => {
+                    const normAuth = normalizeA(item.author);
+                    if (!isSameAuthor(item.author, inPlayerRecPlayingAuthor) && !inPlayerRecSeenAuthors.has(normAuth)) {
+                        inPlayerRecSeenAuthors.add(normAuth);
+                        const id = item.identifier || item.videoId || item.key || `curated_${item.title}`;
+                        inPlayerRecSeenIds.add(id);
+                        results.push({
+                            identifier: item.identifier || null,
+                            videoId: item.videoId || null,
+                            key: item.key || null,
+                            title: item.title,
+                            author: item.author,
+                            cover: item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : null),
+                            description: item.reason || 'Đề xuất cùng thể loại',
+                            type: item.type || (item.key ? 'book' : 'archive')
+                        });
+                    }
+                });
+            }
+
+            // 2. Query Archive.org for rich diverse items in this genre
+            const query = CLUSTER_ARCHIVE_QUERIES[inPlayerRecCluster.id] || CLUSTER_ARCHIVE_QUERIES.horror_mystery;
+            const enc = encodeURIComponent(query);
+            const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&sort[]=downloads+desc&rows=60&page=${inPlayerRecPage}&output=json`;
+
+            const resp = await fetch(archiveUrl);
+            if (resp.ok) {
+                const data = await resp.json();
+                const docs = (data.response && data.response.docs) || [];
+
+                docs.forEach(d => {
+                    const author = d.creator || 'Internet Archive';
+                    const normAuth = normalizeA(author);
+
+                    // Must NOT be the playing author or already seen author
+                    if (!isSameAuthor(author, inPlayerRecPlayingAuthor) && 
+                        !isSameAuthor(d.title, inPlayerRecPlayingAuthor) &&
+                        !inPlayerRecSeenAuthors.has(normAuth) && 
+                        !inPlayerRecSeenIds.has(d.identifier)) {
+                        
+                        inPlayerRecSeenAuthors.add(normAuth);
+                        inPlayerRecSeenIds.add(d.identifier);
+                        results.push({
+                            identifier: d.identifier,
+                            title: d.title || d.identifier,
+                            author: author,
+                            cover: `https://archive.org/services/img/${d.identifier}`,
+                            description: d.description || '',
+                            downloads: d.downloads || 0,
+                            type: 'archive'
+                        });
+                    }
+                });
+            }
+
+            // Append cards to grid
+            results.forEach(item => {
+                const card = createPlayerRecCard8(item);
+                playerRecGrid8.appendChild(card);
+            });
+
+            inPlayerRecPage++;
+
+        } catch (err) {
+            console.error('Error loading in-player recommendations:', err);
+            showToast('Không thể tải thêm đề xuất lúc này');
+        } finally {
+            if (playerRecLoading) playerRecLoading.style.display = 'none';
+            if (btnPlayerRecLoadMore) btnPlayerRecLoadMore.disabled = false;
+        }
+    }
+
+    // Launch Dedicated Recommendations Discovery View (8 Books Per Row In Player Dialog)
+    async function openInPlayerRecommendations8() {
         const activeCluster = playerSuggestedCurrentCluster;
         const activeBook = previewViewingBook || currentAudiobook || ytCurrentItem || null;
-        const playingAuthor = (activeBook?.author || document.getElementById('playerBookAuthor')?.textContent || '').trim();
-        const playingTitle = (activeBook?.title || document.getElementById('playerBookTitle')?.textContent || '').trim();
+        const domTitle = document.getElementById('playerBookTitle')?.textContent?.trim() || '';
+        const domAuthor = document.getElementById('playerBookAuthor')?.textContent?.trim() || '';
 
-        // 1. Minimize audio player modal so audio continues playing uninterrupted in mini-player
-        minimizeAudioPlayerModal();
+        const playingTitle = (activeBook?.title || domTitle || '').trim();
+        const playingAuthor = (activeBook?.author || domAuthor || '').trim();
 
-        // 2. Switch to the Audio Tab (Web Archive catalog), NOT the AI search tab!
-        switchTab('audio');
+        isInPlayerRecMode = true;
+        inPlayerRecPage = 1;
+        inPlayerRecCluster = activeCluster;
+        inPlayerRecPlayingAuthor = playingAuthor;
+        inPlayerRecPlayingTitle = playingTitle;
+        inPlayerRecSeenAuthors.clear();
+        inPlayerRecSeenIds.clear();
 
-        // 3. Ensure Audio Source is Internet Archive
-        setAudioSource('archive', false);
+        if (playingAuthor) {
+            const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+            inPlayerRecSeenAuthors.add(normalizeA(playingAuthor));
+        }
 
-        // 4. Load full page recommendations from WebArchive for this genre cluster
-        await loadWebArchiveRecommendations(activeCluster, playingTitle, playingAuthor, 1, false);
+        // 1. Expand audio player dialog width and switch view
+        const dialog = document.querySelector('.audio-player-dialog');
+        if (dialog) dialog.classList.add('recommendations-mode');
 
-        showToast('🚀 Đã mở toàn trang đề xuất Web Archive (Trình phát đang thu nhỏ ở góc phải)');
+        if (playerDialogBody) playerDialogBody.style.display = 'none';
+        if (playerRecFullView) playerRecFullView.style.display = 'flex';
+
+        // 2. Update Header
+        const cleanTag = (activeCluster?.tag || 'Đề xuất cùng thể loại').replace(/^[^\w\s\u00C0-\u1EF9]+/u, '').trim();
+        if (playerRecHeaderTitle) {
+            playerRecHeaderTitle.textContent = `✨ Đề xuất ${cleanTag} (Đa tác giả)`;
+        }
+        if (playerRecHeaderDesc) {
+            playerRecHeaderDesc.textContent = playingTitle
+                ? `Đang nghe: "${playingTitle}" (${playingAuthor}) • Chọn lọc các tác giả khác nhau (Fill 8 sách / hàng)`
+                : `Tuyển chọn tác giả khác nhau cùng thể loại (Fill 8 sách / hàng)`;
+        }
+
+        // 3. Update Mini Transport now playing title & play/pause icon
+        syncPlayerRecMiniTransport();
+
+        // 4. Fetch and render 8-per-row items
+        await loadMoreInPlayerRec8(false);
+    }
+
+    // Bind In-Player Recommendation Buttons
+    if (btnPlayerRecBack) {
+        btnPlayerRecBack.addEventListener('click', closeInPlayerRecommendations8);
+    }
+    if (btnPlayerRecLoadMore) {
+        btnPlayerRecLoadMore.addEventListener('click', () => loadMoreInPlayerRec8(true));
+    }
+    if (playerRecPlayBtn) {
+        playerRecPlayBtn.addEventListener('click', () => {
+            toggleAudioPlay();
+            setTimeout(syncPlayerRecMiniTransport, 100);
+        });
     }
 
     // Helper: Reset and render items to player box
@@ -10973,12 +11213,12 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             btnPlayerOpenRecPage.style.display = 'inline-flex';
             btnPlayerOpenRecPage.onclick = (e) => {
                 e.preventDefault();
-                openDedicatedRecommendationsForAudio();
+                openInPlayerRecommendations8();
             };
         }
         if (playerOpenRecPageText && cluster?.tag) {
             const cleanName = cluster.tag.replace(/^[^\w\s\u00C0-\u1EF9]+/u, '').trim();
-            playerOpenRecPageText.textContent = `Mở toàn trang đề xuất ${cleanName} (Đa tác giả) ↗`;
+            playerOpenRecPageText.textContent = `Mở xem toàn bộ đề xuất ${cleanName} (8 sách / hàng) ↗`;
         }
 
         // Show diverse author items (up to 6)
