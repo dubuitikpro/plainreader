@@ -6541,47 +6541,52 @@ a { color: inherit; text-decoration: none; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    text-align: center;
 }
 
-.btn-player-load-more {
+.btn-player-open-rec-page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 20px;
-    background: rgba(0, 206, 201, 0.12);
-    border: 1px solid rgba(0, 206, 201, 0.4);
+    padding: 10px 22px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.28), rgba(0, 206, 201, 0.28));
+    border: 1px solid rgba(0, 206, 201, 0.45);
     border-radius: 999px;
-    color: #00cec9;
-    font-size: 0.8rem;
-    font-weight: 600;
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all var(--transition-fast);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
-.btn-player-load-more:hover {
-    background: rgba(0, 206, 201, 0.25);
+.btn-player-open-rec-page:hover {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.48), rgba(0, 206, 201, 0.48));
     border-color: #00cec9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(0, 206, 201, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 206, 201, 0.35);
 }
 
-.btn-player-load-more:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+.btn-player-open-rec-page:active {
+    transform: translateY(0);
 }
 
-.player-suggested-end {
-    font-size: 0.75rem;
+.btn-player-open-rec-page .btn-icon {
+    font-size: 1rem;
+    transition: transform var(--transition-fast);
+}
+
+.btn-player-open-rec-page:hover .btn-icon {
+    transform: scale(1.18);
+}
+
+.player-suggested-hint {
+    font-size: 0.7rem;
     color: var(--text-muted);
-    padding: 6px 14px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    text-align: center;
+    line-height: 1.35;
+    max-width: 480px;
 }
 
 /* AI Config Modal */

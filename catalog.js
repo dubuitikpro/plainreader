@@ -199,13 +199,9 @@
     const modalRecTag = document.getElementById('modalRecTag');
     const playerSuggestedBox = document.getElementById('playerSuggestedBox');
     const playerSuggestedList = document.getElementById('playerSuggestedList');
-    const btnPlayerSuggestedLoadMore = document.getElementById('btnPlayerSuggestedLoadMore');
-    const playerSuggestedEndMessage = document.getElementById('playerSuggestedEndMessage');
-    let playerSuggestedPage = 1;
-    let playerSuggestedSearchQuery = '';
+    const btnPlayerOpenRecPage = document.getElementById('btnPlayerOpenRecPage');
+    const playerOpenRecPageText = document.getElementById('playerOpenRecPageText');
     let playerSuggestedCurrentCluster = null;
-    let playerSuggestedSeenIds = new Set();
-    let isPlayerSuggestedLoading = false;
     const aiConfigModal = document.getElementById('aiConfigModal');
     const btnCloseAiConfig = document.getElementById('btnCloseAiConfig');
     const aiApiKeyInput = document.getElementById('aiApiKeyInput');
@@ -9958,43 +9954,29 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
     }
 
     // =========================================
-    // Thematic Audio Clusters for High-Precision Audio Player Suggestions
+    // Thematic Audio Clusters for High-Precision Audio Player Suggestions (Diverse Authors)
     // =========================================
     const PLAYER_SUGGESTED_CLUSTERS = [
         {
-            id: 'horror_ghost_vietnamese',
-            tag: '👻 Truyện ma & Ly kỳ',
-            searchQuery: '("Nguyen Ngoc Ngan" OR "ngoc ngan" OR "truyen ma" OR "kinh di" OR "tam linh")',
+            id: 'horror_mystery_thriller',
+            tag: '👻 Trinh thám, Kinh dị & Ly kỳ',
+            moodId: 'thriller',
+            recPagePrompt: 'Trinh thám ly kỳ kinh dị bí ẩn vụ án hồi hộp',
+            recPageTitle: '👻 Tuyển tập Trinh thám, Kinh dị & Ly kỳ (Đa tác giả)',
             keywords: [
                 'nguyễn ngọc ngạn', 'nguyen ngoc ngan', 'truyện ma', 'truyen ma', 'kinh dị',
                 'cõi âm', 'ngôi mộ', 'bóng người dưới trăng', 'đêm không trăng', 'hồn về trong gió',
                 'đêm vàng', 'mưa bên chồng', 'nỗi sầu sâu kín', 'việt kiều', 'ma', 'rùng rợn',
-                'tâm linh', 'huyền bí'
+                'tâm linh', 'huyền bí', 'trinh thám', 'vụ án', 'sherlock', 'keigo', 'dan brown',
+                'agatha', 'stephen king', 'dracula'
             ],
             items: [
                 {
-                    title: 'Ngôi Mộ Mới Đắp',
-                    author: 'Nguyễn Ngọc Ngạn',
-                    identifier: 'ngoi-mo-moi-dap.sna',
-                    cover: 'https://archive.org/services/img/ngoi-mo-moi-dap.sna',
-                    type: 'archive',
-                    reason: 'Truyện ma Nguyễn Ngọc Ngạn'
-                },
-                {
-                    title: 'Cõi Âm',
-                    author: 'Nguyễn Ngọc Ngạn',
-                    identifier: 'CiMNguyunNgncNgn',
-                    cover: 'https://archive.org/services/img/CiMNguyunNgncNgn',
-                    type: 'archive',
-                    reason: 'Truyện kinh dị tâm linh'
-                },
-                {
-                    title: 'Bóng Người Dưới Trăng',
-                    author: 'Nguyễn Ngọc Ngạn',
-                    identifier: 'bong-nguoi-duoi-trang',
-                    cover: 'https://archive.org/services/img/bong-nguoi-duoi-trang',
-                    type: 'archive',
-                    reason: 'Truyện kì bí kịch tính'
+                    title: 'Phía Sau Nghi Can X',
+                    author: 'Higashino Keigo',
+                    cover: 'https://covers.openlibrary.org/b/id/10524456-M.jpg',
+                    key: '/works/OL10524456W_keigo',
+                    reason: 'Đấu trí toán học thiên tài vì tình yêu mù quáng'
                 },
                 {
                     title: 'Mật Mã Da Vinci',
@@ -10002,7 +9984,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'mat-ma-da-vinci.sna',
                     cover: 'https://archive.org/services/img/mat-ma-da-vinci.sna',
                     type: 'archive',
-                    reason: 'Trinh thám ly kỳ kinh điển'
+                    reason: 'Trinh thám biểu tượng mật mã kinh điển thế giới'
                 },
                 {
                     title: 'Sherlock Holmes Toàn Tập',
@@ -10010,7 +9992,14 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'sherlock_holmes_canon_08_02_librivox',
                     cover: 'https://archive.org/services/img/sherlock_holmes_canon_08_02_librivox',
                     type: 'archive',
-                    reason: 'Vụ án bí ẩn trinh thám'
+                    reason: 'Vụ án bí ẩn và phương pháp suy luận đỉnh cao'
+                },
+                {
+                    title: 'Và Rồi Chẳng Còn Ai',
+                    author: 'Agatha Christie',
+                    cover: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    key: '/works/OL8226191W_agatha',
+                    reason: 'Kiệt tác vụ án biệt lập không lối thoát'
                 },
                 {
                     title: 'Bố Già (The Godfather)',
@@ -10018,17 +10007,35 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'bogia_201903',
                     cover: 'https://archive.org/services/img/bogia_201903',
                     type: 'archive',
-                    reason: 'Tiểu thuyết kịch tính gia tộc'
+                    reason: 'Thế giới ngầm và nghệ thuật tâm lý gia tộc nghẹt thở'
+                },
+                {
+                    title: 'Kẻ Ám Ảnh (The Shining)',
+                    author: 'Stephen King',
+                    cover: 'https://covers.openlibrary.org/b/id/8231991-M.jpg',
+                    key: '/works/OL8231991W_king',
+                    reason: 'Đỉnh cao kinh dị tâm lý trong khách sạn Overlook'
+                },
+                {
+                    title: 'Dracula (Bá Tước Ma Cà Rồng)',
+                    author: 'Bram Stoker',
+                    identifier: 'dracula_librivox',
+                    cover: 'https://archive.org/services/img/dracula_librivox',
+                    type: 'archive',
+                    reason: 'Kiệt tác văn học kinh dị Gothic cổ điển bất hủ'
                 }
             ]
         },
         {
             id: 'habits_productivity',
-            tag: '⚡ Thói quen & Năng suất',
-            searchQuery: '("phat trien ban than" OR "thoi quen" OR "ky nang" OR "self help" OR "atomic habits")',
+            tag: '⚡ Thói quen & Năng suất đỉnh cao',
+            moodId: 'self-help',
+            recPagePrompt: 'Phát triển bản thân thói quen năng suất tập trung',
+            recPageTitle: '⚡ Tuyển tập Thói quen & Năng suất (Đa tác giả)',
             keywords: [
                 'atomic habits', 'thay đổi tí hon', 'thói quen', 'deep work',
-                '7 thói quen', 'tuổi trẻ đáng giá', 'sức mạnh tiềm thức', 'trên đường băng', 'năng suất'
+                '7 thói quen', 'tuổi trẻ đáng giá', 'sức mạnh tiềm thức', 'trên đường băng', 'năng suất',
+                'tập trung', 'james clear', 'stephen covey', 'cal newport', 'charles duhigg'
             ],
             items: [
                 {
@@ -10037,7 +10044,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'tdthhqbn',
                     cover: 'https://archive.org/services/img/tdthhqbn',
                     type: 'archive',
-                    reason: 'Thói quen tí hon 1% mỗi ngày'
+                    reason: 'Thói quen tí hon 1% mỗi ngày kiến tạo thành công'
                 },
                 {
                     title: '7 Thói Quen Hiệu Quả',
@@ -10045,7 +10052,21 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'yt_VqZsr9N2-kU',
                     cover: 'https://i.ytimg.com/vi/VqZsr9N2-kU/hqdefault.jpg',
                     type: 'youtube',
-                    reason: 'Khung tư duy thành công'
+                    reason: 'Khung tư duy lãnh đạo và làm chủ cuộc đời'
+                },
+                {
+                    title: 'Làm Ra Làm Chơi Ra Chơi (Deep Work)',
+                    author: 'Cal Newport',
+                    cover: 'https://covers.openlibrary.org/b/id/7988607-M.jpg',
+                    key: '/works/OL17713267W',
+                    reason: 'Rèn luyện khả năng tập trung cao độ kỷ nguyên số'
+                },
+                {
+                    title: 'Sức Mạnh Của Thói Quen',
+                    author: 'Charles Duhigg',
+                    cover: 'https://covers.openlibrary.org/b/id/11183311-M.jpg',
+                    key: '/works/OL16834168W',
+                    reason: 'Giải mã cơ chế vòng lặp thói quen của não bộ'
                 },
                 {
                     title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu',
@@ -10053,15 +10074,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'tuoi-tre-dang-gia-bao-nhieu.sna',
                     cover: 'https://archive.org/services/img/tuoi-tre-dang-gia-bao-nhieu.sna',
                     type: 'archive',
-                    reason: 'Khai mở tiềm năng tuổi trẻ'
-                },
-                {
-                    title: 'Sức Mạnh Tiềm Thức',
-                    author: 'Joseph Murphy',
-                    identifier: 'suc-manh-tiem-thuc.sna',
-                    cover: 'https://archive.org/services/img/suc-manh-tiem-thuc.sna',
-                    type: 'archive',
-                    reason: 'Làm chủ tiềm thức nội tại'
+                    reason: 'Khai mở đam mê và định vị bản thân'
                 },
                 {
                     title: 'Trên Đường Băng',
@@ -10069,34 +10082,37 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'tren-duong-bang.sna',
                     cover: 'https://archive.org/services/img/tren-duong-bang.sna',
                     type: 'archive',
-                    reason: 'Hành trang bước ra thế giới'
+                    reason: 'Hành trang tư duy mở bước ra thế giới'
                 }
             ]
         },
         {
             id: 'finance_wealth',
-            tag: '💰 Tài chính & Làm giàu',
-            searchQuery: '("tai chinh" OR "lam giau" OR "kinh doanh" OR "tien bac" OR "rich dad")',
+            tag: '💰 Tài chính, Đầu tư & Làm giàu',
+            moodId: 'finance',
+            recPagePrompt: 'Tài chính kinh doanh đầu tư làm giàu quản lý tiền bạc',
+            recPageTitle: '💰 Tuyển tập Tài chính & Đầu tư (Đa tác giả)',
             keywords: [
                 'cha giàu', 'cha nghèo', 'rich dad', 'tâm lý học về tiền', 'psychology of money',
-                'nghĩ giàu làm giàu', 'tài chính', 'tiền bạc', 'đầu tư', 'kinh doanh'
+                'nghĩ giàu làm giàu', 'tài chính', 'tiền bạc', 'đầu tư', 'kinh doanh',
+                'robert kiyosaki', 'morgan housel', 'napoleon hill', 'benjamin graham'
             ],
             items: [
-                {
-                    title: 'Cha Giàu Cha Nghèo (Dạy Con Làm Giàu)',
-                    author: 'Robert T. Kiyosaki',
-                    identifier: 'cha-giau-cha-ngheo',
-                    cover: 'https://archive.org/services/img/cha-giau-cha-ngheo',
-                    type: 'archive',
-                    reason: 'Tư duy tài chính vượt trội'
-                },
                 {
                     title: 'Tâm Lý Học Về Tiền',
                     author: 'Morgan Housel',
                     identifier: 'tam-ly-hoc-ve-tien',
                     cover: 'https://archive.org/services/img/tam-ly-hoc-ve-tien',
                     type: 'archive',
-                    reason: 'Hành vi và tâm lý tiền tệ'
+                    reason: 'Hành vi và tâm lý chi phối quyết định tài chính'
+                },
+                {
+                    title: 'Cha Giàu Cha Nghèo (Dạy Con Làm Giàu)',
+                    author: 'Robert T. Kiyosaki',
+                    identifier: 'cha-giau-cha-ngheo',
+                    cover: 'https://archive.org/services/img/cha-giau-cha-ngheo',
+                    type: 'archive',
+                    reason: 'Tư duy tài sản vs tiêu sản để đạt tự do'
                 },
                 {
                     title: 'Nghĩ Giàu & Làm Giàu',
@@ -10104,7 +10120,14 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'nghi-giau-lam-giau.sna',
                     cover: 'https://archive.org/services/img/nghi-giau-lam-giau.sna',
                     type: 'archive',
-                    reason: '13 nguyên tắc làm giàu'
+                    reason: '13 nguyên tắc thành công vượt thời gian'
+                },
+                {
+                    title: 'Nhà Đầu Tư Thông Minh',
+                    author: 'Benjamin Graham',
+                    cover: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    key: '/works/OL15840212W',
+                    reason: 'Kinh điển đầu tư giá trị và biên độ an toàn'
                 },
                 {
                     title: 'Mặt Dày Tâm Đen',
@@ -10112,17 +10135,27 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'mat-day-tam-den.sna',
                     cover: 'https://archive.org/services/img/mat-day-tam-den.sna',
                     type: 'archive',
-                    reason: 'Bản lĩnh sinh tồn và thành công'
+                    reason: 'Bản lĩnh sinh tồn và thực chiến thương trường'
+                },
+                {
+                    title: 'Người Giàu Có Nhất Thành Babylon',
+                    author: 'George S. Clason',
+                    cover: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    key: '/works/OL527464W_babylon',
+                    reason: '7 quy luật bất biến về tích lũy vàng'
                 }
             ]
         },
         {
             id: 'strategy_power_history',
-            tag: '⚔️ Chiến lược & Quyền lực',
-            searchQuery: '("tam quoc" OR "chien luoc" OR "binh phap" OR "bo gia" OR "art of war")',
+            tag: '⚔️ Chiến lược, Quân sự & Quyền lực',
+            moodId: 'philosophy',
+            recPagePrompt: 'Chiến lược quân sự binh pháp quyền lực mưu lược',
+            recPageTitle: '⚔️ Tuyển tập Chiến lược & Quyền lực (Đa tác giả)',
             keywords: [
                 'tam quốc', 'bố già', 'godfather', 'mặt dày tâm đen', 'binh pháp',
-                'tôn tử', 'art of war', 'quyền lực', 'chiến lược'
+                'tôn tử', 'art of war', 'quyền lực', 'chiến lược', 'mưu lược',
+                'la quán trung', 'mario puzo', 'robert greene'
             ],
             items: [
                 {
@@ -10131,7 +10164,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'tam-quoc-chi-dien-nghia-tap-1.sna',
                     cover: 'https://archive.org/services/img/tam-quoc-chi-dien-nghia-tap-1.sna',
                     type: 'archive',
-                    reason: 'Đỉnh cao mưu lược quân sự'
+                    reason: 'Đỉnh cao mưu lược và anh hùng thời đại'
                 },
                 {
                     title: 'Bố Già (The Godfather)',
@@ -10139,7 +10172,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'bogia_201903',
                     cover: 'https://archive.org/services/img/bogia_201903',
                     type: 'archive',
-                    reason: 'Nghệ thuật quyền lực và gia tộc'
+                    reason: 'Nghệ thuật quyền lực và gia tộc kịch tính'
                 },
                 {
                     title: 'Binh Pháp Tôn Tử',
@@ -10147,7 +10180,14 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'art_of_war_librivox',
                     cover: 'https://archive.org/services/img/art_of_war_librivox',
                     type: 'archive',
-                    reason: 'Binh pháp chiến lược bất hủ'
+                    reason: 'Binh pháp chiến lược bất hủ thiên thu'
+                },
+                {
+                    title: '48 Định Luật Quyền Lực',
+                    author: 'Robert Greene',
+                    cover: 'https://covers.openlibrary.org/b/id/8231856-M.jpg',
+                    key: '/works/OL15856426W',
+                    reason: 'Cẩm nang thấu suốt tâm lý quyền lực và đối nhân'
                 },
                 {
                     title: 'Mặt Dày Tâm Đen',
@@ -10155,17 +10195,27 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'mat-day-tam-den.sna',
                     cover: 'https://archive.org/services/img/mat-day-tam-den.sna',
                     type: 'archive',
-                    reason: 'Thuật che giấu ý định'
+                    reason: 'Thuật che giấu ý định và kiên trì nội lực'
+                },
+                {
+                    title: 'Quân Vương (The Prince)',
+                    author: 'Niccolò Machiavelli',
+                    cover: 'https://covers.openlibrary.org/b/id/8758832-M.jpg',
+                    key: '/works/OL10829208W_prince',
+                    reason: 'Thuật cai trị và bản lĩnh lãnh đạo thực tế'
                 }
             ]
         },
         {
             id: 'literature_masterpiece',
-            tag: '📖 Văn học kinh điển',
-            searchQuery: '("tieu thuyet" OR "van hoc" OR "truyen ngan" OR "nha gia kim" OR "hoang tu be")',
+            tag: '📖 Văn học kinh điển thế giới',
+            moodId: 'classic',
+            recPagePrompt: 'Văn học kinh điển tiểu thuyết kiệt tác thế giới',
+            recPageTitle: '📖 Tuyển tập Văn học kinh điển thế giới (Đa tác giả)',
             keywords: [
                 'nhà giả kim', 'alchemist', 'hoàng tử bé', 'không gia đình',
-                'hai số phận', 'văn học', 'tiểu thuyết', 'paulo coelho', 'hector malot'
+                'hai số phận', 'văn học', 'tiểu thuyết', 'paulo coelho', 'hector malot',
+                'george orwell', 'dostoevsky', '1984'
             ],
             items: [
                 {
@@ -10182,7 +10232,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'hoang-tu-be.sna',
                     cover: 'https://archive.org/services/img/hoang-tu-be.sna',
                     type: 'archive',
-                    reason: 'Nhìn cuộc đời bằng trái tim'
+                    reason: 'Nhìn cuộc đời bằng trái tim trong sáng'
                 },
                 {
                     title: 'Không Gia Đình',
@@ -10190,7 +10240,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'khong-gia-dinh.sna',
                     cover: 'https://archive.org/services/img/khong-gia-dinh.sna',
                     type: 'archive',
-                    reason: 'Nghị lực và tình người sâu sắc'
+                    reason: 'Nghị lực sống và tình người sâu sắc'
                 },
                 {
                     title: 'Hai Số Phận (Kane and Abel)',
@@ -10199,16 +10249,33 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     cover: 'https://archive.org/services/img/hai-so-phan.sna',
                     type: 'archive',
                     reason: 'Bản hùng ca cuộc đời đầy kịch tính'
+                },
+                {
+                    title: '1984 (Một Chín Tám Tư)',
+                    author: 'George Orwell',
+                    cover: 'https://covers.openlibrary.org/b/id/12818862-M.jpg',
+                    key: '/works/OL1168007W',
+                    reason: 'Kiệt tác phản địa đàng cảnh báo quyền lực tuyệt đối'
+                },
+                {
+                    title: 'Tội Ác Và Trừng Phạt',
+                    author: 'Fyodor Dostoevsky',
+                    cover: 'https://covers.openlibrary.org/b/id/8447817-M.jpg',
+                    key: '/works/OL1861788W_crime',
+                    reason: 'Mổ xẻ tâm lý tội phạm và sự cứu rỗi linh hồn'
                 }
             ]
         },
         {
             id: 'communication_healing',
-            tag: '🌿 Chữa lành & Giao tiếp',
-            searchQuery: '("thien" OR "chua lanh" OR "tam ly" OR "dac nhan tam" OR "thich nhat hanh")',
+            tag: '🌿 Chữa lành & Tâm lý giao tiếp',
+            moodId: 'mindfulness',
+            recPagePrompt: 'Chữa lành tâm hồn giao tiếp bình an thấu cảm thiền',
+            recPageTitle: '🌿 Tuyển tập Chữa lành & Giao tiếp (Đa tác giả)',
             keywords: [
                 'đắc nhân tâm', 'how to win friends', 'đọc vị', 'quẳng gánh lo',
-                'giận', 'thích nhất hạnh', 'thiền', 'chữa lành', 'an lạc'
+                'giận', 'thích nhất hạnh', 'thiền', 'chữa lành', 'an lạc',
+                'dale carnegie', 'marshall rosenberg'
             ],
             items: [
                 {
@@ -10217,7 +10284,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     identifier: 'dac-nhan-tam.sna',
                     cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
                     type: 'archive',
-                    reason: 'Thu phục lòng người bằng chân thành'
+                    reason: 'Thu phục lòng người bằng sự chân thành'
                 },
                 {
                     title: 'Giận (Anger)',
@@ -10228,20 +10295,33 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     reason: 'Ôm ấp và chuyển hóa cơn giận'
                 },
                 {
-                    title: 'Quẳng Gánh Lo Đi Và Vui Sống',
-                    author: 'Dale Carnegie',
-                    identifier: 'quang-ganh-lo-di-va-vui-song.sna',
-                    cover: 'https://archive.org/services/img/quang-ganh-lo-di-va-vui-song.sna',
-                    type: 'archive',
-                    reason: 'Liệu pháp tâm lý giải tỏa âu lo'
-                },
-                {
                     title: 'Đọc Vị Bất Kỳ Ai',
                     author: 'David J. Lieberman',
                     identifier: 'yt_0vVz4uUekx8',
                     cover: 'https://i.ytimg.com/vi/0vVz4uUekx8/hqdefault.jpg',
                     type: 'youtube',
-                    reason: 'Thấu hiểu suy nghĩ đối phương'
+                    reason: 'Thấu hiểu suy nghĩ và động cơ đối phương'
+                },
+                {
+                    title: 'Giao Tiếp Bất Bạo Động',
+                    author: 'Marshall B. Rosenberg',
+                    cover: 'https://covers.openlibrary.org/b/id/12819857-M.jpg',
+                    key: '/works/OL12819857W_nvc',
+                    reason: 'Hóa giải xung đột bằng sự thấu cảm sâu sắc'
+                },
+                {
+                    title: 'Sức Mạnh Của Lắng Nghe',
+                    author: 'Mark Goulston',
+                    cover: 'https://covers.openlibrary.org/b/id/1058381-M.jpg',
+                    key: '/works/OL1058381W_listen',
+                    reason: 'Tiếp cận và mở khóa tâm lý những người khó tính nhất'
+                },
+                {
+                    title: 'Cứ An Nhiên Mà Sống',
+                    author: 'Shunmyo Masuno',
+                    cover: 'https://covers.openlibrary.org/b/id/8303480-M.jpg',
+                    key: '/works/OL8447817W_masuno',
+                    reason: 'Nghệ thuật buông bỏ phiền muộn theo triết lý Thiền'
                 }
             ]
         }
@@ -10251,8 +10331,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
     function createPlayerSuggestedCard(item) {
         const card = document.createElement('div');
         card.className = 'player-suggested-card';
-        card.title = `Nghe tiếp: ${item.title} — ${item.author || ''}${item.reason ? ' (' + item.reason + ')' : ''}`;
-        const coverSrc = item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : 'icon-192.png');
+        card.title = `${item.title} — ${item.author || ''}${item.reason ? ' (' + item.reason + ')' : ''}`;
+        const coverSrc = item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : (item.coverUrl || 'icon-192.png'));
 
         card.innerHTML = `
             <img class="player-suggested-thumb" src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.onerror=null;this.src='icon-192.png';">
@@ -10264,33 +10344,87 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         card.addEventListener('click', () => {
             if (item.type === 'youtube') {
                 loadAndPlayYoutube(item, 0, true);
+                showToast(`🎧 Đang phát: ${item.title}`);
             } else if (item.identifier) {
                 loadAndPlayAudiobook(item.identifier, 0, true);
+                showToast(`🎧 Đang phát: ${item.title}`);
+            } else {
+                openBookModal({
+                    key: item.key || `/works/${encodeURIComponent(item.title)}`,
+                    title: item.title,
+                    titleVi: item.title,
+                    originalTitle: item.originalTitle || item.title,
+                    author: item.author || 'Tác giả',
+                    author_name: [item.author],
+                    coverUrl: item.coverUrl || item.cover,
+                    coverId: item.coverId,
+                    rating: item.rating || 4.8,
+                    ratingsCount: item.ratingsCount || 50000,
+                    reason: item.reason,
+                    year: item.year || ''
+                });
             }
-            showToast(`🎧 Đang phát: ${item.title}`);
         });
 
         return card;
     }
 
-    // Helper: Append items to player suggested list
-    function appendPlayerSuggestedItems(items) {
-        if (!playerSuggestedList || !items || items.length === 0) return;
-        items.forEach(item => {
-            const idKey = (item.identifier || item.videoId || item.title || '').trim().toLowerCase();
-            if (idKey && playerSuggestedSeenIds.has(idKey)) return;
-            if (idKey) playerSuggestedSeenIds.add(idKey);
-            const card = createPlayerSuggestedCard(item);
-            playerSuggestedList.appendChild(card);
-        });
+    // Launch Dedicated Recommendations Discovery Page (Full Page View with Auto-Minimize Player)
+    function openDedicatedRecommendationsForAudio() {
+        const activeCluster = playerSuggestedCurrentCluster;
+        const moodId = activeCluster?.moodId || 'all';
+        const searchQ = activeCluster?.recPagePrompt || '';
+        const clusterTag = activeCluster?.recPageTitle || activeCluster?.tag || '🌟 Tuyển tập Đề xuất cùng thể loại (Đa tác giả)';
+
+        // 1. Minimize audio player modal so audio continues playing uninterrupted in mini-player
+        minimizeAudioPlayerModal();
+
+        // 2. Switch to Dedicated Recommendations Tab
+        switchTab('recommend');
+
+        // 3. Highlight corresponding mood in recMoodsScroll
+        if (recMoodsScroll) {
+            recMoodsScroll.querySelectorAll('.rec-mood-tag').forEach(t => {
+                t.classList.toggle('active', t.dataset.mood === moodId);
+            });
+        }
+        currentRecMood = moodId;
+
+        // 4. Update Engine Navigation to 'all'
+        if (recEngineNav) {
+            recEngineNav.querySelectorAll('.rec-engine-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.engine === 'all');
+            });
+        }
+        currentRecEngine = 'all';
+
+        // 5. Update AI Prompt Bar and Header Title
+        if (recAiPromptInput) {
+            recAiPromptInput.value = searchQ;
+        }
+        const titleEl = document.getElementById('recResultsTitle');
+        if (titleEl) {
+            titleEl.innerHTML = `<span>${clusterTag}</span>`;
+        }
+
+        // 6. Run recommendation search
+        currentRecPage = 1;
+        runRecommendationSearch(searchQ, 'all', moodId, 1, false);
+
+        // 7. Scroll smoothly to top of recommendation section
+        const recSection = document.getElementById('contentRecommend');
+        if (recSection) {
+            recSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        showToast('🚀 Đã mở trang Khám phá & Đề xuất (Trình phát đang thu nhỏ ở góc phải)');
     }
 
-    // Helper: Reset and render initial items to player box
-    function renderPlayerSuggestedItems(items, tagLabel = 'Có thể bạn muốn nghe tiếp') {
+    // Helper: Reset and render items to player box
+    function renderPlayerSuggestedItems(items, tagLabel = 'Có thể bạn muốn nghe tiếp', cluster = null) {
         if (!playerSuggestedBox || !playerSuggestedList) return;
         playerSuggestedList.innerHTML = '';
-        playerSuggestedSeenIds = new Set();
-        playerSuggestedPage = 1;
+        playerSuggestedCurrentCluster = cluster;
 
         if (!items || items.length === 0) {
             playerSuggestedBox.style.display = 'none';
@@ -10303,122 +10437,27 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
 
         playerSuggestedBox.style.display = 'block';
-        if (btnPlayerSuggestedLoadMore) {
-            btnPlayerSuggestedLoadMore.style.display = 'inline-flex';
-            btnPlayerSuggestedLoadMore.disabled = false;
-            btnPlayerSuggestedLoadMore.innerHTML = `
-                <span class="load-more-icon">🔄</span>
-                <span class="load-more-text">Tải thêm đề xuất liên quan</span>
-            `;
-            btnPlayerSuggestedLoadMore.onclick = (e) => {
+
+        // Bind Open Dedicated Page Button
+        if (btnPlayerOpenRecPage) {
+            btnPlayerOpenRecPage.style.display = 'inline-flex';
+            btnPlayerOpenRecPage.onclick = (e) => {
                 e.preventDefault();
-                loadMorePlayerSuggestedBooks();
+                openDedicatedRecommendationsForAudio();
             };
         }
-        if (playerSuggestedEndMessage) {
-            playerSuggestedEndMessage.style.display = 'none';
+        if (playerOpenRecPageText && cluster?.tag) {
+            playerOpenRecPageText.textContent = `Mở trang Khám phá ${cluster.tag.replace(/^[^\w\s\u00C0-\u1EF9]+/u, '').trim()} (Đa tác giả) ↗`;
         }
 
-        // Show initial items (up to 8)
-        appendPlayerSuggestedItems(items.slice(0, 8));
+        // Show diverse author items (up to 6)
+        items.slice(0, 6).forEach(item => {
+            const card = createPlayerSuggestedCard(item);
+            playerSuggestedList.appendChild(card);
+        });
     }
 
-    // Infinite / Unlimited related audiobooks loading from Internet Archive & Curated DB
-    async function loadMorePlayerSuggestedBooks() {
-        if (isPlayerSuggestedLoading) return;
-        isPlayerSuggestedLoading = true;
-
-        if (btnPlayerSuggestedLoadMore) {
-            btnPlayerSuggestedLoadMore.disabled = true;
-            btnPlayerSuggestedLoadMore.innerHTML = `
-                <span style="display:inline-block; animation:spin 1s infinite linear;">🔄</span>
-                <span>Đang tìm thêm sách nói liên quan...</span>
-            `;
-        }
-
-        playerSuggestedPage++;
-
-        try {
-            let foundCount = 0;
-
-            // 1. First append any remaining cluster items
-            if (playerSuggestedCurrentCluster && Array.isArray(playerSuggestedCurrentCluster.items)) {
-                const remainingCluster = playerSuggestedCurrentCluster.items.filter(it => {
-                    const idKey = (it.identifier || it.videoId || it.title || '').trim().toLowerCase();
-                    return !playerSuggestedSeenIds.has(idKey);
-                });
-                if (remainingCluster.length > 0) {
-                    appendPlayerSuggestedItems(remainingCluster.slice(0, 4));
-                    foundCount += remainingCluster.length;
-                }
-            }
-
-            // 2. Fetch from Internet Archive search API with current page
-            const queryToRun = playerSuggestedSearchQuery || '("sach noi" OR "audiobook" OR "truyen audio")';
-            const url = `https://archive.org/advancedsearch.php?q=(${encodeURIComponent(queryToRun)})+AND+mediatype:audio&fl[]=identifier,title,creator,description,year,downloads&sort[]=downloads+desc&rows=8&page=${playerSuggestedPage}&output=json`;
-
-            const res = await fetch(url);
-            if (res.ok) {
-                const data = await res.json();
-                const docs = data.response?.docs || [];
-                const newItems = [];
-
-                for (const doc of docs) {
-                    if (!doc.identifier) continue;
-                    const idKey = doc.identifier.trim().toLowerCase();
-                    if (playerSuggestedSeenIds.has(idKey)) continue;
-
-                    let cleanT = (doc.title || doc.identifier)
-                        .replace(/- sachnoi\.app/gi, '')
-                        .replace(/wwww\.truyenaudio\.net/gi, '')
-                        .replace(/truyenaudio\.org/gi, '')
-                        .replace(/\[.*?\]/g, '')
-                        .replace(/\(.*?\)/g, '')
-                        .trim();
-
-                    if (!cleanT || cleanT.length < 2) cleanT = doc.identifier;
-                    if (playerSuggestedSeenIds.has(cleanT.toLowerCase())) continue;
-
-                    // Skip low quality audio / spectrogram
-                    if (/^(test|audio_sample|spectrogram|_)/i.test(doc.identifier)) continue;
-
-                    newItems.push({
-                        title: cleanT,
-                        author: doc.creator || 'Internet Archive',
-                        identifier: doc.identifier,
-                        cover: `https://archive.org/services/img/${doc.identifier}`,
-                        type: 'archive',
-                        reason: playerSuggestedCurrentCluster?.tag || 'Sách nói liên quan'
-                    });
-                }
-
-                if (newItems.length > 0) {
-                    appendPlayerSuggestedItems(newItems);
-                    foundCount += newItems.length;
-                    showToast(`✨ Đã nạp thêm ${newItems.length} sách nói liên quan!`);
-                }
-
-                if (docs.length === 0 && foundCount === 0) {
-                    if (btnPlayerSuggestedLoadMore) btnPlayerSuggestedLoadMore.style.display = 'none';
-                    if (playerSuggestedEndMessage) playerSuggestedEndMessage.style.display = 'block';
-                }
-            }
-        } catch (e) {
-            console.warn('Load more player suggestions error:', e);
-            showToast('⚠️ Không thể tải thêm từ Internet Archive lúc này.');
-        } finally {
-            isPlayerSuggestedLoading = false;
-            if (btnPlayerSuggestedLoadMore && btnPlayerSuggestedLoadMore.style.display !== 'none') {
-                btnPlayerSuggestedLoadMore.disabled = false;
-                btnPlayerSuggestedLoadMore.innerHTML = `
-                    <span class="load-more-icon">🔄</span>
-                    <span class="load-more-text">Tải thêm đề xuất liên quan</span>
-                `;
-            }
-        }
-    }
-
-    // Update Suggested Audiobooks in Dedicated Audio Player
+    // Update Suggested Audiobooks in Dedicated Audio Player (Strict Same Genre + Different Authors)
     async function updatePlayerSuggestedBooks() {
         if (!playerSuggestedBox || !playerSuggestedList) return;
 
@@ -10442,6 +10481,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
 
         const sig = `${playingTitle} ${playingAuthor} ${currentTrack} ${playingDesc} ${currentIdentifier}`.toLowerCase();
+
         const isCurrentAudio = (item) => {
             if (!item) return false;
             if (item.identifier && currentIdentifier && (item.identifier === currentIdentifier || isSameAudioIdentifier(item.identifier, currentIdentifier))) return true;
@@ -10452,76 +10492,79 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             return false;
         };
 
+        // Strict Exclusion: Never recommend the current playing author, ensure different authors
+        const currentAuthorNorm = playingAuthor.toLowerCase().trim();
+        const authorTokens = currentAuthorNorm.split(/\s+/).filter(w => w.length > 2);
+
+        const isSameAuthor = (itemAuthor) => {
+            if (!itemAuthor || !currentAuthorNorm) return false;
+            const a = itemAuthor.toLowerCase().trim();
+            if (a === currentAuthorNorm) return true;
+            if (currentAuthorNorm.length > 3 && a.includes(currentAuthorNorm)) return true;
+            if (a.length > 3 && currentAuthorNorm.includes(a)) return true;
+            for (const token of authorTokens) {
+                if (token.length > 3 && a.includes(token)) return true;
+            }
+            if (playingTitle.toLowerCase().includes(a)) return true;
+            return false;
+        };
+
         // 1. Check Thematic Audio Clusters
         for (const cluster of PLAYER_SUGGESTED_CLUSTERS) {
             const matched = cluster.keywords.some(k => sig.includes(k.toLowerCase()));
             if (matched) {
-                playerSuggestedCurrentCluster = cluster;
-                playerSuggestedSearchQuery = cluster.searchQuery;
+                // Collect candidates that are NOT the current audio and NOT the current author
+                const diverseCandidates = [];
+                const seenAuthorsInRec = new Set();
 
-                const filtered = cluster.items.filter(item => !isCurrentAudio(item));
-                if (filtered.length > 0) {
-                    renderPlayerSuggestedItems(filtered, cluster.tag);
+                for (const item of cluster.items) {
+                    if (isCurrentAudio(item)) continue;
+                    if (isSameAuthor(item.author)) continue;
 
-                    // If it's a specific author like Nguyen Ngoc Ngan, try to enrich with dynamic Archive items
-                    if (sig.includes('nguyễn ngọc ngạn') || sig.includes('nguyen ngoc ngan')) {
-                        try {
-                            const res = await fetch(`https://archive.org/advancedsearch.php?q=(%22Nguyen+Ngoc+Ngan%22+OR+%22ngoc+ngan%22)+AND+mediatype%3Aaudio&fl[]=identifier,title,creator,description,year&sort[]=downloads+desc&rows=6&output=json`);
-                            if (res.ok) {
-                                const data = await res.json();
-                                const extraDocs = (data.response?.docs || []).filter(d => d.identifier && !isCurrentAudio(d));
-                                if (extraDocs.length > 0) {
-                                    const combined = [
-                                        ...extraDocs.map(d => ({
-                                            title: d.title.replace(/- sachnoi\.app/gi, '').replace(/\[.*?\]/g, '').trim(),
-                                            author: d.creator || 'Nguyễn Ngọc Ngạn',
-                                            identifier: d.identifier,
-                                            cover: `https://archive.org/services/img/${d.identifier}`,
-                                            type: 'archive',
-                                            reason: 'Audiobook Nguyễn Ngọc Ngạn'
-                                        })),
-                                        ...filtered
-                                    ];
-                                    const unique = [];
-                                    const seen = new Set();
-                                    for (const it of combined) {
-                                        if (!seen.has(it.identifier) && !isCurrentAudio(it)) {
-                                            seen.add(it.identifier);
-                                            unique.push(it);
-                                        }
-                                    }
-                                    renderPlayerSuggestedItems(unique, cluster.tag);
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Archive author audio fetch failed:', e);
-                        }
-                    }
+                    const authKey = (item.author || '').toLowerCase().trim();
+                    if (authKey && seenAuthorsInRec.has(authKey)) continue;
+
+                    if (authKey) seenAuthorsInRec.add(authKey);
+                    diverseCandidates.push(item);
+                }
+
+                if (diverseCandidates.length > 0) {
+                    renderPlayerSuggestedItems(diverseCandidates, `${cluster.tag} (Đa tác giả)`, cluster);
                     return;
                 }
             }
         }
 
-        // 2. Fallback: Search all curated audiobooks and YouTube audiobooks with matching genre or author
+        // 2. Fallback: Search all curated audiobooks and YouTube audiobooks with matching genre but DIFFERENT author
         const allAudios = [...(typeof CURATED_AUDIOBOOKS !== 'undefined' ? CURATED_AUDIOBOOKS : []), ...(typeof CURATED_YOUTUBE_AUDIOBOOKS !== 'undefined' ? CURATED_YOUTUBE_AUDIOBOOKS : [])];
-        const sameAuthorOrGenre = allAudios.filter(a => {
-            if (isCurrentAudio(a)) return false;
-            const aTitle = (a.title || '').toLowerCase();
-            const aAuthor = (a.author || '').toLowerCase();
-            const aGenre = (a.genre || '').toLowerCase();
-            if (playingAuthor && aAuthor && (aAuthor.includes(playingAuthor.toLowerCase()) || playingAuthor.toLowerCase().includes(aAuthor))) return true;
-            if (aGenre && sig.includes(aGenre)) return true;
-            return false;
-        });
+        const sameGenreDifferentAuthor = [];
+        const seenAuthorsFallback = new Set();
 
-        if (sameAuthorOrGenre.length > 0) {
-            playerSuggestedCurrentCluster = null;
-            playerSuggestedSearchQuery = playingAuthor ? `"${playingAuthor}"` : '("sach noi" OR "audiobook")';
-            renderPlayerSuggestedItems(sameAuthorOrGenre, '✨ Có thể bạn muốn nghe tiếp');
+        for (const a of allAudios) {
+            if (isCurrentAudio(a)) continue;
+            if (isSameAuthor(a.author)) continue;
+
+            const aGenre = (a.genre || '').toLowerCase();
+            const aAuthor = (a.author || '').toLowerCase().trim();
+
+            if (aGenre && sig.includes(aGenre)) {
+                if (aAuthor && seenAuthorsFallback.has(aAuthor)) continue;
+                if (aAuthor) seenAuthorsFallback.add(aAuthor);
+                sameGenreDifferentAuthor.push(a);
+            }
+        }
+
+        if (sameGenreDifferentAuthor.length > 0) {
+            renderPlayerSuggestedItems(sameGenreDifferentAuthor, '✨ Cùng thể loại từ các tác giả khác', {
+                tag: '✨ Cùng thể loại',
+                moodId: 'all',
+                recPagePrompt: playingTitle ? `Sách tương đồng cùng thể loại với ${playingTitle}` : '',
+                recPageTitle: `✨ Tuyển tập cùng thể loại (Đa tác giả)`
+            });
             return;
         }
 
-        // 3. Fallback: If no strict thematic match, show curated literary & storytelling audiobooks
+        // 3. Fallback: Curated literary & storytelling audiobooks from diverse world authors
         const generalPicks = [
             {
                 title: 'Nhà Giả Kim (The Alchemist)',
@@ -10529,7 +10572,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 identifier: 'nha-gia-kim.sna',
                 cover: 'https://archive.org/services/img/nha-gia-kim.sna',
                 type: 'archive',
-                reason: 'Kiệt tác văn học kinh điển'
+                reason: 'Kiệt tác văn học kinh điển thế giới'
             },
             {
                 title: 'Đắc Nhân Tâm',
@@ -10554,13 +10597,23 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 cover: 'https://archive.org/services/img/hoang-tu-be.sna',
                 type: 'archive',
                 reason: 'Tác phẩm văn học bất hủ'
+            },
+            {
+                title: 'Phía Sau Nghi Can X',
+                author: 'Higashino Keigo',
+                cover: 'https://covers.openlibrary.org/b/id/10524456-M.jpg',
+                key: '/works/OL10524456W_keigo',
+                reason: 'Trinh thám đấu trí xuất sắc'
             }
-        ].filter(item => !isCurrentAudio(item));
+        ].filter(item => !isCurrentAudio(item) && !isSameAuthor(item.author));
 
         if (generalPicks.length > 0) {
-            playerSuggestedCurrentCluster = null;
-            playerSuggestedSearchQuery = '("sach noi" OR "audiobook" OR "truyen audio")';
-            renderPlayerSuggestedItems(generalPicks, '🌟 Tác phẩm audio nổi bật');
+            renderPlayerSuggestedItems(generalPicks, '🌟 Tác phẩm nổi bật từ nhiều tác giả', {
+                tag: '🌟 Tác phẩm nổi bật',
+                moodId: 'all',
+                recPagePrompt: '',
+                recPageTitle: '🌟 Tuyển tập Đề xuất Nổi Bật (Đa Tác Giả)'
+            });
         } else {
             playerSuggestedBox.style.display = 'none';
         }
