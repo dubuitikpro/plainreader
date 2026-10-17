@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792200315983,
+  "lastUpdated": 1792200365501,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -383,11 +383,11 @@
       "cover": "https://archive.org/services/img/nguyenngocnganfull",
       "trackIndex": 77,
       "trackTitle": "Audiobook 67 Đêm Không Trăng (Truyện Ma)",
-      "currentTime": 1240,
+      "currentTime": 1290,
       "duration": 4531,
-      "percent": 27,
+      "percent": 28,
       "isBookmarked": true,
-      "updatedAt": 1792200314789
+      "updatedAt": 1792200364763
     }
   },
   "audioBookmarks": [
@@ -512,7 +512,7 @@
     "identifier": "nguyenngocnganfull",
     "type": "archive",
     "trackIndex": 77,
-    "time": 1240,
+    "time": 1290,
     "volume": 1,
     "speedIndex": 0
   },
