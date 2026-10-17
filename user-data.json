@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792198882777,
+  "lastUpdated": 1792198892816,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -377,6 +377,14 @@
     }
   },
   "audioBookmarks": [
+    {
+      "identifier": "nguyenngocnganfull",
+      "type": "archive",
+      "title": "Nguyễn Ngọc Ngạn Full",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/nguyenngocnganfull",
+      "bookmarkedAt": 1792198892814
+    },
     {
       "identifier": "7670131803e640327f698418271ca555",
       "type": "archive",
