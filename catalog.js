@@ -202,6 +202,7 @@
     let inPlayerRecPlayingTitle = '';
     let inPlayerRecSeenAuthors = new Set();
     let inPlayerRecSeenIds = new Set();
+    let inPlayerRecSeenTitleCores = new Set();
 
     // Audio History & In-Progress Elements
     const tabHistory = document.getElementById('tabHistory');
@@ -4861,16 +4862,85 @@
     }
     window.isSameAuthorComparison = isSameAuthorComparison;
 
+    // Helper: Normalize title to its core semantic identity for 100% duplicate prevention
+    function getCleanTitleCore(rawTitle) {
+        if (!rawTitle) return '';
+        const removeDiacritics = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        let t = removeDiacritics((rawTitle || '').toLowerCase());
+        t = t.replace(/\[[^\]]*\]/g, ' ');
+        t = t.replace(/\([^\)]*\)/g, ' ');
+        t = t.replace(/\|[^\n]*/g, ' ');
+        t = t.replace(/[-–—]\s*(sachnoi|truyenaudio|audiotruyen|kenhsachnoi|truyendocviet|thuvienbao|hpaudiotruyen|tac gia)[^\n]*/gi, ' ');
+        t = t.replace(/^(audiobook|sach noi mp3 full|sach noi mp3|sach noi|truyen audio|truyen noi|truyen)\s+/i, '');
+        t = t.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        const stopWords = new Set(['tap', 'phan', 'chuong', 'full', 'tacgia', 'bandich', 'cua', 'va', 'trong', 'de']);
+        const words = t.split(' ').filter(w => w.length > 1 && !stopWords.has(w));
+        const text = words.join(' ');
+        
+        if (text.includes('bo gia')) return 'bo gia';
+        if (text.includes('tam quoc')) return 'tam quoc';
+        if (text.includes('binh phap ton tu') || text.includes('binh phap')) return 'binh phap ton tu';
+        if (text.includes('dac nhan tam')) return 'dac nhan tam';
+        if (text.includes('nha gia kim')) return 'nha gia kim';
+        if (text.includes('hoang tu be')) return 'hoang tu be';
+        if (text.includes('mat day tam den')) return 'mat day tam den';
+        if (text.includes('48 dinh luat') || text.includes('dinh luat quyen luc')) return '48 dinh luat quyen luc';
+        if (text.includes('quan vuong')) return 'quan vuong';
+        if (text.includes('thay doi ti hon') || text.includes('atomic habits')) return 'atomic habits';
+        if (text.includes('thoat kiep') || text.includes('nice guy')) return 'thoat kiep trai hen';
+        if (text.includes('dan ong sao hoa') || text.includes('dan ba sao kim')) return 'dan ong sao hoa';
+        if (text.includes('doc vi bat ky ai') || text.includes('doc vi')) return 'doc vi bat ky ai';
+        if (text.includes('kheo an noi')) return 'kheo an noi';
+        if (text.includes('tam ly hoc ve tien')) return 'tam ly hoc ve tien';
+        if (text.includes('cha giau cha ngheo') || text.includes('rich dad')) return 'cha giau cha ngheo';
+        if (text.includes('nghi giau') && text.includes('lam giau')) return 'nghi giau lam giau';
+        if (text.includes('thanh babylon') || text.includes('nguoi giau co nhat')) return 'nguoi giau co nhat thanh babylon';
+        if (text.includes('sherlock holmes') || text.includes('sherlock')) return 'sherlock holmes';
+        if (text.includes('nghi can x')) return 'phia sau nghi can x';
+        if (text.includes('nguyen ngoc ngan')) return 'nguyen ngoc ngan';
+        if (text.includes('deep work') || text.includes('lam ra lam choi ra choi')) return 'deep work';
+        if (text.includes('7 thoi quen')) return '7 thoi quen';
+        if (text.includes('tuoi tre dang gia bao nhieu') || text.includes('tuoi tre dang gia')) return 'tuoi tre dang gia bao nhieu';
+        if (text.includes('tren duong bang')) return 'tren duong bang';
+        if (text.includes('suc manh tiem thuc')) return 'suc manh tiem thuc';
+        
+        return words.slice(0, 3).join(' ');
+    }
+    window.getCleanTitleCore = getCleanTitleCore;
+
     // =========================================
     // Dedicated WebArchive Full Page Recommendations
     // =========================================
     const CLUSTER_ARCHIVE_QUERIES = {
-        horror_mystery: 'mediatype:audio AND (title:("trinh thám" OR "kinh dị" OR "truyện ma" OR "vụ án" OR "bố già" OR "mật mã da vinci" OR "sherlock holmes" OR "agatha christie" OR "dracula" OR "stephen king") OR description:("trinh thám" OR "kinh dị"))',
-        habits_productivity: 'mediatype:audio AND (title:("thay đổi tí hon" OR "thói quen" OR "năng suất" OR "deep work" OR "tập trung" OR "sức mạnh tiềm thức" OR "trên đường băng" OR "tuổi trẻ đáng giá") OR description:("phát triển bản thân"))',
-        finance_wealth: 'mediatype:audio AND (title:("tâm lý học về tiền" OR "cha giàu cha nghèo" OR "nghĩ giàu làm giàu" OR "tài chính" OR "đầu tư" OR "kinh doanh" OR "thành babylon") OR description:("tài chính"))',
-        strategy_power_history: 'mediatype:audio AND (title:("tam quốc" OR "bố già" OR "binh pháp tôn tử" OR "quyền lực" OR "mặt dày tâm đen" OR "chiến lược" OR "quân vương") OR description:("chiến lược"))',
-        literature_masterpiece: 'mediatype:audio AND (title:("nhà giả kim" OR "hoàng tử bé" OR "không gia đình" OR "hai số phận" OR "tội ác và trừng phạt" OR "tiểu thuyết") OR collection:(audio_bookspoetry OR librivoxaudio))',
-        communication_healing: 'mediatype:audio AND (title:("đắc nhân tâm" OR "giận" OR "thích nhất hạnh" OR "chữa lành" OR "đọc vị bất kỳ ai" OR "quẳng gánh lo") OR description:("chữa lành"))'
+        // Psychology, Relationships & Life Skills (Thoát kiếp trai ngoan, Đắc nhân tâm, v.v.)
+        psychology_relationships: 'mediatype:audio AND (title:("đắc nhân tâm" OR "đọc vị bất kỳ ai" OR "đàn ông sao hỏa" OR "khéo ăn nói" OR "thao túng tâm lý" OR "hiểu về trái tim" OR "bản lĩnh" OR "tâm lý học" OR "giao tiếp") OR description:("tâm lý" OR "kỹ năng sống"))',
+        communication_healing: 'mediatype:audio AND (title:("đắc nhân tâm" OR "đọc vị bất kỳ ai" OR "khéo ăn nói" OR "thao túng tâm lý" OR "hiểu về trái tim" OR "giận" OR "thích nhất hạnh" OR "chữa lành") OR description:("chữa lành" OR "giao tiếp"))',
+        
+        // Habits & Productivity (Thay đổi tí hon, Deep work, 7 Thói quen, v.v.)
+        habits_self_growth: 'mediatype:audio AND (title:("thay đổi tí hon" OR "7 thói quen" OR "deep work" OR "sức mạnh tiềm thức" OR "trên đường băng" OR "tuổi trẻ đáng giá" OR "kỷ luật tự giác" OR "thói quen" OR "tập trung") OR description:("phát triển bản thân"))',
+        habits_productivity: 'mediatype:audio AND (title:("thay đổi tí hon" OR "7 thói quen" OR "deep work" OR "sức mạnh tiềm thức" OR "trên đường băng" OR "tuổi trẻ đáng giá" OR "kỷ luật tự giác" OR "thói quen") OR description:("phát triển bản thân"))',
+
+        // Finance & Wealth (Tâm lý học về tiền, Cha giàu cha nghèo, v.v.)
+        finance_wealth: 'mediatype:audio AND (title:("tâm lý học về tiền" OR "cha giàu cha nghèo" OR "nghĩ giàu làm giàu" OR "người giàu có nhất thành babylon" OR "nhà đầu tư thông minh" OR "tư duy triệu phú" OR "kinh doanh" OR "đầu tư") OR description:("tài chính" OR "làm giàu"))',
+
+        // Thriller, Horror & Detective (Phía sau nghi can X, Sherlock Holmes, v.v.)
+        horror_mystery_detective: 'mediatype:audio AND (title:("sherlock holmes" OR "phía sau nghi can x" OR "mật mã da vinci" OR "bạch dạ hành" OR "agatha christie" OR "truyện ma" OR "kinh dị" OR "án mạng" OR "dracula") OR description:("trinh thám" OR "kinh dị"))',
+        horror_mystery: 'mediatype:audio AND (title:("sherlock holmes" OR "phía sau nghi can x" OR "mật mã da vinci" OR "agatha christie" OR "truyện ma" OR "kinh dị" OR "án mạng") OR description:("trinh thám" OR "kinh dị"))',
+
+        // Strategy, History & Power (Bố già, Tam quốc, Binh pháp Tôn Tử, v.v.)
+        strategy_history_power: 'mediatype:audio AND (title:("bố già" OR "tam quốc" OR "binh pháp tôn tử" OR "48 định luật quyền lực" OR "mặt dày tâm đen" OR "quân vương" OR "từ tốt đến vĩ đại" OR "chiến lược") OR description:("chiến lược" OR "quyền lực"))',
+        strategy_power_history: 'mediatype:audio AND (title:("bố già" OR "tam quốc" OR "binh pháp tôn tử" OR "48 định luật quyền lực" OR "mặt dày tâm đen" OR "quân vương") OR description:("chiến lược"))',
+
+        // Literature & Masterpieces (Nhà giả kim, Hoàng tử bé, Không gia đình, v.v.)
+        literature_classics: 'mediatype:audio AND (title:("nhà giả kim" OR "hoàng tử bé" OR "không gia đình" OR "hai số phận" OR "ông già và biển cả" OR "tội ác và trừng phạt" OR "tiểu thuyết" OR "kinh điển") OR collection:(audio_bookspoetry OR librivoxaudio))',
+        literature_masterpiece: 'mediatype:audio AND (title:("nhà giả kim" OR "hoàng tử bé" OR "không gia đình" OR "hai số phận" OR "ông già và biển cả" OR "tiểu thuyết") OR collection:(audio_bookspoetry OR librivoxaudio))',
+
+        // Mindfulness & Healing (Giận, Thích Nhất Hạnh, An nhiên, v.v.)
+        mindfulness_healing: 'mediatype:audio AND (title:("giận" OR "thích nhất hạnh" OR "chữa lành" OR "muôn kiếp nhân sinh" OR "hành trình về phương đông" OR "an nhiên" OR "sức mạnh của hiện tại") OR description:("chữa lành" OR "thiền"))',
+
+        // General Best Picks Fallback
+        general_recommendations: 'mediatype:audio AND (title:("nhà giả kim" OR "hoàng tử bé" OR "đắc nhân tâm" OR "không gia đình" OR "hai số phận" OR "ông già và biển cả" OR "tuổi trẻ đáng giá") OR collection:(audio_bookspoetry OR librivoxaudio))'
     };
 
     async function loadWebArchiveRecommendations(cluster, playingTitle = '', playingAuthor = '', page = 1, append = false) {
@@ -4916,11 +4986,16 @@
         try {
             const seenAuthors = new Set();
             const seenIds = new Set();
+            const seenCores = new Set();
             const results = [];
 
             // Helper to normalize author
             const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+            const playingTitleCore = getCleanTitleCore(playingTitle);
 
+            if (playingTitleCore) {
+                seenCores.add(playingTitleCore);
+            }
             if (playingAuthor) {
                 seenAuthors.add(normalizeA(playingAuthor));
             }
@@ -4929,7 +5004,12 @@
             if (page === 1 && Array.isArray(cluster.items)) {
                 cluster.items.forEach(item => {
                     const normAuth = normalizeA(item.author);
+                    const core = getCleanTitleCore(item.title);
+                    if (core && seenCores.has(core)) return;
+                    if (core && playingTitleCore && (core === playingTitleCore || (core.length > 4 && playingTitleCore.includes(core)))) return;
+
                     if (!isSameAuthorComparison(item.author, playingAuthor) && !seenAuthors.has(normAuth)) {
+                        if (core) seenCores.add(core);
                         seenAuthors.add(normAuth);
                         const id = item.identifier || `curated_${item.title}`;
                         seenIds.add(id);
@@ -4947,9 +5027,22 @@
             }
 
             // 2. Query Archive.org for rich diverse items in this genre
-            const query = CLUSTER_ARCHIVE_QUERIES[cluster.id] || CLUSTER_ARCHIVE_QUERIES.horror_mystery;
+            let query = cluster.id ? CLUSTER_ARCHIVE_QUERIES[cluster.id] : null;
+            if (!query) {
+                const cleanTitleWords = removeDiacritics(playingTitle || '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s]/g, ' ')
+                    .split(/\s+/)
+                    .filter(w => w.length > 2 && !['audiobook', 'full', 'chuong', 'mp3', 'sach', 'tap', 'phan', 'internet', 'archive'].includes(w));
+                if (cleanTitleWords.length > 0) {
+                    query = `mediatype:audio AND (title:("${cleanTitleWords.slice(0, 4).join('" OR "')}"))`;
+                } else {
+                    query = CLUSTER_ARCHIVE_QUERIES.psychology_relationships;
+                }
+            }
+
             const enc = encodeURIComponent(query);
-            const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&sort[]=downloads+desc&rows=35&page=${page}&output=json`;
+            const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&sort[]=downloads+desc&rows=50&page=${page}&output=json`;
 
             const resp = await fetch(archiveUrl);
             if (resp.ok) {
@@ -4957,20 +5050,27 @@
                 const docs = (data.response && data.response.docs) || [];
 
                 docs.forEach(d => {
+                    const rawTitle = d.title || d.identifier || '';
+                    const core = getCleanTitleCore(rawTitle);
+                    if (!core || seenCores.has(core)) return;
+                    if (playingTitleCore && (core === playingTitleCore || (core.length > 4 && playingTitleCore.includes(core)) || (playingTitleCore.length > 4 && core.includes(playingTitleCore)))) return;
+
                     const author = d.creator || 'Internet Archive';
                     const normAuth = normalizeA(author);
 
-                    // Must NOT be the playing author or already seen author
-                    if (!isSameAuthorComparison(author, playingAuthor) && 
-                        !isSameAuthorComparison(d.title, playingAuthor) &&
-                        !seenAuthors.has(normAuth) && 
-                        !seenIds.has(d.identifier)) {
-                        
-                        seenAuthors.add(normAuth);
+                    // Must NOT be the playing author
+                    if (isSameAuthorComparison(author, playingAuthor) || isSameAuthorComparison(rawTitle, playingAuthor)) return;
+
+                    const isGenericAuthor = /(internet archive|sachnoi|truyen|audio|kenh|thuvien|hp|nghe|online|youtube|uploader|admin|khong ro|dang cap nhat)/i.test(author);
+                    if (!isGenericAuthor && seenAuthors.has(normAuth)) return;
+
+                    if (!seenIds.has(d.identifier)) {
+                        seenCores.add(core);
+                        if (!isGenericAuthor) seenAuthors.add(normAuth);
                         seenIds.add(d.identifier);
                         results.push({
                             identifier: d.identifier,
-                            title: d.title || d.identifier,
+                            title: rawTitle,
                             author: author,
                             cover: `https://archive.org/services/img/${d.identifier}`,
                             description: d.description || '',
@@ -10477,6 +10577,70 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
     // =========================================
     const PLAYER_SUGGESTED_CLUSTERS = [
         {
+            id: 'psychology_relationships',
+            tag: '🧠 Tâm lý, Kỹ năng & Thấu hiểu con người',
+            moodId: 'self-help',
+            recPagePrompt: 'Tâm lý học kỹ năng sống mối quan hệ đàn ông phụ nữ giao tiếp',
+            recPageTitle: '🧠 Tuyển tập Tâm lý, Kỹ năng & Thấu hiểu (Đa tác giả)',
+            keywords: [
+                'thoat kiep', 'trai hen', 'nice guy', 'tam ly', 'tâm lý', 'ky nang', 'kỹ năng',
+                'giao tiep', 'giao tiếp', 'hen ho', 'hẹn hò', 'tinh yeu', 'tình yêu', 'hon nhan',
+                'hôn nhân', 'dan ong', 'đàn ông', 'phu nu', 'phụ nữ', 'ban linh', 'bản lĩnh',
+                'tu tin', 'tự tin', 'cam xuc', 'cảm xúc', 'quan he', 'mối quan hệ', 'thao tung',
+                'thao túng', 'long nguoi', 'lòng người', 'kheo an noi', 'khéo ăn nói', 'dac nhan tam',
+                'đắc nhân tâm', 'doc vi', 'đọc vị', 'thau hieu', 'thấu hiểu', 'robert glover',
+                'john gray', 'dale carnegie'
+            ],
+            items: [
+                {
+                    title: 'Đắc Nhân Tâm',
+                    author: 'Dale Carnegie',
+                    identifier: 'dac-nhan-tam.sna',
+                    cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
+                    type: 'archive',
+                    reason: 'Thu phục lòng người bằng sự chân thành'
+                },
+                {
+                    title: 'Đọc Vị Bất Kỳ Ai',
+                    author: 'David J. Lieberman',
+                    identifier: 'yt_0vVz4uUekx8',
+                    cover: 'https://i.ytimg.com/vi/0vVz4uUekx8/hqdefault.jpg',
+                    type: 'youtube',
+                    reason: 'Thấu hiểu suy nghĩ và động cơ đối phương'
+                },
+                {
+                    title: 'Đàn Ông Sao Hỏa, Đàn Bà Sao Kim',
+                    author: 'John Gray',
+                    cover: 'https://covers.openlibrary.org/b/id/12819857-M.jpg',
+                    key: '/works/OL15849857W_mars',
+                    reason: 'Thấu cảm sự khác biệt tâm lý giữa hai giới'
+                },
+                {
+                    title: 'Khéo Ăn Nói Sẽ Có Được Thiên Hạ',
+                    author: 'Trác Nhã',
+                    identifier: 'dac-nhan-tam.sna',
+                    cover: 'https://archive.org/services/img/dac-nhan-tam.sna',
+                    type: 'archive',
+                    reason: 'Nghệ thuật giao tiếp tinh tế trong mọi hoàn cảnh'
+                },
+                {
+                    title: 'Thao Túng Tâm Lý',
+                    author: 'Shannon Thomas',
+                    cover: 'https://covers.openlibrary.org/b/id/1058381-M.jpg',
+                    key: '/works/OL1058381W_psych',
+                    reason: 'Nhận diện và giải phóng bản thân khỏi mối quan hệ độc hại'
+                },
+                {
+                    title: 'Hiểu Về Trái Tim',
+                    author: 'Thích Minh Niệm',
+                    identifier: 'gian.sna',
+                    cover: 'https://archive.org/services/img/gian.sna',
+                    type: 'archive',
+                    reason: 'Chữa lành cảm xúc và thấu suốt bản thân'
+                }
+            ]
+        },
+        {
             id: 'horror_mystery_thriller',
             tag: '👻 Trinh thám, Kinh dị & Ly kỳ',
             moodId: 'thriller',
@@ -10521,12 +10685,11 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     reason: 'Kiệt tác vụ án biệt lập không lối thoát'
                 },
                 {
-                    title: 'Bố Già (The Godfather)',
-                    author: 'Mario Puzo',
-                    identifier: 'bogia_201903',
-                    cover: 'https://archive.org/services/img/bogia_201903',
-                    type: 'archive',
-                    reason: 'Thế giới ngầm và nghệ thuật tâm lý gia tộc nghẹt thở'
+                    title: 'Bạch Dạ Hành',
+                    author: 'Keigo Higashino',
+                    cover: 'https://covers.openlibrary.org/b/id/8226191-M.jpg',
+                    key: '/works/OL10524456W_byh',
+                    reason: 'Kiệt tác trinh thám tâm lý đen tối xuất sắc'
                 },
                 {
                     title: 'Kẻ Ám Ảnh (The Shining)',
@@ -10998,13 +11161,25 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
 
         const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+        const playingTitleCore = getCleanTitleCore(inPlayerRecPlayingTitle);
 
         try {
             // 1. On page 1: insert curated items for this cluster immediately (zero delay!)
             if (inPlayerRecPage === 1 && Array.isArray(inPlayerRecCluster.items)) {
                 inPlayerRecCluster.items.forEach(item => {
                     const normAuth = normalizeA(item.author);
+                    const coreTitle = getCleanTitleCore(item.title);
+
+                    // Strict Title Deduplication: Skip current playing book or duplicate titles
+                    if (coreTitle && playingTitleCore && (coreTitle === playingTitleCore || (coreTitle.length > 4 && playingTitleCore.includes(coreTitle)))) {
+                        return;
+                    }
+                    if (coreTitle && inPlayerRecSeenTitleCores.has(coreTitle)) {
+                        return;
+                    }
+
                     if (!isSameAuthorComparison(item.author, inPlayerRecPlayingAuthor) && !inPlayerRecSeenAuthors.has(normAuth)) {
+                        if (coreTitle) inPlayerRecSeenTitleCores.add(coreTitle);
                         inPlayerRecSeenAuthors.add(normAuth);
                         const id = item.identifier || item.videoId || item.key || `curated_${item.title}`;
                         inPlayerRecSeenIds.add(id);
@@ -11028,9 +11203,22 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
 
             // 2. Query Archive.org for rich diverse items in this genre
             try {
-                const query = CLUSTER_ARCHIVE_QUERIES[inPlayerRecCluster.id] || CLUSTER_ARCHIVE_QUERIES.horror_mystery;
+                let query = inPlayerRecCluster.id ? CLUSTER_ARCHIVE_QUERIES[inPlayerRecCluster.id] : null;
+                if (!query) {
+                    const cleanTitleWords = removeDiacritics(inPlayerRecPlayingTitle || '')
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s]/g, ' ')
+                        .split(/\s+/)
+                        .filter(w => w.length > 2 && !['audiobook', 'full', 'chuong', 'mp3', 'sach', 'tap', 'phan', 'internet', 'archive'].includes(w));
+                    if (cleanTitleWords.length > 0) {
+                        query = `mediatype:audio AND (title:("${cleanTitleWords.slice(0, 4).join('" OR "')}"))`;
+                    } else {
+                        query = CLUSTER_ARCHIVE_QUERIES.psychology_relationships;
+                    }
+                }
+
                 const enc = encodeURIComponent(query);
-                const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&fl%5B%5D=description&fl%5B%5D=downloads&sort%5B%5D=downloads+desc&rows=50&page=${inPlayerRecPage}&output=json`;
+                const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&fl%5B%5D=description&fl%5B%5D=downloads&sort%5B%5D=downloads+desc&rows=60&page=${inPlayerRecPage}&output=json`;
 
                 const resp = await fetch(archiveUrl);
                 if (resp.ok) {
@@ -11038,21 +11226,40 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     const docs = (data.response && data.response.docs) || [];
 
                     docs.forEach(d => {
+                        const rawTitle = d.title || d.identifier || '';
+                        const coreTitle = getCleanTitleCore(rawTitle);
+
+                        // Strict deduplication: skip if title is too short, already seen, or is current playing book
+                        if (!coreTitle) return;
+                        if (playingTitleCore && (coreTitle === playingTitleCore || (coreTitle.length > 4 && playingTitleCore.includes(coreTitle)) || (playingTitleCore.length > 4 && coreTitle.includes(playingTitleCore)))) {
+                            return;
+                        }
+                        if (inPlayerRecSeenTitleCores.has(coreTitle)) {
+                            return;
+                        }
+
                         const author = d.creator || 'Internet Archive';
                         const normAuth = normalizeA(author);
 
-                        // Must NOT be the playing author or already seen author
-                        if (!isSameAuthorComparison(author, inPlayerRecPlayingAuthor) && 
-                            !isSameAuthorComparison(d.title, inPlayerRecPlayingAuthor) &&
-                            !inPlayerRecSeenAuthors.has(normAuth) && 
-                            !inPlayerRecSeenIds.has(d.identifier)) {
-                            
-                            inPlayerRecSeenAuthors.add(normAuth);
+                        // Must NOT be the playing author
+                        if (isSameAuthorComparison(author, inPlayerRecPlayingAuthor) || isSameAuthorComparison(rawTitle, inPlayerRecPlayingAuthor)) {
+                            return;
+                        }
+
+                        // Check author duplication if author is a recognizable individual
+                        const isGenericAuthor = /(internet archive|sachnoi|truyen|audio|kenh|thuvien|hp|nghe|online|youtube|uploader|admin|khong ro|dang cap nhat)/i.test(author);
+                        if (!isGenericAuthor && inPlayerRecSeenAuthors.has(normAuth)) {
+                            return;
+                        }
+
+                        if (!inPlayerRecSeenIds.has(d.identifier)) {
+                            inPlayerRecSeenTitleCores.add(coreTitle);
+                            if (!isGenericAuthor) inPlayerRecSeenAuthors.add(normAuth);
                             inPlayerRecSeenIds.add(d.identifier);
 
                             const archiveItem = {
                                 identifier: d.identifier,
-                                title: d.title || d.identifier,
+                                title: rawTitle,
                                 author: author,
                                 cover: `https://archive.org/services/img/${d.identifier}`,
                                 description: d.description || '',
@@ -11097,7 +11304,12 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         inPlayerRecPlayingTitle = playingTitle;
         inPlayerRecSeenAuthors.clear();
         inPlayerRecSeenIds.clear();
+        inPlayerRecSeenTitleCores.clear();
 
+        if (playingTitle) {
+            const playingTitleCore = getCleanTitleCore(playingTitle);
+            if (playingTitleCore) inPlayerRecSeenTitleCores.add(playingTitleCore);
+        }
         if (playingAuthor) {
             const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
             inPlayerRecSeenAuthors.add(normalizeA(playingAuthor));
@@ -11204,6 +11416,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
 
         const sig = `${playingTitle} ${playingAuthor} ${currentTrack} ${playingDesc} ${currentIdentifier}`.toLowerCase();
+        const normSig = (removeDiacritics(sig) + ' ' + sig).replace(/[-_]/g, ' ').toLowerCase();
+        const playingTitleCore = getCleanTitleCore(playingTitle);
 
         const isCurrentAudio = (item) => {
             if (!item) return false;
@@ -11212,41 +11426,42 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             const itemTitle = (item.title || '').toLowerCase().trim();
             const currentTitleNorm = playingTitle.toLowerCase().trim();
             if (itemTitle && currentTitleNorm && itemTitle === currentTitleNorm) return true;
+            const itemCore = getCleanTitleCore(item.title);
+            if (itemCore && playingTitleCore && itemCore === playingTitleCore) return true;
             return false;
         };
 
         // Strict Exclusion: Never recommend the current playing author, ensure different authors
-        const currentAuthorNorm = playingAuthor.toLowerCase().trim();
-        const authorTokens = currentAuthorNorm.split(/\s+/).filter(w => w.length > 2);
-
         const isSameAuthor = (itemAuthor) => {
-            if (!itemAuthor || !currentAuthorNorm) return false;
-            const a = itemAuthor.toLowerCase().trim();
-            if (a === currentAuthorNorm) return true;
-            if (currentAuthorNorm.length > 3 && a.includes(currentAuthorNorm)) return true;
-            if (a.length > 3 && currentAuthorNorm.includes(a)) return true;
-            for (const token of authorTokens) {
-                if (token.length > 3 && a.includes(token)) return true;
-            }
-            if (playingTitle.toLowerCase().includes(a)) return true;
-            return false;
+            if (!itemAuthor || !playingAuthor) return false;
+            return isSameAuthorComparison(itemAuthor, playingAuthor);
         };
 
         // 1. Check Thematic Audio Clusters
         for (const cluster of PLAYER_SUGGESTED_CLUSTERS) {
-            const matched = cluster.keywords.some(k => sig.includes(k.toLowerCase()));
+            const matched = cluster.keywords.some(k => {
+                const normK = removeDiacritics(k).toLowerCase();
+                return normSig.includes(normK) || sig.includes(k.toLowerCase());
+            });
+
             if (matched) {
-                // Collect candidates that are NOT the current audio and NOT the current author
+                // Collect candidates that are NOT the current audio, NOT the current author, and NOT duplicate titles
                 const diverseCandidates = [];
                 const seenAuthorsInRec = new Set();
+                const seenCoresInRec = new Set();
+                if (playingTitleCore) seenCoresInRec.add(playingTitleCore);
 
                 for (const item of cluster.items) {
                     if (isCurrentAudio(item)) continue;
                     if (isSameAuthor(item.author)) continue;
 
+                    const core = getCleanTitleCore(item.title);
+                    if (core && seenCoresInRec.has(core)) continue;
+
                     const authKey = (item.author || '').toLowerCase().trim();
                     if (authKey && seenAuthorsInRec.has(authKey)) continue;
 
+                    if (core) seenCoresInRec.add(core);
                     if (authKey) seenAuthorsInRec.add(authKey);
                     diverseCandidates.push(item);
                 }
@@ -11262,23 +11477,30 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         const allAudios = [...(typeof CURATED_AUDIOBOOKS !== 'undefined' ? CURATED_AUDIOBOOKS : []), ...(typeof CURATED_YOUTUBE_AUDIOBOOKS !== 'undefined' ? CURATED_YOUTUBE_AUDIOBOOKS : [])];
         const sameGenreDifferentAuthor = [];
         const seenAuthorsFallback = new Set();
+        const seenCoresFallback = new Set();
+        if (playingTitleCore) seenCoresFallback.add(playingTitleCore);
 
         for (const a of allAudios) {
             if (isCurrentAudio(a)) continue;
             if (isSameAuthor(a.author)) continue;
 
-            const aGenre = (a.genre || '').toLowerCase();
+            const aCore = getCleanTitleCore(a.title);
+            if (aCore && seenCoresFallback.has(aCore)) continue;
+
+            const aGenre = removeDiacritics(a.genre || '').toLowerCase();
             const aAuthor = (a.author || '').toLowerCase().trim();
 
-            if (aGenre && sig.includes(aGenre)) {
+            if (aGenre && normSig.includes(aGenre)) {
                 if (aAuthor && seenAuthorsFallback.has(aAuthor)) continue;
                 if (aAuthor) seenAuthorsFallback.add(aAuthor);
+                if (aCore) seenCoresFallback.add(aCore);
                 sameGenreDifferentAuthor.push(a);
             }
         }
 
         if (sameGenreDifferentAuthor.length > 0) {
             renderPlayerSuggestedItems(sameGenreDifferentAuthor, '✨ Cùng thể loại từ các tác giả khác', {
+                id: 'psychology_relationships',
                 tag: '✨ Cùng thể loại',
                 moodId: 'all',
                 recPagePrompt: playingTitle ? `Sách tương đồng cùng thể loại với ${playingTitle}` : '',
@@ -11288,6 +11510,9 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
 
         // 3. Fallback: Curated literary & storytelling audiobooks from diverse world authors
+        const seenGeneralCores = new Set();
+        if (playingTitleCore) seenGeneralCores.add(playingTitleCore);
+
         const generalPicks = [
             {
                 title: 'Nhà Giả Kim (The Alchemist)',
@@ -11328,10 +11553,18 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                 key: '/works/OL10524456W_keigo',
                 reason: 'Trinh thám đấu trí xuất sắc'
             }
-        ].filter(item => !isCurrentAudio(item) && !isSameAuthor(item.author));
+        ].filter(item => {
+            if (isCurrentAudio(item)) return false;
+            if (isSameAuthor(item.author)) return false;
+            const c = getCleanTitleCore(item.title);
+            if (c && seenGeneralCores.has(c)) return false;
+            if (c) seenGeneralCores.add(c);
+            return true;
+        });
 
         if (generalPicks.length > 0) {
             renderPlayerSuggestedItems(generalPicks, '🌟 Tác phẩm nổi bật từ nhiều tác giả', {
+                id: 'general_recommendations',
                 tag: '🌟 Tác phẩm nổi bật',
                 moodId: 'all',
                 recPagePrompt: '',
