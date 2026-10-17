@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792245744340,
+  "lastUpdated": 1792247014987,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -397,11 +397,13 @@
       "cover": "https://archive.org/services/img/dam-bi-ghet",
       "trackIndex": 1,
       "trackTitle": "Koga Fumitake, Kishimi Ichiro Phần 2: Đêm Thứ Hai Audio Book",
-      "currentTime": 118,
+      "currentTime": 1390,
       "duration": 4740,
-      "percent": 2,
+      "percent": 29,
       "isBookmarked": true,
-      "updatedAt": 1792245743636
+      "note": "Mọi phiền muộn đều do mối quan hệ giữa người với người",
+      "noteUpdatedAt": 1792246998347,
+      "updatedAt": 1792247014831
     }
   },
   "audioBookmarks": [
@@ -527,6 +529,14 @@
       "author": "James Clear",
       "cover": "https://archive.org/services/img/tdthhqbn",
       "updatedAt": 1791017523196
+    },
+    "dam-bi-ghet": {
+      "identifier": "dam-bi-ghet",
+      "text": "Mọi phiền muộn đều do mối quan hệ giữa người với người",
+      "title": "Dám Bị Ghét",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/dam-bi-ghet",
+      "updatedAt": 1792246998347
     }
   },
   "lastPlayedId": "dam-bi-ghet",
@@ -534,7 +544,7 @@
     "identifier": "dam-bi-ghet",
     "type": "archive",
     "trackIndex": 1,
-    "time": 118,
+    "time": 1390,
     "volume": 1,
     "speedIndex": 0
   },
