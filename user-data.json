@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792204948772,
+  "lastUpdated": 1792205049419,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -388,31 +388,9 @@
       "percent": 40,
       "isBookmarked": true,
       "updatedAt": 1792201649880
-    },
-    "ngoi-mo-moi-dap.sna": {
-      "identifier": "ngoi-mo-moi-dap.sna",
-      "type": "archive",
-      "title": "Ngôi Mộ Mới Đắp - sachnoi.app",
-      "author": "Nguyễn Ngọc Ngạn",
-      "cover": "https://archive.org/services/img/ngoi-mo-moi-dap.sna",
-      "trackIndex": 1,
-      "trackTitle": "AudioBook53 NguyenNgocNgan NgoiMoMoiDap",
-      "currentTime": 166,
-      "duration": 4246,
-      "percent": 4,
-      "isBookmarked": true,
-      "updatedAt": 1792204715459
     }
   },
   "audioBookmarks": [
-    {
-      "identifier": "ngoi-mo-moi-dap.sna",
-      "type": "archive",
-      "title": "Ngôi Mộ Mới Đắp - sachnoi.app",
-      "author": "Nguyễn Ngọc Ngạn",
-      "cover": "https://archive.org/services/img/ngoi-mo-moi-dap.sna",
-      "bookmarkedAt": 1792201701531
-    },
     {
       "identifier": "nguyenngocnganfull",
       "type": "archive",
@@ -529,12 +507,12 @@
       "updatedAt": 1791017523196
     }
   },
-  "lastPlayedId": "ngoi-mo-moi-dap.sna",
+  "lastPlayedId": null,
   "audioState": {
     "identifier": "mat-ma-da-vinci.sna",
     "type": "archive",
     "trackIndex": 1,
-    "time": 218,
+    "time": 315,
     "volume": 1,
     "speedIndex": 0
   },
