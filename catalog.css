@@ -7054,12 +7054,13 @@ a { color: inherit; text-decoration: none; }
    In-Player Dedicated Recommendations Full View (8 Books Per Row)
    ======================================================== */
 .audio-player-dialog.recommendations-mode {
-    max-width: 1460px;
-    width: 96vw;
-    max-height: 94vh;
-    max-height: 94dvh;
-    padding: 20px 24px;
+    max-width: 1480px !important;
+    width: 96vw !important;
+    max-height: 94vh !important;
+    max-height: 94dvh !important;
+    padding: 20px 24px !important;
     animation: fadeIn 0.25s ease;
+    overflow-y: auto !important;
 }
 
 .player-rec-full-view {

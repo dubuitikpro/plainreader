@@ -10870,7 +10870,11 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         card.className = 'player-rec-card-8';
         card.dataset.id = item.identifier || item.videoId || item.key || '';
 
-        const coverSrc = item.cover || getArchiveSvgCover(item.title, item.author);
+        const fallbackCover = (typeof generateAudioCoverDataUrl === 'function')
+            ? generateAudioCoverDataUrl(item.title, item.author)
+            : 'icon-192.png';
+
+        const coverSrc = item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : (item.coverUrl || fallbackCover));
         const typeBadge = item.type === 'youtube' ? 'YouTube' : (item.key ? 'Sách' : 'Archive');
 
         card.innerHTML = `
@@ -10891,24 +10895,35 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         const img = card.querySelector('.player-rec-card-cover');
         if (img) {
             img.onerror = () => {
-                img.src = getArchiveSvgCover(item.title, item.author);
+                img.onerror = null;
+                img.src = fallbackCover;
             };
         }
 
         card.addEventListener('click', () => {
-            if (item.key && !item.identifier && !item.videoId) {
-                openBookModal({
-                    title: item.title,
-                    author_name: [item.author],
-                    key: item.key,
-                    cover_i: item.cover?.match(/\/id\/(\d+)/)?.[1] || null
-                });
-            } else if (item.type === 'youtube' || item.videoId) {
+            if (item.type === 'youtube' || item.videoId) {
                 closeInPlayerRecommendations8();
-                playYoutubeAudiobook(item);
+                if (typeof loadAndPlayYoutube === 'function') {
+                    loadAndPlayYoutube(item, 0, true);
+                    showToast(`🎧 Đang phát: ${item.title}`);
+                }
+            } else if (item.identifier) {
+                closeInPlayerRecommendations8();
+                if (typeof loadAndPlayAudiobook === 'function') {
+                    loadAndPlayAudiobook(item.identifier, 0, true);
+                    showToast(`🎧 Đang phát: ${item.title}`);
+                }
             } else {
-                closeInPlayerRecommendations8();
-                loadAndPlayAudiobook(item.identifier, item.title, item.author, item.cover);
+                openBookModal({
+                    key: item.key || `/works/${encodeURIComponent(item.title)}`,
+                    title: item.title,
+                    titleVi: item.title,
+                    coverId: item.coverId,
+                    rating: item.rating || 4.8,
+                    ratingsCount: item.ratingsCount || 50000,
+                    reason: item.reason || item.description || '',
+                    year: item.year || ''
+                });
             }
         });
 
@@ -10958,11 +10973,10 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             playerRecGrid8.innerHTML = '';
         }
 
-        try {
-            const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
-            const results = [];
+        const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
 
-            // 1. On page 1: insert curated items for this cluster (up to 8 curated icons from different authors)
+        try {
+            // 1. On page 1: insert curated items for this cluster immediately (zero delay!)
             if (inPlayerRecPage === 1 && Array.isArray(inPlayerRecCluster.items)) {
                 inPlayerRecCluster.items.forEach(item => {
                     const normAuth = normalizeA(item.author);
@@ -10970,7 +10984,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                         inPlayerRecSeenAuthors.add(normAuth);
                         const id = item.identifier || item.videoId || item.key || `curated_${item.title}`;
                         inPlayerRecSeenIds.add(id);
-                        results.push({
+
+                        const curatedItem = {
                             identifier: item.identifier || null,
                             videoId: item.videoId || null,
                             key: item.key || null,
@@ -10979,51 +10994,56 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                             cover: item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : null),
                             description: item.reason || 'Đề xuất cùng thể loại',
                             type: item.type || (item.key ? 'book' : 'archive')
-                        });
+                        };
+
+                        const card = createPlayerRecCard8(curatedItem);
+                        playerRecGrid8.appendChild(card);
                     }
                 });
             }
 
             // 2. Query Archive.org for rich diverse items in this genre
-            const query = CLUSTER_ARCHIVE_QUERIES[inPlayerRecCluster.id] || CLUSTER_ARCHIVE_QUERIES.horror_mystery;
-            const enc = encodeURIComponent(query);
-            const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&sort[]=downloads+desc&rows=60&page=${inPlayerRecPage}&output=json`;
+            try {
+                const query = CLUSTER_ARCHIVE_QUERIES[inPlayerRecCluster.id] || CLUSTER_ARCHIVE_QUERIES.horror_mystery;
+                const enc = encodeURIComponent(query);
+                const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&fl%5B%5D=description&fl%5B%5D=downloads&sort%5B%5D=downloads+desc&rows=50&page=${inPlayerRecPage}&output=json`;
 
-            const resp = await fetch(archiveUrl);
-            if (resp.ok) {
-                const data = await resp.json();
-                const docs = (data.response && data.response.docs) || [];
+                const resp = await fetch(archiveUrl);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const docs = (data.response && data.response.docs) || [];
 
-                docs.forEach(d => {
-                    const author = d.creator || 'Internet Archive';
-                    const normAuth = normalizeA(author);
+                    docs.forEach(d => {
+                        const author = d.creator || 'Internet Archive';
+                        const normAuth = normalizeA(author);
 
-                    // Must NOT be the playing author or already seen author
-                    if (!isSameAuthor(author, inPlayerRecPlayingAuthor) && 
-                        !isSameAuthor(d.title, inPlayerRecPlayingAuthor) &&
-                        !inPlayerRecSeenAuthors.has(normAuth) && 
-                        !inPlayerRecSeenIds.has(d.identifier)) {
-                        
-                        inPlayerRecSeenAuthors.add(normAuth);
-                        inPlayerRecSeenIds.add(d.identifier);
-                        results.push({
-                            identifier: d.identifier,
-                            title: d.title || d.identifier,
-                            author: author,
-                            cover: `https://archive.org/services/img/${d.identifier}`,
-                            description: d.description || '',
-                            downloads: d.downloads || 0,
-                            type: 'archive'
-                        });
-                    }
-                });
+                        // Must NOT be the playing author or already seen author
+                        if (!isSameAuthor(author, inPlayerRecPlayingAuthor) && 
+                            !isSameAuthor(d.title, inPlayerRecPlayingAuthor) &&
+                            !inPlayerRecSeenAuthors.has(normAuth) && 
+                            !inPlayerRecSeenIds.has(d.identifier)) {
+                            
+                            inPlayerRecSeenAuthors.add(normAuth);
+                            inPlayerRecSeenIds.add(d.identifier);
+
+                            const archiveItem = {
+                                identifier: d.identifier,
+                                title: d.title || d.identifier,
+                                author: author,
+                                cover: `https://archive.org/services/img/${d.identifier}`,
+                                description: d.description || '',
+                                downloads: d.downloads || 0,
+                                type: 'archive'
+                            };
+
+                            const card = createPlayerRecCard8(archiveItem);
+                            playerRecGrid8.appendChild(card);
+                        }
+                    });
+                }
+            } catch (archiveErr) {
+                console.warn('Archive fetch error in recommendations:', archiveErr);
             }
-
-            // Append cards to grid
-            results.forEach(item => {
-                const card = createPlayerRecCard8(item);
-                playerRecGrid8.appendChild(card);
-            });
 
             inPlayerRecPage++;
 
