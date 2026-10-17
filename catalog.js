@@ -4440,6 +4440,12 @@
 
     function openPlayerForHistoryItem(item, autoPlay = false) {
         if (!item) return;
+
+        // Đóng triệt để trang đề xuất khi chọn sách từ lịch sử / bookmark
+        if (typeof closeInPlayerRecommendations8 === 'function') {
+            closeInPlayerRecommendations8();
+        }
+
         const id = item.identifier || item._storageKey || (item.videoId ? `yt_${item.videoId}` : null);
         const activeId = getActiveSessionIdentifier();
         const isCurrentActive = Boolean(activeId && (
@@ -6168,6 +6174,11 @@
     function loadAndPlayYoutube(item, startTime = null, autoPlay = true) {
         if (!item || !item.videoId) return;
 
+        // Đóng triệt để trang đề xuất khi phát sách YouTube mới
+        if (typeof closeInPlayerRecommendations8 === 'function') {
+            closeInPlayerRecommendations8();
+        }
+
         // Clear preview mode if active
         if (isViewingPreview) {
             isViewingPreview = false;
@@ -6505,6 +6516,11 @@
     // Core Audio Player Logic (Replicating Screenshot)
     // =========================================
     async function loadAndPlayAudiobook(identifier, trackIndex = null, autoPlay = true, resumeTime = null) {
+        // Đóng triệt để trang đề xuất khi phát sách mới
+        if (typeof closeInPlayerRecommendations8 === 'function') {
+            closeInPlayerRecommendations8();
+        }
+
         // Clear preview mode if active
         if (isViewingPreview) {
             isViewingPreview = false;
@@ -7855,6 +7871,14 @@
             audioPlayerModal.classList.remove('is-minimized');
             audioPlayerModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+
+            // Ensure player modal opens cleanly to player controls unless user explicitly opened recommendations view
+            if (!isInPlayerRecMode) {
+                if (playerRecFullView) playerRecFullView.style.display = 'none';
+                if (playerDialogBody) playerDialogBody.style.display = 'flex';
+                const dialog = audioPlayerModal.querySelector('.audio-player-dialog');
+                if (dialog) dialog.classList.remove('recommendations-mode');
+            }
 
             // Populate suggested books when audio player opens
             if (typeof updatePlayerSuggestedBooks === 'function') {
@@ -11140,13 +11164,23 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
     }
 
-    // Close In-Player Dedicated Recommendations Full View
+    // Close In-Player Dedicated Recommendations Full View (Triệt để reset & dọn sạch)
     function closeInPlayerRecommendations8() {
         isInPlayerRecMode = false;
+        inPlayerRecPage = 1;
+        inPlayerRecCluster = null;
+        inPlayerRecPlayingAuthor = '';
+        inPlayerRecPlayingTitle = '';
+        if (inPlayerRecSeenAuthors) inPlayerRecSeenAuthors.clear();
+        if (inPlayerRecSeenIds) inPlayerRecSeenIds.clear();
+        if (inPlayerRecSeenTitleCores) inPlayerRecSeenTitleCores.clear();
+
         const dialog = document.querySelector('.audio-player-dialog');
         if (dialog) dialog.classList.remove('recommendations-mode');
 
         if (playerRecFullView) playerRecFullView.style.display = 'none';
+        if (playerRecGrid8) playerRecGrid8.innerHTML = '';
+        if (playerRecLoading) playerRecLoading.style.display = 'none';
         if (playerDialogBody) playerDialogBody.style.display = 'flex';
     }
 
@@ -11580,11 +11614,6 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             });
         } else {
             playerSuggestedBox.style.display = 'none';
-        }
-
-        // If the 8-books-per-row dedicated recommendations view is currently open, automatically reload it for the newly playing audio!
-        if (isInPlayerRecMode) {
-            openInPlayerRecommendations8();
         }
         } catch (err) {
             console.error('Error updating player suggestions:', err);
