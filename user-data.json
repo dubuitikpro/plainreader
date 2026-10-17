@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792198892816,
+  "lastUpdated": 1792198910120,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -374,6 +374,20 @@
       "percent": 21,
       "isBookmarked": true,
       "updatedAt": 1792136345533
+    },
+    "nguyenngocnganfull": {
+      "identifier": "nguyenngocnganfull",
+      "type": "archive",
+      "title": "Nguyễn Ngọc Ngạn Full",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/nguyenngocnganfull",
+      "trackIndex": 77,
+      "trackTitle": "Audiobook 67 Đêm Không Trăng (Truyện Ma)",
+      "currentTime": 2,
+      "duration": 4531,
+      "percent": 0,
+      "isBookmarked": true,
+      "updatedAt": 1792198909208
     }
   },
   "audioBookmarks": [
@@ -493,12 +507,12 @@
       "updatedAt": 1791017523196
     }
   },
-  "lastPlayedId": "7670131803e640327f698418271ca555",
+  "lastPlayedId": "nguyenngocnganfull",
   "audioState": {
-    "identifier": "kenhsachnoi.com-dau-thuong-den-chet-phan-2-luan-hoi",
+    "identifier": "nguyenngocnganfull",
     "type": "archive",
-    "trackIndex": 0,
-    "time": 268,
+    "trackIndex": 77,
+    "time": 2,
     "volume": 1,
     "speedIndex": 0
   },
