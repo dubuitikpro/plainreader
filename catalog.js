@@ -199,6 +199,13 @@
     const modalRecTag = document.getElementById('modalRecTag');
     const playerSuggestedBox = document.getElementById('playerSuggestedBox');
     const playerSuggestedList = document.getElementById('playerSuggestedList');
+    const btnPlayerSuggestedLoadMore = document.getElementById('btnPlayerSuggestedLoadMore');
+    const playerSuggestedEndMessage = document.getElementById('playerSuggestedEndMessage');
+    let playerSuggestedPage = 1;
+    let playerSuggestedSearchQuery = '';
+    let playerSuggestedCurrentCluster = null;
+    let playerSuggestedSeenIds = new Set();
+    let isPlayerSuggestedLoading = false;
     const aiConfigModal = document.getElementById('aiConfigModal');
     const btnCloseAiConfig = document.getElementById('btnCloseAiConfig');
     const aiApiKeyInput = document.getElementById('aiApiKeyInput');
@@ -9957,6 +9964,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         {
             id: 'horror_ghost_vietnamese',
             tag: '👻 Truyện ma & Ly kỳ',
+            searchQuery: '("Nguyen Ngoc Ngan" OR "ngoc ngan" OR "truyen ma" OR "kinh di" OR "tam linh")',
             keywords: [
                 'nguyễn ngọc ngạn', 'nguyen ngoc ngan', 'truyện ma', 'truyen ma', 'kinh dị',
                 'cõi âm', 'ngôi mộ', 'bóng người dưới trăng', 'đêm không trăng', 'hồn về trong gió',
@@ -10017,6 +10025,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         {
             id: 'habits_productivity',
             tag: '⚡ Thói quen & Năng suất',
+            searchQuery: '("phat trien ban than" OR "thoi quen" OR "ky nang" OR "self help" OR "atomic habits")',
             keywords: [
                 'atomic habits', 'thay đổi tí hon', 'thói quen', 'deep work',
                 '7 thói quen', 'tuổi trẻ đáng giá', 'sức mạnh tiềm thức', 'trên đường băng', 'năng suất'
@@ -10067,6 +10076,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         {
             id: 'finance_wealth',
             tag: '💰 Tài chính & Làm giàu',
+            searchQuery: '("tai chinh" OR "lam giau" OR "kinh doanh" OR "tien bac" OR "rich dad")',
             keywords: [
                 'cha giàu', 'cha nghèo', 'rich dad', 'tâm lý học về tiền', 'psychology of money',
                 'nghĩ giàu làm giàu', 'tài chính', 'tiền bạc', 'đầu tư', 'kinh doanh'
@@ -10109,6 +10119,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         {
             id: 'strategy_power_history',
             tag: '⚔️ Chiến lược & Quyền lực',
+            searchQuery: '("tam quoc" OR "chien luoc" OR "binh phap" OR "bo gia" OR "art of war")',
             keywords: [
                 'tam quốc', 'bố già', 'godfather', 'mặt dày tâm đen', 'binh pháp',
                 'tôn tử', 'art of war', 'quyền lực', 'chiến lược'
@@ -10151,6 +10162,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         {
             id: 'literature_masterpiece',
             tag: '📖 Văn học kinh điển',
+            searchQuery: '("tieu thuyet" OR "van hoc" OR "truyen ngan" OR "nha gia kim" OR "hoang tu be")',
             keywords: [
                 'nhà giả kim', 'alchemist', 'hoàng tử bé', 'không gia đình',
                 'hai số phận', 'văn học', 'tiểu thuyết', 'paulo coelho', 'hector malot'
@@ -10193,6 +10205,7 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         {
             id: 'communication_healing',
             tag: '🌿 Chữa lành & Giao tiếp',
+            searchQuery: '("thien" OR "chua lanh" OR "tam ly" OR "dac nhan tam" OR "thich nhat hanh")',
             keywords: [
                 'đắc nhân tâm', 'how to win friends', 'đọc vị', 'quẳng gánh lo',
                 'giận', 'thích nhất hạnh', 'thiền', 'chữa lành', 'an lạc'
@@ -10234,10 +10247,50 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
     ];
 
-    // Helper: Render suggested items to player box
+    // Helper: Create single suggested card element
+    function createPlayerSuggestedCard(item) {
+        const card = document.createElement('div');
+        card.className = 'player-suggested-card';
+        card.title = `Nghe tiếp: ${item.title} — ${item.author || ''}${item.reason ? ' (' + item.reason + ')' : ''}`;
+        const coverSrc = item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : 'icon-192.png');
+
+        card.innerHTML = `
+            <img class="player-suggested-thumb" src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.onerror=null;this.src='icon-192.png';">
+            <span class="player-suggested-title">${escapeHtml(item.title)}</span>
+            <span class="player-suggested-author">${escapeHtml(item.author || '')}</span>
+            ${item.reason ? `<span class="player-suggested-reason">${escapeHtml(item.reason)}</span>` : ''}
+        `;
+
+        card.addEventListener('click', () => {
+            if (item.type === 'youtube') {
+                loadAndPlayYoutube(item, 0, true);
+            } else if (item.identifier) {
+                loadAndPlayAudiobook(item.identifier, 0, true);
+            }
+            showToast(`🎧 Đang phát: ${item.title}`);
+        });
+
+        return card;
+    }
+
+    // Helper: Append items to player suggested list
+    function appendPlayerSuggestedItems(items) {
+        if (!playerSuggestedList || !items || items.length === 0) return;
+        items.forEach(item => {
+            const idKey = (item.identifier || item.videoId || item.title || '').trim().toLowerCase();
+            if (idKey && playerSuggestedSeenIds.has(idKey)) return;
+            if (idKey) playerSuggestedSeenIds.add(idKey);
+            const card = createPlayerSuggestedCard(item);
+            playerSuggestedList.appendChild(card);
+        });
+    }
+
+    // Helper: Reset and render initial items to player box
     function renderPlayerSuggestedItems(items, tagLabel = 'Có thể bạn muốn nghe tiếp') {
         if (!playerSuggestedBox || !playerSuggestedList) return;
         playerSuggestedList.innerHTML = '';
+        playerSuggestedSeenIds = new Set();
+        playerSuggestedPage = 1;
 
         if (!items || items.length === 0) {
             playerSuggestedBox.style.display = 'none';
@@ -10250,30 +10303,119 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         }
 
         playerSuggestedBox.style.display = 'block';
-        items.slice(0, 4).forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'player-suggested-card';
-            card.title = `Nghe tiếp: ${item.title} — ${item.author || ''}${item.reason ? ' (' + item.reason + ')' : ''}`;
-            const coverSrc = item.cover || (item.identifier ? `https://archive.org/services/img/${item.identifier}` : 'icon-192.png');
-
-            card.innerHTML = `
-                <img class="player-suggested-thumb" src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.onerror=null;this.src='icon-192.png';">
-                <span class="player-suggested-title">${escapeHtml(item.title)}</span>
-                <span class="player-suggested-author">${escapeHtml(item.author || '')}</span>
-                ${item.reason ? `<span class="player-suggested-reason">${escapeHtml(item.reason)}</span>` : ''}
+        if (btnPlayerSuggestedLoadMore) {
+            btnPlayerSuggestedLoadMore.style.display = 'inline-flex';
+            btnPlayerSuggestedLoadMore.disabled = false;
+            btnPlayerSuggestedLoadMore.innerHTML = `
+                <span class="load-more-icon">🔄</span>
+                <span class="load-more-text">Tải thêm đề xuất liên quan</span>
             `;
+            btnPlayerSuggestedLoadMore.onclick = (e) => {
+                e.preventDefault();
+                loadMorePlayerSuggestedBooks();
+            };
+        }
+        if (playerSuggestedEndMessage) {
+            playerSuggestedEndMessage.style.display = 'none';
+        }
 
-            card.addEventListener('click', () => {
-                if (item.type === 'youtube') {
-                    loadAndPlayYoutube(item, 0, true);
-                } else if (item.identifier) {
-                    loadAndPlayAudiobook(item.identifier, 0, true);
+        // Show initial items (up to 8)
+        appendPlayerSuggestedItems(items.slice(0, 8));
+    }
+
+    // Infinite / Unlimited related audiobooks loading from Internet Archive & Curated DB
+    async function loadMorePlayerSuggestedBooks() {
+        if (isPlayerSuggestedLoading) return;
+        isPlayerSuggestedLoading = true;
+
+        if (btnPlayerSuggestedLoadMore) {
+            btnPlayerSuggestedLoadMore.disabled = true;
+            btnPlayerSuggestedLoadMore.innerHTML = `
+                <span style="display:inline-block; animation:spin 1s infinite linear;">🔄</span>
+                <span>Đang tìm thêm sách nói liên quan...</span>
+            `;
+        }
+
+        playerSuggestedPage++;
+
+        try {
+            let foundCount = 0;
+
+            // 1. First append any remaining cluster items
+            if (playerSuggestedCurrentCluster && Array.isArray(playerSuggestedCurrentCluster.items)) {
+                const remainingCluster = playerSuggestedCurrentCluster.items.filter(it => {
+                    const idKey = (it.identifier || it.videoId || it.title || '').trim().toLowerCase();
+                    return !playerSuggestedSeenIds.has(idKey);
+                });
+                if (remainingCluster.length > 0) {
+                    appendPlayerSuggestedItems(remainingCluster.slice(0, 4));
+                    foundCount += remainingCluster.length;
                 }
-                showToast(`🎧 Đang phát: ${item.title}`);
-            });
+            }
 
-            playerSuggestedList.appendChild(card);
-        });
+            // 2. Fetch from Internet Archive search API with current page
+            const queryToRun = playerSuggestedSearchQuery || '("sach noi" OR "audiobook" OR "truyen audio")';
+            const url = `https://archive.org/advancedsearch.php?q=(${encodeURIComponent(queryToRun)})+AND+mediatype:audio&fl[]=identifier,title,creator,description,year,downloads&sort[]=downloads+desc&rows=8&page=${playerSuggestedPage}&output=json`;
+
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                const docs = data.response?.docs || [];
+                const newItems = [];
+
+                for (const doc of docs) {
+                    if (!doc.identifier) continue;
+                    const idKey = doc.identifier.trim().toLowerCase();
+                    if (playerSuggestedSeenIds.has(idKey)) continue;
+
+                    let cleanT = (doc.title || doc.identifier)
+                        .replace(/- sachnoi\.app/gi, '')
+                        .replace(/wwww\.truyenaudio\.net/gi, '')
+                        .replace(/truyenaudio\.org/gi, '')
+                        .replace(/\[.*?\]/g, '')
+                        .replace(/\(.*?\)/g, '')
+                        .trim();
+
+                    if (!cleanT || cleanT.length < 2) cleanT = doc.identifier;
+                    if (playerSuggestedSeenIds.has(cleanT.toLowerCase())) continue;
+
+                    // Skip low quality audio / spectrogram
+                    if (/^(test|audio_sample|spectrogram|_)/i.test(doc.identifier)) continue;
+
+                    newItems.push({
+                        title: cleanT,
+                        author: doc.creator || 'Internet Archive',
+                        identifier: doc.identifier,
+                        cover: `https://archive.org/services/img/${doc.identifier}`,
+                        type: 'archive',
+                        reason: playerSuggestedCurrentCluster?.tag || 'Sách nói liên quan'
+                    });
+                }
+
+                if (newItems.length > 0) {
+                    appendPlayerSuggestedItems(newItems);
+                    foundCount += newItems.length;
+                    showToast(`✨ Đã nạp thêm ${newItems.length} sách nói liên quan!`);
+                }
+
+                if (docs.length === 0 && foundCount === 0) {
+                    if (btnPlayerSuggestedLoadMore) btnPlayerSuggestedLoadMore.style.display = 'none';
+                    if (playerSuggestedEndMessage) playerSuggestedEndMessage.style.display = 'block';
+                }
+            }
+        } catch (e) {
+            console.warn('Load more player suggestions error:', e);
+            showToast('⚠️ Không thể tải thêm từ Internet Archive lúc này.');
+        } finally {
+            isPlayerSuggestedLoading = false;
+            if (btnPlayerSuggestedLoadMore && btnPlayerSuggestedLoadMore.style.display !== 'none') {
+                btnPlayerSuggestedLoadMore.disabled = false;
+                btnPlayerSuggestedLoadMore.innerHTML = `
+                    <span class="load-more-icon">🔄</span>
+                    <span class="load-more-text">Tải thêm đề xuất liên quan</span>
+                `;
+            }
+        }
     }
 
     // Update Suggested Audiobooks in Dedicated Audio Player
@@ -10314,6 +10456,9 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         for (const cluster of PLAYER_SUGGESTED_CLUSTERS) {
             const matched = cluster.keywords.some(k => sig.includes(k.toLowerCase()));
             if (matched) {
+                playerSuggestedCurrentCluster = cluster;
+                playerSuggestedSearchQuery = cluster.searchQuery;
+
                 const filtered = cluster.items.filter(item => !isCurrentAudio(item));
                 if (filtered.length > 0) {
                     renderPlayerSuggestedItems(filtered, cluster.tag);
@@ -10321,14 +10466,14 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                     // If it's a specific author like Nguyen Ngoc Ngan, try to enrich with dynamic Archive items
                     if (sig.includes('nguyễn ngọc ngạn') || sig.includes('nguyen ngoc ngan')) {
                         try {
-                            const res = await fetch(`https://archive.org/advancedsearch.php?q=creator%3A%22Nguyen+Ngoc+Ngan%22+AND+mediatype%3Aaudio&fl[]=identifier,title,creator,description,year&sort[]=downloads+desc&rows=5&output=json`);
+                            const res = await fetch(`https://archive.org/advancedsearch.php?q=(%22Nguyen+Ngoc+Ngan%22+OR+%22ngoc+ngan%22)+AND+mediatype%3Aaudio&fl[]=identifier,title,creator,description,year&sort[]=downloads+desc&rows=6&output=json`);
                             if (res.ok) {
                                 const data = await res.json();
                                 const extraDocs = (data.response?.docs || []).filter(d => d.identifier && !isCurrentAudio(d));
                                 if (extraDocs.length > 0) {
                                     const combined = [
                                         ...extraDocs.map(d => ({
-                                            title: d.title.replace('- sachnoi.app', '').trim(),
+                                            title: d.title.replace(/- sachnoi\.app/gi, '').replace(/\[.*?\]/g, '').trim(),
                                             author: d.creator || 'Nguyễn Ngọc Ngạn',
                                             identifier: d.identifier,
                                             cover: `https://archive.org/services/img/${d.identifier}`,
@@ -10337,7 +10482,6 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
                                         })),
                                         ...filtered
                                     ];
-                                    // Deduplicate by identifier
                                     const unique = [];
                                     const seen = new Set();
                                     for (const it of combined) {
@@ -10371,6 +10515,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         });
 
         if (sameAuthorOrGenre.length > 0) {
+            playerSuggestedCurrentCluster = null;
+            playerSuggestedSearchQuery = playingAuthor ? `"${playingAuthor}"` : '("sach noi" OR "audiobook")';
             renderPlayerSuggestedItems(sameAuthorOrGenre, '✨ Có thể bạn muốn nghe tiếp');
             return;
         }
@@ -10412,6 +10558,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         ].filter(item => !isCurrentAudio(item));
 
         if (generalPicks.length > 0) {
+            playerSuggestedCurrentCluster = null;
+            playerSuggestedSearchQuery = '("sach noi" OR "audiobook" OR "truyen audio")';
             renderPlayerSuggestedItems(generalPicks, '🌟 Tác phẩm audio nổi bật');
         } else {
             playerSuggestedBox.style.display = 'none';

@@ -15,7 +15,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=16.3">
+    <link rel="stylesheet" href="catalog.css?v=16.4">
     <script>
         (function() {
             try {
@@ -1027,6 +1027,15 @@
                     <div class="player-suggested-list" id="playerSuggestedList">
                         <!-- Suggested books cards inserted here -->
                     </div>
+                    <div class="player-suggested-actions" id="playerSuggestedActions">
+                        <button type="button" class="btn-player-load-more" id="btnPlayerSuggestedLoadMore">
+                            <span class="load-more-icon">🔄</span>
+                            <span class="load-more-text">Tải thêm đề xuất liên quan</span>
+                        </button>
+                        <div id="playerSuggestedEndMessage" class="player-suggested-end" style="display:none;">
+                            <span>✨ Đã tải hết tất cả các sách nói liên quan trong danh mục này</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1250,7 +1259,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=16.3"></script>
-    <script src="catalog.js?v=16.3"></script>
+    <script src="sync.js?v=16.4"></script>
+    <script src="catalog.js?v=16.4"></script>
 </body>
 </html>

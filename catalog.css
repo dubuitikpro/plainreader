@@ -6536,6 +6536,54 @@ a { color: inherit; text-decoration: none; }
     padding: 2px 4px;
 }
 
+.player-suggested-actions {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-player-load-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: rgba(0, 206, 201, 0.12);
+    border: 1px solid rgba(0, 206, 201, 0.4);
+    border-radius: 999px;
+    color: #00cec9;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-player-load-more:hover {
+    background: rgba(0, 206, 201, 0.25);
+    border-color: #00cec9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 206, 201, 0.25);
+}
+
+.btn-player-load-more:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.player-suggested-end {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    text-align: center;
+}
+
 /* AI Config Modal */
 .ai-config-card {
     max-width: 480px;
