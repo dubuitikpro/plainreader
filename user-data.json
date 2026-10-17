@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792218252530,
+  "lastUpdated": 1792218258444,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -391,6 +391,14 @@
     }
   },
   "audioBookmarks": [
+    {
+      "identifier": "dam-bi-ghet",
+      "type": "archive",
+      "title": "Dám Bị Ghét",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/dam-bi-ghet",
+      "bookmarkedAt": 1792218258443
+    },
     {
       "identifier": "nguyenngocnganfull",
       "type": "archive",
