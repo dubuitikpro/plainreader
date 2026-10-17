@@ -4840,7 +4840,8 @@
     // Helper: Global strict author comparison to ensure different authors
     function isSameAuthorComparison(authorA, authorB) {
         if (!authorA || !authorB) return false;
-        const normalize = (name) => (name || '').toLowerCase().trim().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+        const removeDiacritics = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        const normalize = (name) => removeDiacritics(name).toLowerCase().trim().replace(/^(sir|dai su|thay|nha van|tac gia)\s+/i, '');
         const a = normalize(authorA);
         const b = normalize(authorB);
         if (!a || !b) return false;
