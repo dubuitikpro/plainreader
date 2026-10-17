@@ -164,11 +164,23 @@
     const btnLoadMoreAudio = document.getElementById('btnLoadMoreAudio');
     const loadMoreAudioText = document.getElementById('loadMoreAudioText');
 
+    // WebArchive Full Page Recommendations Banner Elements
+    const audioRecBanner = document.getElementById('audioRecBanner');
+    const audioRecBannerTitle = document.getElementById('audioRecBannerTitle');
+    const audioRecBannerDesc = document.getElementById('audioRecBannerDesc');
+    const btnAudioRecExit = document.getElementById('btnAudioRecExit');
+
     let currentAudioSort = 'downloads'; // 'downloads' or 'addeddate'
     let currentRecentSubFilter = 'all';
     let currentRecentPage = 1;
     let isRecentAudioLoading = false;
     const recentArchiveCache = {}; // subFilter_page_X -> { items: [], hasMore: bool, timestamp: 0 }
+
+    let isAudioRecMode = false;
+    let currentRecCluster = null;
+    let currentRecClusterPage = 1;
+    let currentRecClusterPlayingTitle = '';
+    let currentRecClusterPlayingAuthor = '';
 
     // Audio History & In-Progress Elements
     const tabHistory = document.getElementById('tabHistory');
@@ -4823,6 +4835,163 @@
         librivox: '🎙️ LibriVox & Bản thu kinh điển mới đăng (Archive.org)'
     };
 
+    // =========================================
+    // Dedicated WebArchive Full Page Recommendations
+    // =========================================
+    const CLUSTER_ARCHIVE_QUERIES = {
+        horror_mystery: 'mediatype:audio AND (title:("trinh thám" OR "kinh dị" OR "truyện ma" OR "vụ án" OR "bố già" OR "mật mã da vinci" OR "sherlock holmes" OR "agatha christie" OR "dracula" OR "stephen king") OR description:("trinh thám" OR "kinh dị"))',
+        habits_productivity: 'mediatype:audio AND (title:("thay đổi tí hon" OR "thói quen" OR "năng suất" OR "deep work" OR "tập trung" OR "sức mạnh tiềm thức" OR "trên đường băng" OR "tuổi trẻ đáng giá") OR description:("phát triển bản thân"))',
+        finance_wealth: 'mediatype:audio AND (title:("tâm lý học về tiền" OR "cha giàu cha nghèo" OR "nghĩ giàu làm giàu" OR "tài chính" OR "đầu tư" OR "kinh doanh" OR "thành babylon") OR description:("tài chính"))',
+        strategy_power_history: 'mediatype:audio AND (title:("tam quốc" OR "bố già" OR "binh pháp tôn tử" OR "quyền lực" OR "mặt dày tâm đen" OR "chiến lược" OR "quân vương") OR description:("chiến lược"))',
+        literature_masterpiece: 'mediatype:audio AND (title:("nhà giả kim" OR "hoàng tử bé" OR "không gia đình" OR "hai số phận" OR "tội ác và trừng phạt" OR "tiểu thuyết") OR collection:(audio_bookspoetry OR librivoxaudio))',
+        communication_healing: 'mediatype:audio AND (title:("đắc nhân tâm" OR "giận" OR "thích nhất hạnh" OR "chữa lành" OR "đọc vị bất kỳ ai" OR "quẳng gánh lo") OR description:("chữa lành"))'
+    };
+
+    async function loadWebArchiveRecommendations(cluster, playingTitle = '', playingAuthor = '', page = 1, append = false) {
+        if (!cluster) return;
+        isAudioRecMode = true;
+        currentRecCluster = cluster;
+        currentRecClusterPage = page;
+        currentRecClusterPlayingTitle = playingTitle;
+        currentRecClusterPlayingAuthor = playingAuthor;
+
+        // Hide recent subbar to focus on recommendations
+        if (audioRecentSubBar) audioRecentSubBar.style.display = 'none';
+
+        // Show recommendation banner
+        if (audioRecBanner) {
+            audioRecBanner.style.display = 'flex';
+        }
+        if (audioRecBannerTitle) {
+            const cleanTag = (cluster.tag || 'Đề xuất cùng thể loại').replace(/^[^\w\s\u00C0-\u1EF9]+/u, '').trim();
+            audioRecBannerTitle.textContent = `Tuyển tập ${cleanTag} (Đa tác giả)`;
+        }
+        if (audioRecBannerDesc) {
+            audioRecBannerDesc.textContent = playingTitle
+                ? `Đề xuất từ tác phẩm: "${playingTitle}" • Tuyển chọn tác giả khác nhau (Loại trừ ${playingAuthor || 'tác giả hiện tại'})`
+                : `Tuyển chọn tác giả khác nhau trong cùng thể loại trên Web Archive`;
+        }
+
+        if (!append) {
+            if (audiobooksLoading) {
+                audiobooksLoading.style.display = 'flex';
+                const loadText = audiobooksLoading.querySelector('p');
+                if (loadText) loadText.textContent = `Đang tải toàn trang đề xuất Web Archive cùng thể loại (${cluster.tag || ''})...`;
+            }
+            if (audiobooksGrid) audiobooksGrid.style.display = 'none';
+            if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+        } else {
+            if (btnLoadMoreAudio) {
+                btnLoadMoreAudio.disabled = true;
+                if (loadMoreAudioText) loadMoreAudioText.textContent = `Đang tải thêm trang ${page}...`;
+            }
+        }
+
+        try {
+            const seenAuthors = new Set();
+            const seenIds = new Set();
+            const results = [];
+
+            // Helper to normalize author
+            const normalizeA = (a) => (a || '').trim().toLowerCase().replace(/^(sir|đại sư|thầy|nhà văn|tác giả)\s+/i, '');
+
+            if (playingAuthor) {
+                seenAuthors.add(normalizeA(playingAuthor));
+            }
+
+            // 1. First page gets high-quality curated archive items for this cluster
+            if (page === 1 && Array.isArray(cluster.items)) {
+                cluster.items.forEach(item => {
+                    const normAuth = normalizeA(item.author);
+                    if (!isSameAuthor(item.author, playingAuthor) && !seenAuthors.has(normAuth)) {
+                        seenAuthors.add(normAuth);
+                        const id = item.identifier || `curated_${item.title}`;
+                        seenIds.add(id);
+                        results.push({
+                            identifier: item.identifier || id,
+                            title: item.title,
+                            author: item.author,
+                            cover: item.cover || `https://archive.org/services/img/${item.identifier}`,
+                            description: item.reason || 'Tác phẩm đề xuất cùng thể loại',
+                            genre: cluster.id,
+                            chapters: null
+                        });
+                    }
+                });
+            }
+
+            // 2. Query Archive.org for rich diverse items in this genre
+            const query = CLUSTER_ARCHIVE_QUERIES[cluster.id] || CLUSTER_ARCHIVE_QUERIES.horror_mystery;
+            const enc = encodeURIComponent(query);
+            const archiveUrl = `https://archive.org/advancedsearch.php?q=${enc}&fl[]=identifier,title,creator,description,downloads,item_size,year,addeddate,publicdate&sort[]=downloads+desc&rows=35&page=${page}&output=json`;
+
+            const resp = await fetch(archiveUrl);
+            if (resp.ok) {
+                const data = await resp.json();
+                const docs = (data.response && data.response.docs) || [];
+
+                docs.forEach(d => {
+                    const author = d.creator || 'Internet Archive';
+                    const normAuth = normalizeA(author);
+
+                    // Must NOT be the playing author or already seen author
+                    if (!isSameAuthor(author, playingAuthor) && 
+                        !isSameAuthor(d.title, playingAuthor) &&
+                        !seenAuthors.has(normAuth) && 
+                        !seenIds.has(d.identifier)) {
+                        
+                        seenAuthors.add(normAuth);
+                        seenIds.add(d.identifier);
+                        results.push({
+                            identifier: d.identifier,
+                            title: d.title || d.identifier,
+                            author: author,
+                            cover: `https://archive.org/services/img/${d.identifier}`,
+                            description: d.description || '',
+                            downloads: d.downloads || 0,
+                            addeddate: d.addeddate || d.publicdate || null,
+                            genre: cluster.id,
+                            chapters: null
+                        });
+                    }
+                });
+            }
+
+            if (audiobooksSectionTitle) {
+                audiobooksSectionTitle.textContent = `✨ Toàn trang Đề xuất Web Archive (${results.length} tác phẩm)`;
+            }
+
+            if (append) {
+                appendAudiobooksToGrid(results, 'archive');
+            } else {
+                renderAudiobooksGrid(results, 'archive');
+            }
+
+            if (audiobooksPagination) {
+                audiobooksPagination.style.display = results.length > 0 ? 'flex' : 'none';
+                if (btnLoadMoreAudio) {
+                    btnLoadMoreAudio.disabled = false;
+                    if (loadMoreAudioText) {
+                        loadMoreAudioText.textContent = `Tải thêm đề xuất Web Archive (Trang ${page + 1})`;
+                    }
+                }
+            }
+
+        } catch (err) {
+            console.error('Error loading WebArchive recommendations:', err);
+            showToast('Không thể tải toàn trang đề xuất lúc này');
+        } finally {
+            if (audiobooksLoading) audiobooksLoading.style.display = 'none';
+            if (audiobooksGrid) audiobooksGrid.style.display = 'grid';
+            if (btnLoadMoreAudio) btnLoadMoreAudio.disabled = false;
+
+            // Scroll smoothly to recommendation banner
+            if (audioRecBanner) {
+                audioRecBanner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    }
+
     async function loadRecentArchiveAudiobooks(subFilter = 'all', page = 1, append = false, isRefresh = false) {
         if (isRecentAudioLoading) return;
         isRecentAudioLoading = true;
@@ -4939,6 +5108,12 @@
             const tag = e.target.closest('.audio-tag');
             if (!tag) return;
 
+            if (isAudioRecMode) {
+                isAudioRecMode = false;
+                currentRecCluster = null;
+                if (audioRecBanner) audioRecBanner.style.display = 'none';
+            }
+
             audioGenreTags.querySelectorAll('.audio-tag').forEach(t => t.classList.remove('active'));
             tag.classList.add('active');
 
@@ -4999,10 +5174,39 @@
         });
     }
 
-    // Load More Pagination for Recent Feed
+    // Load More Pagination for Recent Feed or WebArchive Recommendations
     if (btnLoadMoreAudio) {
         btnLoadMoreAudio.addEventListener('click', () => {
-            loadRecentArchiveAudiobooks(currentRecentSubFilter, currentRecentPage + 1, true, false);
+            if (isAudioRecMode && currentRecCluster) {
+                loadWebArchiveRecommendations(
+                    currentRecCluster,
+                    currentRecClusterPlayingTitle,
+                    currentRecClusterPlayingAuthor,
+                    currentRecClusterPage + 1,
+                    true
+                );
+            } else {
+                loadRecentArchiveAudiobooks(currentRecentSubFilter, currentRecentPage + 1, true, false);
+            }
+        });
+    }
+
+    // Exit WebArchive Recommendation View Button
+    if (btnAudioRecExit) {
+        btnAudioRecExit.addEventListener('click', () => {
+            isAudioRecMode = false;
+            currentRecCluster = null;
+            if (audioRecBanner) audioRecBanner.style.display = 'none';
+            if (audiobooksPagination) audiobooksPagination.style.display = 'none';
+            const titleEl = document.getElementById('audiobooksSectionTitle');
+            if (titleEl) {
+                titleEl.textContent = currentAudioSource === 'youtube'
+                    ? 'Tuyển tập Sách Nói & Nhạc Đọc Sách (YouTube Music)'
+                    : 'Tuyển tập Sách Nói (Internet Archive)';
+            }
+            const collection = currentAudioSource === 'youtube' ? CURATED_YOUTUBE_AUDIOBOOKS : CURATED_AUDIOBOOKS;
+            renderAudiobooksGrid(collection, currentAudioSource);
+            showToast('Đã quay lại danh mục tuyển tập');
         });
     }
 
@@ -10724,55 +10928,26 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
         return card;
     }
 
-    // Launch Dedicated Recommendations Discovery Page (Full Page View with Auto-Minimize Player)
-    function openDedicatedRecommendationsForAudio() {
+    // Launch Dedicated Recommendations Discovery Page (Full Page WebArchive View with Auto-Minimize Player)
+    async function openDedicatedRecommendationsForAudio() {
         const activeCluster = playerSuggestedCurrentCluster;
-        const moodId = activeCluster?.moodId || 'all';
-        const searchQ = activeCluster?.recPagePrompt || '';
-        const clusterTag = activeCluster?.recPageTitle || activeCluster?.tag || '🌟 Tuyển tập Đề xuất cùng thể loại (Đa tác giả)';
+        const activeBook = previewViewingBook || currentAudiobook || ytCurrentItem || null;
+        const playingAuthor = (activeBook?.author || document.getElementById('playerBookAuthor')?.textContent || '').trim();
+        const playingTitle = (activeBook?.title || document.getElementById('playerBookTitle')?.textContent || '').trim();
 
         // 1. Minimize audio player modal so audio continues playing uninterrupted in mini-player
         minimizeAudioPlayerModal();
 
-        // 2. Switch to Dedicated Recommendations Tab
-        switchTab('recommend');
+        // 2. Switch to the Audio Tab (Web Archive catalog), NOT the AI search tab!
+        switchTab('audio');
 
-        // 3. Highlight corresponding mood in recMoodsScroll
-        if (recMoodsScroll) {
-            recMoodsScroll.querySelectorAll('.rec-mood-tag').forEach(t => {
-                t.classList.toggle('active', t.dataset.mood === moodId);
-            });
-        }
-        currentRecMood = moodId;
+        // 3. Ensure Audio Source is Internet Archive
+        setAudioSource('archive', false);
 
-        // 4. Update Engine Navigation to 'all'
-        if (recEngineNav) {
-            recEngineNav.querySelectorAll('.rec-engine-btn').forEach(b => {
-                b.classList.toggle('active', b.dataset.engine === 'all');
-            });
-        }
-        currentRecEngine = 'all';
+        // 4. Load full page recommendations from WebArchive for this genre cluster
+        await loadWebArchiveRecommendations(activeCluster, playingTitle, playingAuthor, 1, false);
 
-        // 5. Update AI Prompt Bar and Header Title
-        if (recAiPromptInput) {
-            recAiPromptInput.value = searchQ;
-        }
-        const titleEl = document.getElementById('recResultsTitle');
-        if (titleEl) {
-            titleEl.innerHTML = `<span>${clusterTag}</span>`;
-        }
-
-        // 6. Run recommendation search
-        currentRecPage = 1;
-        runRecommendationSearch(searchQ, 'all', moodId, 1, false);
-
-        // 7. Scroll smoothly to top of recommendation section
-        const recSection = document.getElementById('contentRecommend');
-        if (recSection) {
-            recSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        showToast('🚀 Đã mở trang Khám phá & Đề xuất (Trình phát đang thu nhỏ ở góc phải)');
+        showToast('🚀 Đã mở toàn trang đề xuất Web Archive (Trình phát đang thu nhỏ ở góc phải)');
     }
 
     // Helper: Reset and render items to player box
@@ -10802,7 +10977,8 @@ Trả về duy nhất định dạng JSON thuần không có markdown code block
             };
         }
         if (playerOpenRecPageText && cluster?.tag) {
-            playerOpenRecPageText.textContent = `Mở trang Khám phá ${cluster.tag.replace(/^[^\w\s\u00C0-\u1EF9]+/u, '').trim()} (Đa tác giả) ↗`;
+            const cleanName = cluster.tag.replace(/^[^\w\s\u00C0-\u1EF9]+/u, '').trim();
+            playerOpenRecPageText.textContent = `Mở toàn trang đề xuất ${cleanName} (Đa tác giả) ↗`;
         }
 
         // Show diverse author items (up to 6)

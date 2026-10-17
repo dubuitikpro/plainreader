@@ -15,7 +15,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=16.6">
+    <link rel="stylesheet" href="catalog.css?v=16.7">
     <script>
         (function() {
             try {
@@ -415,6 +415,25 @@
                     <button class="recent-pill" data-sub="sachnoi" type="button">📚 Sách nói & Tự lực</button>
                     <button class="recent-pill" data-sub="librivox" type="button">🎙️ LibriVox & Thế giới</button>
                 </div>
+            </div>
+
+            <!-- Dedicated WebArchive Recommendations Banner (Opened from Audio Player) -->
+            <div class="audio-rec-banner" id="audioRecBanner" style="display: none;">
+                <div class="audio-rec-banner-left">
+                    <div class="audio-rec-badge">
+                        <span class="live-dot-pulse"></span>
+                        <span id="audioRecBadgeText">TOÀN TRANG ĐỀ XUẤT WEB ARCHIVE</span>
+                    </div>
+                    <h3 class="audio-rec-banner-title" id="audioRecBannerTitle">Tuyển tập Trinh thám, Kinh dị & Ly kỳ (Đa tác giả)</h3>
+                    <p class="audio-rec-banner-desc" id="audioRecBannerDesc">Gợi ý từ tác phẩm đang nghe: "Ngôi Mộ Mới Đắp" • Chọn lọc đa dạng tác giả (Không trùng lặp)</p>
+                </div>
+                <button class="btn-audio-rec-exit" id="btnAudioRecExit" type="button" title="Thoát chế độ đề xuất, quay lại kho sách chung">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Thoát xem đề xuất</span>
+                </button>
             </div>
 
             <!-- Audiobooks Grid -->
@@ -1085,10 +1104,10 @@
                     </div>
                     <div class="player-suggested-actions" id="playerSuggestedActions">
                         <button type="button" class="btn-player-open-rec-page" id="btnPlayerOpenRecPage">
-                            <span class="btn-icon">🚀</span>
-                            <span class="btn-text" id="playerOpenRecPageText">Mở trang Khám phá & Đề xuất cùng thể loại (Đa tác giả) ↗</span>
+                            <span class="btn-icon">🌐</span>
+                            <span class="btn-text" id="playerOpenRecPageText">Mở toàn trang đề xuất Web Archive cùng thể loại (Đa tác giả) ↗</span>
                         </button>
-                        <span class="player-suggested-hint">Mở kho sách lớn với hàng ngàn tác phẩm từ nhiều tác giả khác nhau (trình phát sẽ tự thu nhỏ ở góc phải)</span>
+                        <span class="player-suggested-hint">Mở toàn trang audio Web Archive theo thể loại này với nhiều tác giả khác nhau (trình phát sẽ thu nhỏ ở góc phải)</span>
                     </div>
                 </div>
             </div>
@@ -1313,7 +1332,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=16.6"></script>
-    <script src="catalog.js?v=16.6"></script>
+    <script src="sync.js?v=16.7"></script>
+    <script src="catalog.js?v=16.7"></script>
 </body>
 </html>
