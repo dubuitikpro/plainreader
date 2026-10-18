@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792318332606,
+  "lastUpdated": 1792318592846,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -370,11 +370,11 @@
       "cover": "https://archive.org/services/img/7670131803e640327f698418271ca555",
       "trackIndex": 6,
       "trackTitle": "32 00 chuong 5 lay lai suc manh ca nhan cua ban",
-      "currentTime": 512,
+      "currentTime": 772,
       "duration": 2265,
-      "percent": 23,
+      "percent": 34,
       "isBookmarked": true,
-      "updatedAt": 1792318332499
+      "updatedAt": 1792318592476
     },
     "nguyenngocnganfull": {
       "identifier": "nguyenngocnganfull",
@@ -575,7 +575,7 @@
     "identifier": "7670131803e640327f698418271ca555",
     "type": "archive",
     "trackIndex": 6,
-    "time": 512,
+    "time": 772,
     "volume": 1,
     "speedIndex": 0
   },
