@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792301919712,
+  "lastUpdated": 1792302377931,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -252,13 +252,13 @@
       "cover": "https://i.ytimg.com/vi/6wbQme0JZkQ/hqdefault.jpg",
       "trackIndex": 0,
       "trackTitle": "Sách Nói: Những Quy Luật Của Bản Chất Con Người - Robert Greene",
-      "currentTime": 54,
+      "currentTime": 813,
       "duration": 5072,
-      "percent": 1,
+      "percent": 16,
       "isBookmarked": false,
       "note": "Hiểu về con người",
       "noteUpdatedAt": 1790993706310,
-      "updatedAt": 1792301916710
+      "updatedAt": 1792302377043
     },
     "48-nguyen-tac-chu-chot-cua-quyen-luc": {
       "identifier": "48-nguyen-tac-chu-chot-cua-quyen-luc",
@@ -575,11 +575,12 @@
     "identifier": "yt_6wbQme0JZkQ",
     "type": "youtube",
     "trackIndex": 0,
-    "time": 54,
+    "time": 813,
     "volume": 1,
     "speedIndex": 0
   },
   "searchHistory": [
+    "Bản chất con người",
     "tâm lý học tội phạm",
     "Đề thi đẫm máu",
     "Dám Bị Ghét",
@@ -603,8 +604,7 @@
     "Thay Đổi Tí Hon",
     "Tinh hoa Đạo học Đông phương",
     "Óc sáng suốt",
-    "Oc sang suot",
-    "Thuat Yeu Duong - Nguyen Duy Can"
+    "Oc sang suot"
   ],
-  "theme": "light"
+  "theme": "dark"
 }
