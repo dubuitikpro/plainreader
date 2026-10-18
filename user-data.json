@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792282654206,
+  "lastUpdated": 1792284655066,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -413,11 +413,11 @@
       "cover": "https://archive.org/services/img/dethidammau",
       "trackIndex": 0,
       "trackTitle": "de thi dam mau phan 1 tap 1",
-      "currentTime": 58,
+      "currentTime": 22,
       "duration": 2090,
-      "percent": 3,
+      "percent": 1,
       "isBookmarked": true,
-      "updatedAt": 1792279953218
+      "updatedAt": 1792284655007
     }
   },
   "audioBookmarks": [
@@ -561,12 +561,12 @@
       "updatedAt": 1792249090553
     }
   },
-  "lastPlayedId": "dam-bi-ghet",
+  "lastPlayedId": "dethidammau",
   "audioState": {
-    "identifier": "dam-bi-ghet",
+    "identifier": "dethidammau",
     "type": "archive",
-    "trackIndex": 2,
-    "time": 2677,
+    "trackIndex": 0,
+    "time": 22,
     "volume": 1,
     "speedIndex": 0
   },
