@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792284922317,
+  "lastUpdated": 1792285717988,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -413,11 +413,11 @@
       "cover": "https://archive.org/services/img/dethidammau",
       "trackIndex": 0,
       "trackTitle": "de thi dam mau phan 1 tap 1",
-      "currentTime": 288,
+      "currentTime": 1082,
       "duration": 2090,
-      "percent": 14,
+      "percent": 52,
       "isBookmarked": true,
-      "updatedAt": 1792284921365
+      "updatedAt": 1792285714985
     }
   },
   "audioBookmarks": [
@@ -566,7 +566,7 @@
     "identifier": "dethidammau",
     "type": "archive",
     "trackIndex": 0,
-    "time": 288,
+    "time": 1082,
     "volume": 1,
     "speedIndex": 0
   },
