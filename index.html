@@ -15,7 +15,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="catalog.css?v=19.0">
+    <link rel="stylesheet" href="catalog.css?v=20.0">
     <script>
         (function() {
             try {
@@ -104,7 +104,17 @@
         <!-- Tabs Navigation -->
         <div class="tabs-container">
             <div class="tabs" id="tabs" role="tablist">
-                <button class="tab active" data-tab="explore" id="tabExplore" role="tab" aria-selected="true" title="Khám phá">
+                <button class="tab active" data-tab="history" id="tabHistory" role="tab" aria-selected="true" title="Tiến trình & Lịch sử nghe (Trang chính)">
+                    <div class="tab-icon-wrap">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span class="tab-count" id="audioHistoryCount">0</span>
+                    </div>
+                    <span class="tab-label">Đang nghe</span>
+                </button>
+                <button class="tab" data-tab="explore" id="tabExplore" role="tab" aria-selected="false" title="Khám phá">
                     <div class="tab-icon-wrap">
                         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                             <circle cx="11" cy="11" r="8"/>
@@ -112,6 +122,16 @@
                         </svg>
                     </div>
                     <span class="tab-label">Khám phá</span>
+                </button>
+                <button class="tab" data-tab="audio" id="tabAudio" role="tab" aria-selected="false" title="Sách nói Audio">
+                    <div class="tab-icon-wrap">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                        </svg>
+                        <span class="tab-badge-audio">Audio</span>
+                    </div>
+                    <span class="tab-label">Sách nói</span>
                 </button>
                 <button class="tab" data-tab="wishlist" id="tabWishlist" role="tab" aria-selected="false" title="Muốn đọc">
                     <div class="tab-icon-wrap">
@@ -133,26 +153,6 @@
                     </div>
                     <span class="tab-label">Đã đọc</span>
                 </button>
-                <button class="tab" data-tab="audio" id="tabAudio" role="tab" aria-selected="false" title="Sách nói Audio">
-                    <div class="tab-icon-wrap">
-                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-                            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-                        </svg>
-                        <span class="tab-badge-audio">Audio</span>
-                    </div>
-                    <span class="tab-label">Sách nói</span>
-                </button>
-                <button class="tab" data-tab="history" id="tabHistory" role="tab" aria-selected="false" title="Tiến trình & Lịch sử nghe">
-                    <div class="tab-icon-wrap">
-                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        <span class="tab-count" id="audioHistoryCount">0</span>
-                    </div>
-                    <span class="tab-label">Đang nghe</span>
-                </button>
                 <button class="tab" data-tab="recommend" id="tabRecommend" role="tab" aria-selected="false" title="Gợi ý AI & Đa Nguồn">
                     <div class="tab-icon-wrap">
                         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
@@ -166,7 +166,7 @@
         </div>
 
         <!-- Explore Tab Content -->
-        <div class="tab-content active" id="contentExplore">
+        <div class="tab-content" id="contentExplore">
             <!-- Recommendations Section -->
             <section class="section" id="recommendationsSection" style="display:none;">
                 <div class="section-header">
@@ -405,8 +405,8 @@
             </div>
         </div>
 
-        <!-- Audio History / In-Progress Tab Content -->
-        <div class="tab-content" id="contentHistory">
+        <!-- Audio History / In-Progress Tab Content (Trang chính / Home) -->
+        <div class="tab-content active" id="contentHistory">
             <div class="history-page-header">
                 <div class="history-header-left">
                     <div class="history-badge">
@@ -1315,7 +1315,7 @@
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="sync.js?v=19.0"></script>
-    <script src="catalog.js?v=19.0"></script>
+    <script src="sync.js?v=20.0"></script>
+    <script src="catalog.js?v=20.0"></script>
 </body>
 </html>

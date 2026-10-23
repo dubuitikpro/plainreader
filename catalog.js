@@ -2385,9 +2385,15 @@
     // =========================================
     function switchTab(tabName) {
         // Update tab buttons
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+        });
         const targetTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
-        if (targetTab) targetTab.classList.add('active');
+        if (targetTab) {
+            targetTab.classList.add('active');
+            targetTab.setAttribute('aria-selected', 'true');
+        }
 
         // Update tab content
         [contentExplore, contentWishlist, contentFinished, contentAudio, contentHistory, contentRecommend].forEach(c => {
@@ -8326,6 +8332,9 @@
     initSavedAudioState();
     renderAudioContinueSection();
 
+    // Trang chủ mặc định: Tiến trình & Sách đã Bookmark
+    switchTab('history');
+
     // Sync Engine initialization
     if (window.PlainSync && typeof window.PlainSync.init === 'function') {
         window.PlainSync.init((newData) => {
@@ -8353,7 +8362,7 @@
     document.querySelectorAll('a[href="index.html"], a[href="./"], a.logo').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            switchTab('explore');
+            switchTab('history');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
