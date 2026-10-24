@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792800878304,
+  "lastUpdated": 1792800894229,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -228,6 +228,32 @@
       "coverUrl": "https://covers.openlibrary.org/b/id/7014101-M.jpg",
       "rating": 4.6,
       "ratingsCount": 35000
+    },
+    {
+      "id": "ai_o500q0ch8y",
+      "title": "Không Thể Bị Xao Nhãng",
+      "originalTitle": "Indistractable: How to Control Your Attention and Choose Your Life",
+      "author": "Nir Eyal",
+      "year": 2019,
+      "rating": 3.9,
+      "ratingsCount": 9,
+      "genre": "all",
+      "source": "ai",
+      "sourceLabel": "🤖 Gemini AI Gợi Ý",
+      "coverUrl": "https://covers.openlibrary.org/b/id/9129784-M.jpg",
+      "summary": "Tác giả chỉ ra rằng nguyên nhân gốc rễ của sự xao nhãng không nằm ở công nghệ mà xuất phát từ việc chúng ta muốn trốn tránh cảm giác khó chịu. Cuốn sách cung cấp mô hình 4 bước toàn diện để làm chủ bản thân, thiết lập ranh giới với thiết bị số và kiến tạo không gian sống tập trung. Bạn sẽ học được cách biến những ý định thành hành động thực tế thông qua việc quản lý các tác nhân gây mất tập trung từ bên trong lẫn bên ngoài.",
+      "description": "Tác giả chỉ ra rằng nguyên nhân gốc rễ của sự xao nhãng không nằm ở công nghệ mà xuất phát từ việc chúng ta muốn trốn tránh cảm giác khó chịu. Cuốn sách cung cấp mô hình 4 bước toàn diện để làm chủ bản thân, thiết lập ranh giới với thiết bị số và kiến tạo không gian sống tập trung. Bạn sẽ học được cách biến những ý định thành hành động thực tế thông qua việc quản lý các tác nhân gây mất tập trung từ bên trong lẫn bên ngoài.",
+      "reason": "Đây là cuốn cẩm nang thực chiến hiện đại nhất giúp giải quyết tận gốc rễ tâm lý trốn tránh dẫn đến sự xao nhãng.",
+      "key": "/works/OL20464319W",
+      "subjects": [
+        "Psychology",
+        "Goal (psychology)",
+        "Self-actualization (psychology)",
+        "Technology, social aspects",
+        "Attention",
+        "Distraction (Psychology)"
+      ],
+      "audioIdentifier": null
     }
   ],
   "favorites": [],
