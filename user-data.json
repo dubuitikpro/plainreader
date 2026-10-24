@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": 1792801027341,
+  "lastUpdated": 1792801074653,
   "wishlist": [
     {
       "key": "/works/OL19761410W",
@@ -449,6 +449,14 @@
     }
   },
   "audioBookmarks": [
+    {
+      "identifier": "giai-doc-dopamine-sachnoi.cc",
+      "type": "archive",
+      "title": "Giải Độc Dopamine (Dopamine Detox)-sachnoi.cc",
+      "author": "Internet Archive",
+      "cover": "https://archive.org/services/img/giai-doc-dopamine-sachnoi.cc",
+      "bookmarkedAt": 1792801074652
+    },
     {
       "identifier": "tam-ly-hoc-toi-pham",
       "type": "archive",
